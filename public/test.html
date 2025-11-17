@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vercel Test Page</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 30px;
+      border-radius: 10px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      margin-top: 0;
+    }
+    .status {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 15px;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+    .success {
+      background: rgba(76, 175, 80, 0.3);
+      border-left: 4px solid #4caf50;
+    }
+    .warning {
+      background: rgba(255, 152, 0, 0.3);
+      border-left: 4px solid #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Vercel Deployment Test</h1>
+
+    <div class="status success">
+      <h2>✅ Static HTML Works</h2>
+      <p>If you can see this page, Vercel is serving files correctly.</p>
+    </div>
+
+    <div class="status">
+      <h2>⏳ JavaScript Test</h2>
+      <p id="js-test">JavaScript: <strong style="color: #ff9800;">Loading...</strong></p>
+    </div>
+
+    <div class="status">
+      <h2>📋 Environment Variables</h2>
+      <p><strong>Note:</strong> Env vars are bundled at build time in Vite apps.</p>
+      <p>Check main app for actual values.</p>
+    </div>
+
+    <div class="status warning">
+      <h2>🎯 Next Steps</h2>
+      <ol>
+        <li>If you see "JavaScript: ✅ Working", then JavaScript loads fine</li>
+        <li>Go back to main app URL (not /test.html)</li>
+        <li>Open browser console (F12)</li>
+        <li>Copy any RED error messages</li>
+        <li>Report the errors</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    // Simple JavaScript test
+    document.addEventListener('DOMContentLoaded', function() {
+      const testElement = document.getElementById('js-test');
+      if (testElement) {
+        testElement.innerHTML = 'JavaScript: <strong style="color: #4caf50;">✅ Working!</strong>';
+      }
+
+      // Log to console
+      console.log('✅ Vercel test page: JavaScript is working');
+      console.log('📍 URL:', window.location.href);
+      console.log('🕐 Time:', new Date().toISOString());
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,488 @@
+import { useCallback, useEffect, useMemo, useState, useId } from "react";
+import { useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
+import type { Database } from "@/integrations/supabase/types";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Loader2, Trophy, Fish, Anchor, BarChart3, Layers, CalendarDays, Sparkles, Scale, CloudSun, MapPin } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { TrendLineChart } from "@/components/insights/TrendLineChart";
+import { DistributionBarChart } from "@/components/insights/DistributionBarChart";
+import { StatsCards } from "@/components/insights/StatsCards";
+import { FiltersPanel } from "@/components/insights/FiltersPanel";
+import { InfoCards } from "@/components/insights/InfoCards";
+import { ChartCard } from "@/components/insights/ChartCard";
+import {
+  type CatchRow,
+  type DatePreset,
+  DAY_IN_MS,
+  formatWeightDisplay,
+  parseDate,
+  startOfDay,
+  endOfDay,
+  getCatchDate,
+} from "@/lib/insights-utils";
+import { type AggregatedStats, aggregateStats } from "@/lib/insights-aggregation";
+import { useInsightsChartData } from "@/lib/useInsightsChartData";
+import { useInsightsFilters } from "@/lib/useInsightsFilters";
+import { createNivoTheme } from "@/lib/nivoTheme";
+
+type SessionRow = Database["public"]["Tables"]["sessions"]["Row"];
+
+const sanitizeId = (value: string) => value.replace(/[^a-zA-Z0-9_-]/g, "");
+
+const Insights = () => {
+  const { user } = useAuthUser();
+  const { loading: authLoading } = useAuthLoading();
+  const navigate = useNavigate();
+  const [catches, setCatches] = useState<CatchRow[]>([]);
+  const [sessions, setSessions] = useState<SessionRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [datePreset, setDatePreset] = useState<DatePreset>("all");
+  const [selectedSessionId, setSelectedSessionId] = useState<string>("all");
+  const [selectedVenue, setSelectedVenue] = useState<string>("all");
+  const [customRange, setCustomRange] = useState<DateRange | undefined>();
+  const [customRangeOpen, setCustomRangeOpen] = useState(false);
+
+  const rawTrendGradientId = useId();
+  const rawTimeGradientId = useId();
+  const rawBaitGradientId = useId();
+  const rawMethodGradientId = useId();
+  const rawSpeciesGradientId = useId();
+
+  const trendGradientId = useMemo(() => sanitizeId(`trend-${rawTrendGradientId}`), [rawTrendGradientId]);
+  const timeGradientId = useMemo(() => sanitizeId(`time-${rawTimeGradientId}`), [rawTimeGradientId]);
+  const baitGradientId = useMemo(() => sanitizeId(`bait-${rawBaitGradientId}`), [rawBaitGradientId]);
+  const methodGradientId = useMemo(() => sanitizeId(`method-${rawMethodGradientId}`), [rawMethodGradientId]);
+  const speciesGradientId = useMemo(() => sanitizeId(`species-${rawSpeciesGradientId}`), [rawSpeciesGradientId]);
+
+  const primaryColor = "hsl(var(--primary))";
+  const secondaryColor = "hsl(var(--secondary))";
+  const borderColor = "rgba(148, 163, 184, 0.2)";
+  const nivoTheme = useMemo(() => createNivoTheme(borderColor), [borderColor]);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [authLoading, user, navigate]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!user) return;
+      setLoading(true);
+      setError(null);
+
+      const [catchesResponse, sessionsResponse] = await Promise.all([
+        supabase
+          .from("catches")
+          .select(
+            "id, created_at, caught_at, weight, weight_unit, location, bait_used, method, time_of_day, conditions, session_id, species"
+          )
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("sessions")
+          .select("id, title, venue, date, created_at")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false, nullsFirst: false })
+          .order("created_at", { ascending: false }),
+      ]);
+
+      if (catchesResponse.error) {
+        setError("We couldn't load your catches right now. Please try again shortly.");
+        setCatches([]);
+      } else {
+        setCatches((catchesResponse.data as CatchRow[]) ?? []);
+      }
+
+      if (sessionsResponse.error) {
+        console.warn("Failed to load sessions for insights", sessionsResponse.error);
+        setSessions([]);
+      } else {
+        setSessions((sessionsResponse.data as SessionRow[]) ?? []);
+      }
+
+      setLoading(false);
+    };
+
+    void fetchData();
+  }, [user]);
+
+  const venueOptions = useMemo(() => {
+    const venues = new Set<string>();
+    catches.forEach((catchRow) => {
+      if (catchRow.location) {
+        venues.add(catchRow.location);
+      }
+    });
+    return Array.from(venues).sort((a, b) => a.localeCompare(b));
+  }, [catches]);
+
+  const sessionOptions = useMemo(
+    () =>
+      sessions.map((session) => {
+        const sessionDate = session.date ? parseDate(session.date) : parseDate(session.created_at);
+        const fallbackLabel = sessionDate ? sessionDate.toLocaleDateString() : `Session ${session.id.slice(0, 6)}`;
+        return {
+          value: session.id,
+          label: session.title ? session.title : fallbackLabel,
+        };
+      }),
+    [sessions]
+  );
+
+  useEffect(() => {
+    if (selectedVenue !== "all" && !venueOptions.includes(selectedVenue)) {
+      setSelectedVenue("all");
+    }
+  }, [venueOptions, selectedVenue]);
+
+  useEffect(() => {
+    if (selectedSessionId !== "all" && !sessions.some((session) => session.id === selectedSessionId)) {
+      setSelectedSessionId("all");
+    }
+  }, [sessions, selectedSessionId]);
+
+  const latestSessionId = useMemo(() => {
+    let candidate: { id: string; timestamp: number } | null = null;
+
+    catches.forEach((catchRow) => {
+      if (!catchRow.session_id) return;
+      const catchDate = getCatchDate(catchRow);
+      const timestamp = catchDate ? catchDate.getTime() : 0;
+      if (!candidate || timestamp > candidate.timestamp) {
+        candidate = { id: catchRow.session_id, timestamp };
+      }
+    });
+
+    if (candidate) {
+      return candidate.id;
+    }
+
+    let fallback: { id: string; timestamp: number } | null = null;
+    sessions.forEach((session) => {
+      const sessionDate = session.date ? parseDate(session.date) : parseDate(session.created_at);
+      const timestamp = sessionDate ? sessionDate.getTime() : 0;
+      if (!fallback || timestamp > fallback.timestamp) {
+        fallback = { id: session.id, timestamp };
+      }
+    });
+
+    return fallback?.id ?? null;
+  }, [catches, sessions]);
+
+  useEffect(() => {
+    if (datePreset === "last-session" && latestSessionId) {
+      setSelectedSessionId((previous) => (previous === latestSessionId ? previous : latestSessionId));
+    }
+  }, [datePreset, latestSessionId]);
+
+  const effectiveSessionId = useMemo(() => {
+    if (selectedSessionId !== "all") {
+      return selectedSessionId;
+    }
+    if (datePreset === "last-session" && latestSessionId) {
+      return latestSessionId;
+    }
+    return null;
+  }, [selectedSessionId, datePreset, latestSessionId]);
+
+  const { dateRange, filteredCatches } = useInsightsFilters({
+    catches,
+    sessions,
+    datePreset,
+    customRange,
+    effectiveSessionId,
+    selectedVenue,
+  });
+
+  const stats = useMemo(() => aggregateStats(filteredCatches), [filteredCatches]);
+
+  const sessionsCount = useMemo(() => {
+    if (effectiveSessionId) {
+      return filteredCatches.some((catchRow) => catchRow.session_id === effectiveSessionId) ? 1 : 0;
+    }
+    const ids = new Set<string>();
+    filteredCatches.forEach((catchRow) => {
+      if (catchRow.session_id) {
+        ids.add(catchRow.session_id);
+      }
+    });
+    return ids.size;
+  }, [filteredCatches, effectiveSessionId]);
+
+  const mostCommonSpecies = stats.speciesCounts[0]?.name ?? null;
+  const mostCommonSpeciesCount = stats.speciesCounts[0]?.count ?? 0;
+  const averageWeightLabel = formatWeightDisplay(stats.averageWeightKg);
+  const weightedCatchCount = stats.weightedCatchCount;
+  const averagePerSession = sessionsCount > 0 ? stats.totalCatches / sessionsCount : 0;
+  const averagePerSessionLabel = sessionsCount > 0 ? averagePerSession.toFixed(1) : "—";
+  const topWeather = stats.weatherCounts[0]?.name ?? null;
+  const topClarity = stats.clarityCounts[0]?.name ?? null;
+  const topWind = stats.windCounts[0]?.name ?? null;
+  const averageAirTempLabel = stats.averageAirTemp !== null ? `${stats.averageAirTemp.toFixed(1)}°C` : "—";
+
+  const {
+    speciesChartData,
+    venueLeaderboard,
+    monthlyCounts,
+    sessionSummaries,
+    topSession,
+    trendLineData,
+    timeOfDayData,
+    baitData,
+    methodData,
+    speciesBarData,
+  } = useInsightsChartData({ filteredCatches, sessions, stats });
+
+  const sessionsDisabled = sessionOptions.length === 0;
+  const showLastSessionHint = datePreset === "last-session" && !latestSessionId;
+  const noCatchesOverall = catches.length === 0;
+
+  const customRangeLabel = useMemo(() => {
+    if (customRange?.from && customRange?.to) {
+      return `${customRange.from.toLocaleDateString()} – ${customRange.to.toLocaleDateString()}`;
+    }
+    if (customRange?.from) {
+      return `${customRange.from.toLocaleDateString()} – …`;
+    }
+    return "Pick custom range";
+  }, [customRange]);
+
+  const customRangeActive = datePreset === "custom";
+
+  const handleDatePresetChange = useCallback((value: DatePreset) => {
+    if (value === "last-session" && !latestSessionId) {
+      setDatePreset("all");
+      return;
+    }
+
+    if (value === "custom") {
+      setDatePreset("custom");
+      setCustomRangeOpen(true);
+      return;
+    }
+
+    setCustomRange(undefined);
+    setCustomRangeOpen(false);
+    setDatePreset(value);
+  }, [latestSessionId]);
+
+  const handleCustomRangeSelect = useCallback((range: DateRange | undefined) => {
+    if (!range || (!range.from && !range.to)) {
+      setCustomRange(undefined);
+      setDatePreset("all");
+      return;
+    }
+    setCustomRange(range);
+    setDatePreset("custom");
+    setSelectedSessionId("all");
+    if (range.from && range.to) {
+      setCustomRangeOpen(false);
+    }
+  }, []);
+
+  const handleClearCustomRange = useCallback(() => {
+    setCustomRange(undefined);
+    if (datePreset === "custom") {
+      setDatePreset("all");
+    }
+    setCustomRangeOpen(false);
+  }, [datePreset]);
+
+  const handleSessionChange = useCallback((value: string) => {
+    if (datePreset === "last-session") {
+      if (value === "all" || (latestSessionId && value !== latestSessionId)) {
+        setDatePreset("all");
+      }
+    }
+    setSelectedSessionId(value);
+  }, [datePreset, latestSessionId]);
+
+  const handleVenueChange = useCallback((value: string) => {
+    setSelectedVenue(value);
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
+      <Navbar />
+      <main className="container mx-auto max-w-5xl px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Your angling insights</h1>
+          <p className="text-muted-foreground">
+            A quick look at how your catches stack up across venues, times of day, and favourite tactics.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            Crunching the numbers…
+          </div>
+        ) : (
+          <>
+            <FiltersPanel
+              datePreset={datePreset}
+              onDatePresetChange={handleDatePresetChange}
+              selectedSessionId={selectedSessionId}
+              onSessionChange={handleSessionChange}
+              selectedVenue={selectedVenue}
+              onVenueChange={handleVenueChange}
+              customRange={customRange}
+              customRangeOpen={customRangeOpen}
+              onCustomRangeOpenChange={setCustomRangeOpen}
+              onCustomRangeSelect={handleCustomRangeSelect}
+              onClearCustomRange={handleClearCustomRange}
+              customRangeLabel={customRangeLabel}
+              customRangeActive={customRangeActive}
+              latestSessionId={latestSessionId}
+              sessionOptions={sessionOptions}
+              sessionsDisabled={sessionsDisabled}
+              venueOptions={venueOptions}
+              showLastSessionHint={showLastSessionHint}
+            />
+
+            {error ? (
+              <Card className="mb-6 border-destructive/30 bg-destructive/10 text-destructive">
+                <CardContent className="py-6">
+                  <p>{error}</p>
+                </CardContent>
+              </Card>
+            ) : stats.totalCatches === 0 ? (
+              <Card className="mb-6">
+                <CardContent className="py-8 text-center text-muted-foreground">
+                  <p>
+                    {noCatchesOverall
+                      ? "You haven’t logged any catches yet. Record your next session to unlock insights."
+                      : "No catches match these filters yet. Adjust your selections or log a new trip to see data here."}
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <StatsCards
+                  totalCatches={stats.totalCatches}
+                  pbLabel={stats.pbCatch?.label ?? "—"}
+                  averageWeightLabel={averageWeightLabel}
+                  weightedCatchCount={weightedCatchCount}
+                  sessionsCount={sessionsCount}
+                  averagePerSessionLabel={averagePerSessionLabel}
+                  mostCommonSpecies={mostCommonSpecies}
+                  mostCommonSpeciesCount={mostCommonSpeciesCount}
+                />
+
+                <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <ChartCard
+                    icon={CalendarDays}
+                    title="Catch trend"
+                    description="Monthly catch totals for the selected range."
+                    isEmpty={monthlyCounts.length === 0}
+                    emptyMessage="Add more catches to reveal the timeline."
+                  >
+                    <TrendLineChart
+                      data={trendLineData}
+                      theme={nivoTheme}
+                      color={primaryColor}
+                      gradientId={trendGradientId}
+                    />
+                  </ChartCard>
+
+                  <ChartCard
+                    icon={Sparkles}
+                    title="Species mix"
+                    description="Top species landed during this period."
+                    isEmpty={speciesChartData.length === 0}
+                    emptyMessage="No species data available for this view."
+                  >
+                    <DistributionBarChart
+                      data={speciesBarData}
+                      theme={nivoTheme}
+                      color={secondaryColor}
+                      gradientId={speciesGradientId}
+                      layout="horizontal"
+                      height="h-72"
+                    />
+                  </ChartCard>
+                </div>
+
+                <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  <ChartCard
+                    icon={BarChart3}
+                    title="Time of day performance"
+                    description="Track when your catches most often happen."
+                    isEmpty={stats.timeOfDayCounts.length === 0}
+                    emptyMessage="Add more catches to see trends."
+                  >
+                    <DistributionBarChart
+                      data={timeOfDayData}
+                      theme={nivoTheme}
+                      color={primaryColor}
+                      gradientId={timeGradientId}
+                    />
+                  </ChartCard>
+
+                  <ChartCard
+                    icon={Anchor}
+                    title="Favourite baits"
+                    description="The lures and baits that seal the deal most often."
+                    isEmpty={stats.baitCounts.length === 0}
+                    emptyMessage="No bait data logged yet."
+                  >
+                    <DistributionBarChart
+                      data={baitData}
+                      theme={nivoTheme}
+                      color={secondaryColor}
+                      gradientId={baitGradientId}
+                      layout="horizontal"
+                    />
+                  </ChartCard>
+                </div>
+
+                <ChartCard
+                  icon={Anchor}
+                  title="Productive methods"
+                  description="Compare which techniques have delivered the goods."
+                  isEmpty={stats.methodCounts.length === 0}
+                  emptyMessage="No method data captured yet."
+                >
+                  <DistributionBarChart
+                    data={methodData}
+                    theme={nivoTheme}
+                    color={primaryColor}
+                    gradientId={methodGradientId}
+                    height="h-72"
+                    tickRotation={-20}
+                  />
+                </ChartCard>
+
+                <InfoCards
+                  topTimeOfDay={stats.topTimeOfDay}
+                  topWeather={topWeather}
+                  topClarity={topClarity}
+                  topWind={topWind}
+                  averageAirTempLabel={averageAirTempLabel}
+                  venueLeaderboard={venueLeaderboard}
+                  sessionsCount={sessionsCount}
+                  averagePerSessionLabel={averagePerSessionLabel}
+                  sessionSummaries={sessionSummaries}
+                  topSession={topSession}
+                />
+              </>
+            )}
+          </>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Insights;
