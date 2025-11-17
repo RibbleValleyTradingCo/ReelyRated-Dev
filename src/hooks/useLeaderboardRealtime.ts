@@ -26,6 +26,9 @@ interface LeaderboardEntry {
   video_url: string | null;
   conditions: unknown;
   caught_at: string | null;
+  species?: string | null;
+  location?: string | null;
+  method?: string | null;
 }
 
 const toNumber = (value: unknown): number | null => {
@@ -69,7 +72,7 @@ export function useLeaderboardRealtime(
         let query = supabase
           .from("leaderboard_scores_detailed")
           .select(
-            "id, user_id, owner_username, title, species_slug, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, created_at, location_label, method_tag, water_type_code, description, gallery_photos, tags, video_url, conditions, caught_at",
+            "id, user_id, owner_username, title, species_slug, species, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, created_at, location_label, location, method_tag, method, water_type_code, description, gallery_photos, tags, video_url, conditions, caught_at",
           )
           .order("total_score", { ascending: false })
           .order("created_at", { ascending: true })

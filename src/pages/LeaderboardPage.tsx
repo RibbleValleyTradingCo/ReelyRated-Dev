@@ -67,6 +67,10 @@ const LeaderboardPage = () => {
         entry.conditions,
       );
 
+      const speciesSlugOrRaw = entry.species_slug ?? entry.species ?? null;
+      const locationLabel = customLocationLabel ?? entry.location_label ?? "—";
+      const methodLabel = customMethod ?? entry.method_tag ?? entry.method ?? "—";
+
       return {
         rank: index + 1,
         id: entry.id,
@@ -74,11 +78,11 @@ const LeaderboardPage = () => {
         thumbnail: getThumbnail(entry.gallery_photos, entry.image_url),
         anglerUsername: entry.owner_username,
         anglerId: entry.user_id,
-        species: formatSpeciesLabel(entry.species, customSpecies),
+        species: formatSpeciesLabel(speciesSlugOrRaw, customSpecies),
         weight: formatWeight(entry.weight, entry.weight_unit),
         length: formatLength(entry.length, entry.length_unit),
-        location: customLocationLabel ?? entry.location ?? "—",
-        method: customMethod ?? entry.method ?? "—",
+        location: locationLabel,
+        method: methodLabel,
         caughtAt: formatDate(entry.caught_at),
         score:
           entry.total_score !== null && entry.total_score !== undefined

@@ -1,13 +1,4 @@
-[?25l[?2004h
-                                                                                                    
-  >  1. omsvmiufwvdeslcyrmkt [name: ReelyRated, org: swkemwstutgpeccwmjqc, region: eu-west-2]       
-    2. bfddbemqdgsvvdltckdv [name: ReelyRated_Staging, org: swkemwstutgpeccwmjqc, region: eu-west-2]
-                                                                                                    
-                                                                                                    
-                                                                                                    
-                                                                                                    
-    ↑/k up • ↓/j down • / filter • q quit • ? more                                                  
-                                                                                                    [9A [J[2K[?2004l[?25h[?1002l[?1003l[?1006lexport type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -618,10 +609,13 @@ export type Database = {
           image_url: string | null
           length: number | null
           length_unit: string | null
+          location: string | null
           location_label: string | null
+          method: string | null
           method_tag: string | null
           owner_username: string | null
           rating_count: number | null
+          species: string | null
           species_slug: string | null
           tags: string[] | null
           title: string | null
