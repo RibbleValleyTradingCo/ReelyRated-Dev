@@ -61,6 +61,8 @@ interface Catch {
   conditions: CatchConditions;
 }
 
+const PAGE_SIZE = 18;
+
 const Feed = () => {
   const { user } = useAuthUser();
   const { loading } = useAuthLoading();
@@ -74,6 +76,9 @@ const Feed = () => {
   const [customSpeciesFilter, setCustomSpeciesFilter] = useState("");
   const [feedScope, setFeedScope] = useState<"all" | "following">("all");
   const [followingIds, setFollowingIds] = useState<string[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState(0);
   const sessionFilter = searchParams.get("session");
 
   useEffect(() => {
@@ -83,11 +88,21 @@ const Feed = () => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setCatches([]);
+      setFilteredCatches([]);
+      setHasMore(false);
+      setNextCursor(0);
+      setIsLoading(false);
+      return;
+    }
 
+    let active = true;
     const loadCatches = async () => {
       setIsLoading(true);
-      const { data, error } = await supabase
+      setHasMore(false);
+      setNextCursor(0);
+      const baseQuery = supabase
         .from("catches")
         .select(`
           *,
@@ -100,18 +115,41 @@ const Feed = () => {
         .is("comments.deleted_at", null)
         .order("created_at", { ascending: false });
 
+      const query = sessionFilter
+        ? baseQuery.eq("session_id", sessionFilter)
+        : baseQuery.range(0, PAGE_SIZE - 1);
+
+      const { data, error } = await query;
+
+      if (!active) return;
+
       if (error) {
         toast.error("Failed to load catches");
         logger.error("Failed to load catches", error, { userId: user?.id });
         setCatches([]);
+        setHasMore(false);
+        setNextCursor(0);
       } else {
-        setCatches((data as Catch[]) || []);
+        const fetched = (data as Catch[]) ?? [];
+        setCatches(fetched);
+        if (sessionFilter) {
+          setHasMore(false);
+          setNextCursor(fetched.length);
+        } else {
+          setHasMore(fetched.length === PAGE_SIZE);
+          setNextCursor(fetched.length);
+        }
       }
+
       setIsLoading(false);
     };
 
     void loadCatches();
-  }, [user]);
+
+    return () => {
+      active = false;
+    };
+  }, [sessionFilter, user]);
 
   useEffect(() => {
     if (!user) {
@@ -204,6 +242,39 @@ const Feed = () => {
     }
   }, [speciesFilter, customSpeciesFilter]);
 
+  const handleLoadMore = useCallback(async () => {
+    if (!user || !hasMore || isFetchingMore || sessionFilter) {
+      return;
+    }
+
+    setIsFetchingMore(true);
+    const { data, error } = await supabase
+      .from("catches")
+      .select(`
+        *,
+        profiles:user_id (username, avatar_path, avatar_url),
+        ratings (rating),
+        comments:catch_comments (id),
+        reactions:catch_reactions (user_id)
+      `)
+      .is("deleted_at", null)
+      .is("comments.deleted_at", null)
+      .order("created_at", { ascending: false })
+      .range(nextCursor, nextCursor + PAGE_SIZE - 1);
+
+    if (error) {
+      toast.error("Unable to load more catches");
+      logger.error("Failed to load additional catches", error, { userId: user?.id });
+    } else {
+      const newRows = (data as Catch[]) ?? [];
+      setCatches((prev) => [...prev, ...newRows]);
+      setNextCursor((prev) => prev + newRows.length);
+      setHasMore(newRows.length === PAGE_SIZE);
+    }
+
+    setIsFetchingMore(false);
+  }, [hasMore, isFetchingMore, nextCursor, sessionFilter, user]);
+
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -236,6 +307,19 @@ const Feed = () => {
             <CatchCard key={catchItem.id} catchItem={catchItem} userId={user?.id} />
           ))}
         </div>
+
+        {!sessionFilter && hasMore && (
+          <div className="mt-10 flex justify-center">
+            <Button
+              variant="outline"
+              onClick={handleLoadMore}
+              disabled={isFetchingMore}
+              className="min-w-[200px]"
+            >
+              {isFetchingMore ? "Loading…" : "Load more catches"}
+            </Button>
+          </div>
+        )}
 
         {filteredCatches.length === 0 && (
           <div className="text-center py-12">

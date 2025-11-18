@@ -10,6 +10,7 @@ interface ChartCardProps {
   isEmpty: boolean;
   emptyMessage: string;
   children: ReactNode;
+  footer?: ReactNode;
 }
 
 export const ChartCard = memo(({
@@ -19,6 +20,7 @@ export const ChartCard = memo(({
   isEmpty,
   emptyMessage,
   children,
+  footer,
 }: ChartCardProps) => {
   return (
     <Card>
@@ -29,8 +31,9 @@ export const ChartCard = memo(({
         </CardTitle>
         <p className="text-sm text-muted-foreground">{description}</p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
         {isEmpty ? <p className="text-sm text-muted-foreground">{emptyMessage}</p> : children}
+        {footer ? <div className="text-sm text-muted-foreground">{footer}</div> : null}
       </CardContent>
     </Card>
   );

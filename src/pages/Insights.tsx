@@ -369,113 +369,154 @@ const Insights = () => {
               </Card>
             ) : (
               <>
-                <StatsCards
-                  totalCatches={stats.totalCatches}
-                  pbLabel={stats.pbCatch?.label ?? "—"}
-                  averageWeightLabel={averageWeightLabel}
-                  weightedCatchCount={weightedCatchCount}
-                  sessionsCount={sessionsCount}
-                  averagePerSessionLabel={averagePerSessionLabel}
-                  mostCommonSpecies={mostCommonSpecies}
-                  mostCommonSpeciesCount={mostCommonSpeciesCount}
-                />
+                <section className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold text-foreground">Highlights</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Key stats across your selected date range. Adjust the filters to explore other periods or venues.
+                    </p>
+                  </div>
+                  <StatsCards
+                    totalCatches={stats.totalCatches}
+                    pbLabel={stats.pbCatch?.label ?? "—"}
+                    averageWeightLabel={averageWeightLabel}
+                    weightedCatchCount={weightedCatchCount}
+                    sessionsCount={sessionsCount}
+                    averagePerSessionLabel={averagePerSessionLabel}
+                    mostCommonSpecies={mostCommonSpecies}
+                    mostCommonSpeciesCount={mostCommonSpeciesCount}
+                  />
+                </section>
 
-                <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <ChartCard
-                    icon={CalendarDays}
-                    title="Catch trend"
-                    description="Monthly catch totals for the selected range."
-                    isEmpty={monthlyCounts.length === 0}
-                    emptyMessage="Add more catches to reveal the timeline."
-                  >
-                    <TrendLineChart
-                      data={trendLineData}
-                      theme={nivoTheme}
-                      color={primaryColor}
-                      gradientId={trendGradientId}
-                    />
-                  </ChartCard>
+                <section className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold text-foreground">Catch trends</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Track when your catches happen and spot momentum across your logs.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <ChartCard
+                      icon={CalendarDays}
+                      title="Catch trend"
+                      description="Monthly totals for the selected range."
+                      isEmpty={monthlyCounts.length === 0}
+                      emptyMessage="Add more catches to reveal the timeline."
+                    >
+                      <TrendLineChart
+                        data={trendLineData}
+                        theme={nivoTheme}
+                        color={primaryColor}
+                        gradientId={trendGradientId}
+                      />
+                    </ChartCard>
 
-                  <ChartCard
-                    icon={Sparkles}
-                    title="Species mix"
-                    description="Top species landed during this period."
-                    isEmpty={speciesChartData.length === 0}
-                    emptyMessage="No species data available for this view."
-                  >
-                    <DistributionBarChart
-                      data={speciesBarData}
-                      theme={nivoTheme}
-                      color={secondaryColor}
-                      gradientId={speciesGradientId}
-                      layout="horizontal"
-                      height="h-72"
-                    />
-                  </ChartCard>
-                </div>
+                    <ChartCard
+                      icon={BarChart3}
+                      title="Time of day performance"
+                      description="Track when your catches most often happen."
+                      isEmpty={stats.timeOfDayCounts.length === 0}
+                      emptyMessage="Add more catches to see trends."
+                    >
+                      <DistributionBarChart
+                        data={timeOfDayData}
+                        theme={nivoTheme}
+                        color={primaryColor}
+                        gradientId={timeGradientId}
+                      />
+                    </ChartCard>
+                  </div>
+                </section>
 
-                <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  <ChartCard
-                    icon={BarChart3}
-                    title="Time of day performance"
-                    description="Track when your catches most often happen."
-                    isEmpty={stats.timeOfDayCounts.length === 0}
-                    emptyMessage="Add more catches to see trends."
-                  >
-                    <DistributionBarChart
-                      data={timeOfDayData}
-                      theme={nivoTheme}
-                      color={primaryColor}
-                      gradientId={timeGradientId}
-                    />
-                  </ChartCard>
+                <section className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold text-foreground">Species & baits</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Focus on the species you’re most successful with and the baits that earn the most strikes. Top 5
+                      entries shown on mobile.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                    <ChartCard
+                      icon={Sparkles}
+                      title="Species mix"
+                      description="Top species landed during this period."
+                      isEmpty={speciesChartData.length === 0}
+                      emptyMessage="No species data available for this view."
+                      footer={
+                        mostCommonSpecies
+                          ? `Top species: ${mostCommonSpecies} (${mostCommonSpeciesCount} catches)`
+                          : undefined
+                      }
+                    >
+                      <DistributionBarChart
+                        data={speciesBarData}
+                        theme={nivoTheme}
+                        color={secondaryColor}
+                        gradientId={speciesGradientId}
+                        layout="horizontal"
+                        height="h-72"
+                        maxItems={5}
+                      />
+                    </ChartCard>
+
+                    <ChartCard
+                      icon={Anchor}
+                      title="Favourite baits"
+                      description="The lures and baits that seal the deal most often."
+                      isEmpty={stats.baitCounts.length === 0}
+                      emptyMessage="No bait data logged yet."
+                    >
+                      <DistributionBarChart
+                        data={baitData}
+                        theme={nivoTheme}
+                        color={secondaryColor}
+                        gradientId={baitGradientId}
+                        layout="horizontal"
+                        maxItems={5}
+                      />
+                    </ChartCard>
+                  </div>
+                </section>
+
+                <section className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-xl font-semibold text-foreground">Techniques & venues</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Compare the methods you rely on most and review venue-level takeaways.
+                    </p>
+                  </div>
 
                   <ChartCard
                     icon={Anchor}
-                    title="Favourite baits"
-                    description="The lures and baits that seal the deal most often."
-                    isEmpty={stats.baitCounts.length === 0}
-                    emptyMessage="No bait data logged yet."
+                    title="Productive methods"
+                    description="Compare which techniques deliver the goods."
+                    isEmpty={stats.methodCounts.length === 0}
+                    emptyMessage="No method data captured yet."
                   >
                     <DistributionBarChart
-                      data={baitData}
+                      data={methodData}
                       theme={nivoTheme}
-                      color={secondaryColor}
-                      gradientId={baitGradientId}
-                      layout="horizontal"
+                      color={primaryColor}
+                      gradientId={methodGradientId}
+                      height="h-72"
+                      tickRotation={-20}
                     />
                   </ChartCard>
-                </div>
 
-                <ChartCard
-                  icon={Anchor}
-                  title="Productive methods"
-                  description="Compare which techniques have delivered the goods."
-                  isEmpty={stats.methodCounts.length === 0}
-                  emptyMessage="No method data captured yet."
-                >
-                  <DistributionBarChart
-                    data={methodData}
-                    theme={nivoTheme}
-                    color={primaryColor}
-                    gradientId={methodGradientId}
-                    height="h-72"
-                    tickRotation={-20}
+                  <InfoCards
+                    topTimeOfDay={stats.topTimeOfDay}
+                    topWeather={topWeather}
+                    topClarity={topClarity}
+                    topWind={topWind}
+                    averageAirTempLabel={averageAirTempLabel}
+                    venueLeaderboard={venueLeaderboard}
+                    sessionsCount={sessionsCount}
+                    averagePerSessionLabel={averagePerSessionLabel}
+                    sessionSummaries={sessionSummaries}
+                    topSession={topSession}
                   />
-                </ChartCard>
-
-                <InfoCards
-                  topTimeOfDay={stats.topTimeOfDay}
-                  topWeather={topWeather}
-                  topClarity={topClarity}
-                  topWind={topWind}
-                  averageAirTempLabel={averageAirTempLabel}
-                  venueLeaderboard={venueLeaderboard}
-                  sessionsCount={sessionsCount}
-                  averagePerSessionLabel={averagePerSessionLabel}
-                  sessionSummaries={sessionSummaries}
-                  topSession={topSession}
-                />
+                </section>
               </>
             )}
           </>

@@ -43,6 +43,12 @@ const ProfileSettings = () => {
       confirmPassword: "",
     },
   });
+  const emailForm = useForm<{ newEmail: string; confirmEmail: string }>({
+    defaultValues: {
+      newEmail: "",
+      confirmEmail: "",
+    },
+  });
 
   const [initialEmail, setInitialEmail] = useState<string>("");
   const [isLoading, setIsLoading] = useState(true);
@@ -124,17 +130,6 @@ const ProfileSettings = () => {
         throw updateProfileError;
       }
 
-      if (data.email && data.email !== initialEmail) {
-        const { error: emailError } = await supabase.auth.updateUser({ email: data.email.trim() });
-        if (emailError) {
-          throw emailError;
-        }
-        setInitialEmail(data.email.trim());
-        toast("Verification required", {
-          description: "Check your inbox to confirm the new email address.",
-        });
-      }
-
       setInitialAvatarPath(avatarPath ?? null);
       toast.success("Profile details saved successfully.");
 
@@ -173,6 +168,47 @@ const ProfileSettings = () => {
     } catch (error) {
       console.error("Failed to update password", error);
       toast.error(error instanceof Error ? error.message : "Unable to update password.");
+    }
+  };
+
+  const handleEmailChange = async ({ newEmail, confirmEmail }: { newEmail: string; confirmEmail: string }) => {
+    if (!user) return;
+
+    const trimmedNewEmail = newEmail.trim();
+    const trimmedConfirmEmail = confirmEmail.trim();
+
+    if (!trimmedNewEmail) {
+      toast.error("Please enter a new email address.");
+      return;
+    }
+
+    if (trimmedNewEmail !== trimmedConfirmEmail) {
+      toast.error("Email addresses do not match.");
+      return;
+    }
+
+    if (trimmedNewEmail.toLowerCase() === initialEmail.toLowerCase()) {
+      toast.error("That’s already your current email.");
+      return;
+    }
+
+    try {
+      const redirectTo =
+        typeof window !== "undefined" ? `${window.location.origin}/auth?fromEmailChange=true` : undefined;
+      const { error } = await supabase.auth.updateUser(
+        { email: trimmedNewEmail },
+        redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success("Check your inbox to confirm the new email address.");
+      emailForm.reset();
+    } catch (error) {
+      console.error("Failed to change email", error);
+      toast.error(error instanceof Error ? error.message : "Unable to change email.");
     }
   };
 
@@ -291,7 +327,9 @@ const ProfileSettings = () => {
                       {...profileForm.register("email")}
                       placeholder="angler@example.com"
                       aria-invalid={!!profileForm.formState.errors.email}
-                      className="mt-1 w-full rounded-md border border-slate-200 bg-white text-slate-900 focus:border-sky-500 focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 focus:ring-offset-white"
+                      readOnly
+                      disabled
+                      className="mt-1 w-full cursor-not-allowed rounded-md border border-slate-200 bg-slate-50 text-slate-500"
                     />
                     {profileForm.formState.errors.email && (
                       <p className="text-sm text-red-600">
@@ -342,6 +380,43 @@ const ProfileSettings = () => {
               </Button>
             </div>
           </form>
+
+          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
+              <CardTitle className="text-lg">Change email</CardTitle>
+              <p className="text-sm text-slate-600">
+                Current email: <span className="font-medium">{initialEmail || "Not set"}</span>. Updates require a
+                verification link.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-6 px-5 pb-5 md:px-8 md:pb-8">
+              <form className="space-y-4" onSubmit={emailForm.handleSubmit(handleEmailChange)}>
+                <div className="space-y-2">
+                  <Label htmlFor="newEmail">New email address</Label>
+                  <Input
+                    id="newEmail"
+                    type="email"
+                    placeholder="angler+new@example.com"
+                    {...emailForm.register("newEmail")}
+                    aria-invalid={!!emailForm.formState.errors?.newEmail}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmEmail">Confirm new email</Label>
+                  <Input
+                    id="confirmEmail"
+                    type="email"
+                    placeholder="Repeat the new email"
+                    {...emailForm.register("confirmEmail")}
+                    aria-invalid={!!emailForm.formState.errors?.confirmEmail}
+                  />
+                </div>
+                <Button type="submit" disabled={emailForm.formState.isSubmitting}>
+                  {emailForm.formState.isSubmitting ? "Sending confirmation…" : "Send verification email"}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
 
           <form onSubmit={passwordForm.handleSubmit(handleUpdatePassword)} className="space-y-6">
             <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
