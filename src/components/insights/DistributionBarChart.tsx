@@ -88,7 +88,7 @@ export const DistributionBarChart = memo(({
         fill={[{ match: "*", id: gradientId }]}
         axisTop={null}
         axisRight={null}
-        axisBottom={{
+        axisBottom={isHorizontal ? null : {
           tickSize: 0,
           tickPadding: 8,
           ...(tickRotation !== 0 ? { legendOffset: 32, tickRotation } : {}),
@@ -98,7 +98,11 @@ export const DistributionBarChart = memo(({
         enableGridY={!isHorizontal}
         gridYValues={5}
         borderRadius={6}
-        enableLabel={false}
+        enableLabel={isHorizontal}
+        label={isHorizontal ? (datum) => `${Math.round(Number(datum.value ?? 0))}` : undefined}
+        labelSkipWidth={0}
+        labelSkipHeight={0}
+        labelTextColor={isHorizontal ? "#0f172a" : undefined}
         tooltip={({ indexValue, value, data }) => (
           <div className="rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
             <p className="font-medium">{(data.__fullLabel as string) ?? indexValue}</p>
