@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils";
 import { Loader2, Trophy, Fish, Anchor, BarChart3, Layers, CalendarDays, Sparkles, Scale, CloudSun, MapPin } from "lucide-react";
 import type { DateRange } from "react-day-picker";
 import { TrendLineChart } from "@/components/insights/TrendLineChart";
-import { DistributionBarChart } from "@/components/insights/DistributionBarChart";
 import { StatsCards } from "@/components/insights/StatsCards";
 import { FiltersPanel } from "@/components/insights/FiltersPanel";
 import { InfoCards } from "@/components/insights/InfoCards";
@@ -53,16 +52,8 @@ const Insights = () => {
   const [customRangeOpen, setCustomRangeOpen] = useState(false);
 
   const rawTrendGradientId = useId();
-  const rawTimeGradientId = useId();
-  const rawBaitGradientId = useId();
-  const rawMethodGradientId = useId();
-  const rawSpeciesGradientId = useId();
 
   const trendGradientId = useMemo(() => sanitizeId(`trend-${rawTrendGradientId}`), [rawTrendGradientId]);
-  const timeGradientId = useMemo(() => sanitizeId(`time-${rawTimeGradientId}`), [rawTimeGradientId]);
-  const baitGradientId = useMemo(() => sanitizeId(`bait-${rawBaitGradientId}`), [rawBaitGradientId]);
-  const methodGradientId = useMemo(() => sanitizeId(`method-${rawMethodGradientId}`), [rawMethodGradientId]);
-  const speciesGradientId = useMemo(() => sanitizeId(`species-${rawSpeciesGradientId}`), [rawSpeciesGradientId]);
 
   const primaryColor = "hsl(var(--primary))";
   const secondaryColor = "hsl(var(--secondary))";
@@ -232,7 +223,6 @@ const Insights = () => {
   const averageAirTempLabel = stats.averageAirTemp !== null ? `${stats.averageAirTemp.toFixed(1)}°C` : "—";
 
   const {
-    speciesChartData,
     venueLeaderboard,
     monthlyCounts,
     sessionSummaries,
@@ -303,34 +293,6 @@ const Insights = () => {
   const timeOfDaySummary = topTimeOfDayBucket
     ? `Most fish landed during ${topTimeOfDayBucket.label.toLowerCase()} hours.`
     : null;
-
-  const speciesFooter =
-    speciesBarData.length > 0 ? (
-      <div className="space-y-1 text-xs text-muted-foreground">
-        <p className="text-sm font-medium text-foreground">Top species</p>
-        <ul className="space-y-0.5">
-          {speciesBarData.slice(0, 3).map((item) => (
-            <li key={item.label}>
-              {item.label} · {item.catches} catch{item.catches === 1 ? "" : "es"}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ) : undefined;
-
-  const baitFooter =
-    baitData.length > 0 ? (
-      <div className="space-y-1 text-xs text-muted-foreground">
-        <p className="text-sm font-medium text-foreground">Top baits</p>
-        <ul className="space-y-0.5">
-          {baitData.slice(0, 3).map((item) => (
-            <li key={item.label}>
-              {item.label} · {item.catches} strike{item.catches === 1 ? "" : "s"}
-            </li>
-          ))}
-        </ul>
-      </div>
-    ) : undefined;
 
   const topMethod = methodData[0];
   const methodFooter = topMethod
@@ -515,16 +477,18 @@ const Insights = () => {
                       icon={BarChart3}
                       title="Time of day performance"
                       description="Track when your catches most often happen."
-                      isEmpty={!showTimeOfDayChart}
-                      emptyMessage="Not enough data yet. Log a few more catches to unlock this view."
+                      isEmpty={false}
                       footer={showTimeOfDayChart ? timeOfDaySummary : undefined}
                     >
-                      <DistributionBarChart
-                        data={timeOfDayData}
-                        theme={nivoTheme}
-                        color={primaryColor}
-                        gradientId={timeGradientId}
-                      />
+                      {showTimeOfDayChart ? (
+                        <p className="text-sm text-foreground">
+                          Most fish landed during <span className="font-semibold">{topTimeOfDayBucket?.label?.toLowerCase()} hours</span>.
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          Not enough data yet. Log a few more catches to unlock this view.
+                        </p>
+                      )}
                     </ChartCard>
                   </div>
                 </section>
@@ -542,37 +506,46 @@ const Insights = () => {
                       icon={Sparkles}
                       title="Species mix"
                       description="Top species landed during this period."
-                      isEmpty={speciesChartData.length === 0}
+                      isEmpty={speciesBarData.length === 0}
                       emptyMessage="No species data available for this view."
-                      footer={speciesFooter}
                     >
-                      <DistributionBarChart
-                        data={speciesBarData}
-                        theme={nivoTheme}
-                        color={secondaryColor}
-                        gradientId={speciesGradientId}
-                        layout="horizontal"
-                        height="h-72"
-                        maxItems={5}
-                      />
+                      {speciesBarData.length > 0 ? (
+                        <ol className="space-y-2 text-sm">
+                          {speciesBarData.slice(0, 5).map((item, index) => (
+                            <li key={item.label} className="flex items-center justify-between gap-4">
+                              <span className="font-medium text-foreground">
+                                {index + 1}. {item.label}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {item.catches} catch{item.catches === 1 ? "" : "es"}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : null}
                     </ChartCard>
 
                     <ChartCard
                       icon={Anchor}
                       title="Favourite baits"
                       description="The lures and baits that seal the deal most often."
-                      isEmpty={stats.baitCounts.length === 0}
+                      isEmpty={baitData.length === 0}
                       emptyMessage="No bait data logged yet."
-                      footer={baitFooter}
                     >
-                      <DistributionBarChart
-                        data={baitData}
-                        theme={nivoTheme}
-                        color={secondaryColor}
-                        gradientId={baitGradientId}
-                        layout="horizontal"
-                        maxItems={5}
-                      />
+                      {baitData.length > 0 ? (
+                        <ol className="space-y-2 text-sm">
+                          {baitData.slice(0, 5).map((item, index) => (
+                            <li key={item.label} className="flex items-center justify-between gap-4">
+                              <span className="font-medium text-foreground">
+                                {index + 1}. {item.label}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {item.catches} catch{item.catches === 1 ? "" : "es"}
+                              </span>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : null}
                     </ChartCard>
                   </div>
                 </section>
@@ -589,18 +562,24 @@ const Insights = () => {
                     icon={Anchor}
                     title="Productive methods"
                     description="Compare which techniques deliver the goods."
-                    isEmpty={stats.methodCounts.length === 0}
+                    isEmpty={methodData.length === 0}
                     emptyMessage="No method data captured yet."
                     footer={methodFooter}
                   >
-                    <DistributionBarChart
-                      data={methodData}
-                      theme={nivoTheme}
-                      color={primaryColor}
-                      gradientId={methodGradientId}
-                      height="h-64"
-                      tickRotation={-20}
-                    />
+                    {methodData.length > 0 ? (
+                      <ol className="space-y-2 text-sm">
+                        {methodData.slice(0, 5).map((item, index) => (
+                          <li key={item.label} className="flex items-center justify-between gap-4">
+                            <span className="font-medium text-foreground">
+                              {index + 1}. {item.label}
+                            </span>
+                            <span className="text-muted-foreground">
+                              {item.catches} catch{item.catches === 1 ? "" : "es"}
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    ) : null}
                   </ChartCard>
 
                   <InfoCards
