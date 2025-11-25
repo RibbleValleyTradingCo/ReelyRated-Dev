@@ -6,9 +6,11 @@ export const canViewCatch = (
   visibility: VisibilityType | null | undefined,
   ownerId: string | null | undefined,
   viewerId?: string | null,
-  followingIds: string[] = []
+  followingIds: string[] = [],
+  isAdmin = false
 ) => {
   if (!ownerId) return false;
+  if (isAdmin) return true;
   if (viewerId && ownerId === viewerId) return true;
 
   const normalized = visibility ?? "public";

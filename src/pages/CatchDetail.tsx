@@ -169,7 +169,8 @@ const CatchDetail = () => {
       catchData.visibility,
       catchData.user_id,
       user?.id,
-      isFollowing ? [catchData.user_id] : []
+      isFollowing ? [catchData.user_id] : [],
+      isAdmin
     );
 
     if (!allowed) {

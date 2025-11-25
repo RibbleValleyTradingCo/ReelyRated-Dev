@@ -13,6 +13,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { FeedFilters } from "@/components/feed/FeedFilters";
 import { CatchCard } from "@/components/feed/CatchCard";
 import { logger } from "@/lib/logger";
+import { isAdminUser } from "@/lib/admin";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -81,6 +82,7 @@ const Feed = () => {
   const [hasMore, setHasMore] = useState(false);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [nextCursor, setNextCursor] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const sessionFilter = searchParams.get("session");
 
   useEffect(() => {
@@ -157,6 +159,7 @@ const Feed = () => {
     if (!user) {
       setFollowingIds([]);
       setFeedScope("all");
+      setIsAdmin(false);
       return;
     }
 
@@ -176,6 +179,21 @@ const Feed = () => {
     };
 
     void loadFollowing();
+
+    let active = true;
+    const loadAdmin = async () => {
+      try {
+        const adminStatus = await isAdminUser(user.id);
+        if (active) setIsAdmin(adminStatus);
+      } catch {
+        if (active) setIsAdmin(false);
+      }
+    };
+    void loadAdmin();
+
+    return () => {
+      active = false;
+    };
   }, [user]);
 
   const calculateAverageRating = (ratings: { rating: number }[]) => {
@@ -188,7 +206,13 @@ const Feed = () => {
     let filtered = [...catches];
 
     filtered = filtered.filter((catchItem) =>
-      canViewCatch(catchItem.visibility as VisibilityType | null, catchItem.user_id, user?.id, followingIds)
+      canViewCatch(
+        catchItem.visibility as VisibilityType | null,
+        catchItem.user_id,
+        user?.id,
+        followingIds,
+        isAdmin
+      )
     );
 
     if (sessionFilter) {
