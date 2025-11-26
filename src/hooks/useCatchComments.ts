@@ -11,11 +11,13 @@ export interface CatchComment {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  is_admin_author?: boolean;
   profiles: {
     id: string;
     username: string;
     avatar_path: string | null;
     avatar_url: string | null;
+    admin_users?: { user_id: string }[] | null;
   } | null;
 }
 
@@ -96,7 +98,8 @@ export const useCatchComments = (catchId: string | undefined) => {
           const profileChanged =
             (p.profiles?.username ?? null) !== (n.profiles?.username ?? null) ||
             (p.profiles?.avatar_path ?? null) !== (n.profiles?.avatar_path ?? null) ||
-            (p.profiles?.avatar_url ?? null) !== (n.profiles?.avatar_url ?? null);
+            (p.profiles?.avatar_url ?? null) !== (n.profiles?.avatar_url ?? null) ||
+            (!!p.profiles?.admin_users?.length) !== (!!n.profiles?.admin_users?.length);
           return (
             p.body !== n.body ||
             p.deleted_at !== n.deleted_at ||
@@ -105,7 +108,8 @@ export const useCatchComments = (catchId: string | undefined) => {
             p.user_id !== n.user_id ||
             p.catch_id !== n.catch_id ||
             p.created_at !== n.created_at ||
-            profileChanged
+            profileChanged ||
+            (p.is_admin_author ?? false) !== (n.is_admin_author ?? false)
           );
         });
         if (!changed) return prev;
@@ -125,7 +129,7 @@ export const useCatchComments = (catchId: string | undefined) => {
     const { data, error: fetchError } = await supabase
       .from("catch_comments")
       .select(
-        "id, catch_id, user_id, body, parent_comment_id, created_at, updated_at, deleted_at, profiles:user_id (id, username, avatar_path, avatar_url)"
+        "id, catch_id, user_id, body, parent_comment_id, created_at, updated_at, deleted_at, profiles:user_id (id, username, avatar_path, avatar_url, admin_users (user_id))"
       )
       .eq("catch_id", catchId)
       .order("created_at", { ascending: true });
@@ -134,7 +138,11 @@ export const useCatchComments = (catchId: string | undefined) => {
       setError("Failed to load comments");
       toast.error("Failed to load comments");
     } else {
-      replaceIfChanged((data as CatchComment[]) ?? []);
+      const withAdminFlag = (data as CatchComment[] | null | undefined)?.map((c) => ({
+        ...c,
+        is_admin_author: !!c.profiles?.admin_users?.length,
+      }));
+      replaceIfChanged(withAdminFlag ?? []);
     }
 
     if (isInitial) {

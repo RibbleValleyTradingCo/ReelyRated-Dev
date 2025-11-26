@@ -17,13 +17,22 @@ export const resolveNotificationPath = (notification: NotificationRow): string |
   ]);
 
   const catchIdFromExtra =
-    typeof extraData.catch_id === "string" && extraData.catch_id.length > 0
+    (typeof extraData.catch_id === "string" && extraData.catch_id.length > 0
       ? extraData.catch_id
-      : null;
+      : null) ??
+    (typeof (extraData as Record<string, unknown>).catchId === "string" &&
+    (extraData as Record<string, unknown>).catchId.length > 0
+      ? ((extraData as Record<string, string>).catchId as string)
+      : null);
+
   const commentIdFromExtra =
-    typeof extraData.comment_id === "string" && extraData.comment_id.length > 0
+    (typeof extraData.comment_id === "string" && extraData.comment_id.length > 0
       ? extraData.comment_id
-      : null;
+      : null) ??
+    (typeof (extraData as Record<string, unknown>).commentId === "string" &&
+    (extraData as Record<string, unknown>).commentId.length > 0
+      ? ((extraData as Record<string, string>).commentId as string)
+      : null);
 
   if (notification.type === "admin_moderation") {
     const targetCatchId = notification.catch_id ?? catchIdFromExtra;
@@ -45,8 +54,9 @@ export const resolveNotificationPath = (notification: NotificationRow): string |
 
   if (catchTypes.has(notification.type)) {
     const catchId = notification.catch_id ?? catchIdFromExtra;
+    const commentId = notification.comment_id ?? commentIdFromExtra;
     if (catchId) {
-      return `/catch/${catchId}`;
+      return commentId ? `/catch/${catchId}?commentId=${commentId}` : `/catch/${catchId}`;
     }
   }
 

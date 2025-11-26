@@ -1,9 +1,8 @@
--- 2026_wire_comment_notifications_from_rpc.sql
--- Purpose: ensure each new comment/reply triggers its own notification (new_comment), while keeping existing visibility/rate-limit logic intact.
+-- 2032_admin_comment_rate_limit_bypass.sql
+-- Purpose: allow admins to bypass comment rate limits while keeping existing limits for normal users.
 
 SET search_path = public, extensions;
 
--- Recreate create_comment_with_rate_limit with notification dispatch to catch owner
 CREATE OR REPLACE FUNCTION public.create_comment_with_rate_limit(
   p_catch_id uuid,
   p_body text,
@@ -70,30 +69,41 @@ BEGIN
     RAISE EXCEPTION 'Comment body is required';
   END IF;
 
-  IF NOT public.check_rate_limit(v_user_id, 'comments', 20, 60) THEN
-    RAISE EXCEPTION 'RATE_LIMITED: comments – max 20 per hour';
+  IF NOT v_is_admin THEN
+    IF NOT public.check_rate_limit(v_user_id, 'comments', 20, 60) THEN
+      RAISE EXCEPTION 'RATE_LIMITED: comments – max 20 per hour';
+    END IF;
   END IF;
 
   INSERT INTO public.catch_comments (catch_id, user_id, body, parent_comment_id, created_at)
   VALUES (p_catch_id, v_user_id, v_body, p_parent_comment_id, now())
   RETURNING id INTO v_id;
 
-  INSERT INTO public.rate_limits (user_id, action, created_at)
-  VALUES (v_user_id, 'comments', now());
+  IF NOT v_is_admin THEN
+    INSERT INTO public.rate_limits (user_id, action, created_at)
+    VALUES (v_user_id, 'comments', now());
+  END IF;
 
-  -- Notify catch owner for new comments (skip self-comments, skip if catch is soft-deleted)
+  -- Notify catch owner (non-blocking). Skip self-comments.
   IF v_catch.user_id IS NOT NULL AND v_catch.user_id <> v_user_id AND v_catch.deleted_at IS NULL THEN
-    PERFORM public.create_notification(
-      p_user_id := v_catch.user_id,
-      p_message := 'Someone commented on your catch',
-      p_type := 'new_comment'::public.notification_type,
-      p_actor_id := v_user_id,
-      p_catch_id := p_catch_id,
-      p_comment_id := v_id,
-      p_extra_data := jsonb_build_object('catch_id', p_catch_id, 'comment_id', v_id)
-    );
+    BEGIN
+      PERFORM public.create_notification(
+        p_user_id := v_catch.user_id,
+        p_message := 'Someone commented on your catch',
+        p_type := 'new_comment'::public.notification_type,
+        p_actor_id := v_user_id,
+        p_catch_id := p_catch_id,
+        p_comment_id := v_id,
+        p_extra_data := jsonb_build_object('catch_id', p_catch_id, 'comment_id', v_id)
+      );
+    EXCEPTION
+      WHEN OTHERS THEN
+        NULL;
+    END;
   END IF;
 
   RETURN v_id;
 END;
 $$;
+
+GRANT EXECUTE ON FUNCTION public.create_comment_with_rate_limit(uuid, text, uuid) TO authenticated;

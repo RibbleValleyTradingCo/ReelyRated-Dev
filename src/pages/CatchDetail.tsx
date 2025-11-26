@@ -55,9 +55,12 @@ import html2canvas from "html2canvas";
 import ShareCard from "@/components/ShareCard";
 import ReportButton from "@/components/ReportButton";
 import { isAdminUser } from "@/lib/admin";
+import { useSearchParams } from "react-router-dom";
 
 const CatchDetail = () => {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const targetCommentId = searchParams.get("commentId");
   const { user } = useAuthUser();
   const navigate = useNavigate();
   const [userRating, setUserRating] = useState<number>(5);
@@ -394,6 +397,7 @@ const CatchDetail = () => {
                 catchTitle={catchData.title}
                 currentUserId={user?.id ?? null}
                 isAdmin={isAdmin}
+                targetCommentId={targetCommentId ?? undefined}
               />
             </div>
 
