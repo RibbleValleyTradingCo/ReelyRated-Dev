@@ -40,6 +40,15 @@ describe('resolveNotificationPath', () => {
     expect(resolveNotificationPath(notification)).toBe('/catch/catch-123?commentId=comment-456');
   });
 
+  it('returns admin reports path for admin_report with extra data only', () => {
+    const notification = baseNotification({
+      type: 'admin_report',
+      catch_id: null,
+      extra_data: { foo: 'bar' } as NotificationRow['extra_data'],
+    });
+    expect(resolveNotificationPath(notification)).toBe('/admin/reports');
+  });
+
   it('falls back to actor profile path when catch id missing', () => {
     const notification = baseNotification({
       type: 'new_follower',

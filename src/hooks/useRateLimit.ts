@@ -33,6 +33,11 @@ export interface RateLimitOptions {
    * If provided, attempts are stored in localStorage
    */
   storageKey?: string;
+
+  /**
+   * Optional user identifier to scope persisted keys per user.
+   */
+  userId?: string | null;
 }
 
 export interface RateLimitState {
@@ -99,7 +104,9 @@ export interface RateLimitState {
  * ```
  */
 export const useRateLimit = (options: RateLimitOptions): RateLimitState => {
-  const { maxAttempts, windowMs, onLimitExceeded, storageKey } = options;
+  const { maxAttempts, windowMs, onLimitExceeded, storageKey, userId } = options;
+
+  const effectiveStorageKey = storageKey && userId ? `${storageKey}:${userId}` : storageKey;
 
   // Store attempt timestamps
   const attemptsRef = useRef<number[]>([]);
@@ -109,14 +116,14 @@ export const useRateLimit = (options: RateLimitOptions): RateLimitState => {
 
   // Save attempts to localStorage
   const saveAttempts = useCallback(() => {
-    if (storageKey) {
+    if (effectiveStorageKey) {
       try {
-        localStorage.setItem(storageKey, JSON.stringify(attemptsRef.current));
+        localStorage.setItem(effectiveStorageKey, JSON.stringify(attemptsRef.current));
       } catch (error) {
         console.error('Failed to save rate limit state:', error);
       }
     }
-  }, [storageKey]);
+  }, [effectiveStorageKey]);
 
   // Update state based on current attempts
   const updateState = useCallback(() => {
@@ -148,9 +155,9 @@ export const useRateLimit = (options: RateLimitOptions): RateLimitState => {
 
   // Load attempts from localStorage on mount
   useEffect(() => {
-    if (storageKey) {
+    if (effectiveStorageKey) {
       try {
-        const stored = localStorage.getItem(storageKey);
+        const stored = localStorage.getItem(effectiveStorageKey);
         if (stored) {
           const attempts: number[] = JSON.parse(stored);
           const now = Date.now();
@@ -165,7 +172,7 @@ export const useRateLimit = (options: RateLimitOptions): RateLimitState => {
         console.error('Failed to load rate limit state:', error);
       }
     }
-  }, [storageKey, updateState, windowMs]);
+  }, [effectiveStorageKey, updateState, windowMs]);
 
   // Auto-update state every second to keep resetIn accurate
   useEffect(() => {

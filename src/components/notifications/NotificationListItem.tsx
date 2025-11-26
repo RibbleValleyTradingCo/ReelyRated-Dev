@@ -9,6 +9,8 @@ interface NotificationListItemProps {
   notification: NotificationRow;
   onView: (notification: NotificationRow) => void;
   onMarkRead: (notification: NotificationRow) => void;
+  isAdminViewer?: boolean;
+  onModerationView?: (userId: string) => void;
 }
 
 const getNotificationTitle = (type: NotificationRow["type"]) => {
@@ -77,6 +79,8 @@ export const NotificationListItem = ({
   notification,
   onView,
   onMarkRead,
+  isAdminViewer = false,
+  onModerationView,
 }: NotificationListItemProps) => {
   const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
   const adminDetail = formatAdminDetails(notification, extraData);
@@ -95,6 +99,12 @@ export const NotificationListItem = ({
         : notification.type === "comment_reply"
           ? `${actorUsername ? `@${actorUsername} ` : "Someone "}replied to your comment.`
           : "You have a new notification.";
+
+  const moderatedUserId = notification.user_id ?? null;
+  const showModerationLink =
+    isAdminViewer &&
+    moderatedUserId &&
+    (notification.type === "admin_warning" || notification.type === "admin_moderation");
 
   return (
     <div
@@ -119,6 +129,20 @@ export const NotificationListItem = ({
             <p className="text-xs text-muted-foreground mt-1">{adminDetail}</p>
           ) : null}
           <p className="mt-1 text-xs text-muted-foreground">{timeAgo}</p>
+          {showModerationLink ? (
+            <button
+              type="button"
+              className="mt-1 text-xs text-primary hover:underline"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (moderatedUserId) {
+                  onModerationView?.(moderatedUserId);
+                }
+              }}
+            >
+              View moderation
+            </button>
+          ) : null}
         </div>
         <div className="flex flex-col items-end gap-1">
           <Button

@@ -363,6 +363,7 @@ export const CatchComments = memo(
       maxAttempts: 30,
       windowMs: 60 * 60 * 1000,
       storageKey: "comment-submit-limit",
+      userId: user?.id ?? null,
       onLimitExceeded: () => {
         const resetTime = formatResetTime(resetIn);
         toast.error(`Rate limit exceeded. You can only post 30 comments per hour. Try again in ${resetTime}.`);

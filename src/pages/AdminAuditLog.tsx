@@ -207,6 +207,17 @@ const AdminAuditLog = () => {
     [navigate]
   );
 
+  const resolveModerationUserId = (row: LogRow) => row.user_id ?? (row.target_type === "user" ? row.target_id : null);
+
+  const handleViewUserModeration = useCallback(
+    (row: LogRow) => {
+      const targetUserId = resolveModerationUserId(row);
+      if (!targetUserId) return;
+      navigate(`/admin/users/${targetUserId}/moderation`);
+    },
+    [navigate]
+  );
+
   const handleToggleSort = () => {
     setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
   };
@@ -381,7 +392,7 @@ const AdminAuditLog = () => {
                           <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words text-xs text-muted-foreground">
                             {detailsText}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right space-x-1 whitespace-nowrap">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -390,6 +401,15 @@ const AdminAuditLog = () => {
                             >
                               View
                             </Button>
+                            {resolveModerationUserId(row) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewUserModeration(row)}
+                              >
+                                Moderation
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       );

@@ -779,11 +779,23 @@ const AdminReports = () => {
                           <p className="text-sm text-muted-foreground">Loading moderation context…</p>
                         ) : currentDetails ? (
                           <>
-                            {currentDetails.targetProfile && (
-                              <div className="text-sm text-muted-foreground">
-                                Target user: {currentDetails.targetProfile.username ?? currentDetails.targetProfile.id}
+                            {currentDetails.targetProfile?.id ? (
+                              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                <span>
+                                  Target user: {currentDetails.targetProfile.username ?? currentDetails.targetProfile.id}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="text-primary"
+                                  onClick={() =>
+                                    navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`)
+                                  }
+                                >
+                                  View moderation history
+                                </Button>
                               </div>
-                            )}
+                            ) : null}
 
                             {currentDetails.targetMissing && (
                               <div className="rounded border border-dashed border-destructive/60 bg-destructive/10 p-3 text-sm text-destructive">

@@ -16,6 +16,7 @@ import { getProfilePath, isUuid } from "@/lib/profile";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { ProfileNotificationsSection } from "@/components/ProfileNotificationsSection";
 import ProfileNotFound from "@/components/ProfileNotFound";
+import { isAdminUser } from "@/lib/admin";
 
 interface Profile {
   id: string;
@@ -109,6 +110,7 @@ const Profile = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingProfiles, setFollowingProfiles] = useState<FollowingProfile[]>([]);
+  const [isAdminViewer, setIsAdminViewer] = useState(false);
 
   const profileId = profile?.id ?? null;
   const isOwnProfile = user?.id === profileId;
@@ -117,6 +119,24 @@ const Profile = () => {
     () => resolveAvatarUrl({ path: profile?.avatar_path, legacyUrl: profile?.avatar_url }),
     [profile?.avatar_path, profile?.avatar_url]
   );
+
+  useEffect(() => {
+    let active = true;
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdminViewer(false);
+        return;
+      }
+      const result = await isAdminUser(user.id);
+      if (active) {
+        setIsAdminViewer(result);
+      }
+    };
+    void checkAdmin();
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   const fetchProfile = useCallback(async () => {
     if (!slug) {
@@ -496,6 +516,15 @@ const Profile = () => {
                   >
                     View community feed
                   </Button>
+                  {isAdminViewer && profileId ? (
+                    <Button
+                      variant="outline"
+                      className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                      onClick={() => navigate(`/admin/users/${profileId}/moderation`)}
+                    >
+                      Moderation
+                    </Button>
+                  ) : null}
                 </div>
               </div>
 

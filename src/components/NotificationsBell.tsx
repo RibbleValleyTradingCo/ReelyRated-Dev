@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationListItem, type NotificationRow } from "@/components/notifications/NotificationListItem";
 import { resolveNotificationPath } from "@/lib/notifications-utils";
+import { isAdminUser } from "@/lib/admin";
 import { cn } from "@/lib/utils";
 
 interface NotificationsBellProps {
@@ -24,6 +25,7 @@ export const NotificationsBell = ({
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const [isAdminViewer, setIsAdminViewer] = useState(false);
   const limit = 25;
 
   const {
@@ -41,6 +43,24 @@ export const NotificationsBell = ({
       void refresh();
     }
   }, [authLoading, refresh, user]);
+
+  useEffect(() => {
+    let isActive = true;
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdminViewer(false);
+        return;
+      }
+      const result = await isAdminUser(user.id);
+      if (isActive) {
+        setIsAdminViewer(result);
+      }
+    };
+    void checkAdmin();
+    return () => {
+      isActive = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -120,6 +140,10 @@ export const NotificationsBell = ({
   if (authLoading || !user) {
     return null;
   }
+  const handleModerationView = (moderationUserId: string) => {
+    navigate(`/admin/users/${moderationUserId}/moderation`);
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -219,6 +243,8 @@ export const NotificationsBell = ({
                     notification={notification}
                     onView={handleNavigate}
                     onMarkRead={handleMarkAsRead}
+                    isAdminViewer={isAdminViewer}
+                    onModerationView={handleModerationView}
                   />
                 ))}
               </div>

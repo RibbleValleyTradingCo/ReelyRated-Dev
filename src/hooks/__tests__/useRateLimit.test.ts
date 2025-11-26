@@ -385,6 +385,7 @@ describe('useRateLimit - Real-world scenarios', () => {
         maxAttempts: 30,
         windowMs: 60 * 60 * 1000, // 1 hour
         storageKey: 'comment-submit-limit',
+        userId: 'user-123',
       })
     );
 

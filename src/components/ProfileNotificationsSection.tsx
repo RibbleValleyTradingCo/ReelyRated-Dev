@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
@@ -6,12 +6,15 @@ import { NotificationListItem } from "@/components/notifications/NotificationLis
 import { useNotifications } from "@/hooks/useNotifications";
 import { useNavigate } from "react-router-dom";
 import { resolveNotificationPath } from "@/lib/notifications-utils";
+import { isAdminUser } from "@/lib/admin";
+import { useAuth } from "@/components/AuthProvider";
 
 interface ProfileNotificationsSectionProps {
   userId: string | null;
 }
 
 export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSectionProps) => {
+  const { user } = useAuth();
   const {
     notifications,
     loading,
@@ -21,11 +24,30 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
     clearAll,
   } = useNotifications(userId, 50);
   const navigate = useNavigate();
+  const [isAdminViewer, setIsAdminViewer] = useState(false);
 
   useEffect(() => {
     if (!userId) return;
     void refresh();
   }, [refresh, userId]);
+
+  useEffect(() => {
+    let active = true;
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdminViewer(false);
+        return;
+      }
+      const result = await isAdminUser(user.id);
+      if (active) {
+        setIsAdminViewer(result);
+      }
+    };
+    void checkAdmin();
+    return () => {
+      active = false;
+    };
+  }, [userId]);
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => !notification.is_read).length,
@@ -110,6 +132,8 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
                 onMarkRead={(current) => {
                   void markOne(current.id);
                 }}
+                isAdminViewer={isAdminViewer}
+                onModerationView={(moderationUserId) => navigate(`/admin/users/${moderationUserId}/moderation`)}
               />
             ))}
           </div>
