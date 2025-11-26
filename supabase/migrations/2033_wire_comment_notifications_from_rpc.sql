@@ -4,25 +4,8 @@
 
 SET search_path = public, extensions;
 
--- Drop old overloads (idempotent) to avoid clients hitting outdated signatures.
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'create_comment_with_rate_limit'
-      AND proargtypes = ARRAY['uuid'::regtype, 'text'::regtype]::oid[]
-  ) THEN
-    EXECUTE 'DROP FUNCTION public.create_comment_with_rate_limit(uuid, text)';
-  END IF;
-
-  IF EXISTS (
-    SELECT 1 FROM pg_proc WHERE proname = 'create_comment_with_rate_limit'
-      AND proargtypes = ARRAY['uuid'::regtype, 'text'::regtype, 'uuid'::regtype]::oid[]
-      AND pronamespace = 'public'::regnamespace
-  ) THEN
-    NULL; -- keep 3-arg form; we'll recreate below.
-  END IF;
-END;
-$$;
+-- Drop old overload (idempotent) to avoid clients hitting outdated signatures.
+DROP FUNCTION IF EXISTS public.create_comment_with_rate_limit(uuid, text);
 
 -- Recreate the 3-arg function with notification dispatch intact.
 CREATE OR REPLACE FUNCTION public.create_comment_with_rate_limit(
@@ -91,28 +74,37 @@ BEGIN
     RAISE EXCEPTION 'Comment body is required';
   END IF;
 
-  IF NOT public.check_rate_limit(v_user_id, 'comments', 20, 60) THEN
-    RAISE EXCEPTION 'RATE_LIMITED: comments – max 20 per hour';
+  IF NOT v_is_admin THEN
+    IF NOT public.check_rate_limit(v_user_id, 'comments', 20, 60) THEN
+      RAISE EXCEPTION 'RATE_LIMITED: comments – max 20 per hour';
+    END IF;
   END IF;
 
   INSERT INTO public.catch_comments (catch_id, user_id, body, parent_comment_id, created_at)
   VALUES (p_catch_id, v_user_id, v_body, p_parent_comment_id, now())
   RETURNING id INTO v_id;
 
-  INSERT INTO public.rate_limits (user_id, action, created_at)
-  VALUES (v_user_id, 'comments', now());
+  IF NOT v_is_admin THEN
+    INSERT INTO public.rate_limits (user_id, action, created_at)
+    VALUES (v_user_id, 'comments', now());
+  END IF;
 
   -- Notify catch owner for new comments (skip self-comments, skip soft-deleted catches)
   IF v_catch.user_id IS NOT NULL AND v_catch.user_id <> v_user_id AND v_catch.deleted_at IS NULL THEN
-    PERFORM public.create_notification(
-      p_user_id := v_catch.user_id,
-      p_message := 'Someone commented on your catch',
-      p_type := 'new_comment'::public.notification_type,
-      p_actor_id := v_user_id,
-      p_catch_id := p_catch_id,
-      p_comment_id := v_id,
-      p_extra_data := jsonb_build_object('catch_id', p_catch_id, 'comment_id', v_id)
-    );
+    BEGIN
+      PERFORM public.create_notification(
+        p_user_id := v_catch.user_id,
+        p_message := 'Someone commented on your catch',
+        p_type := 'new_comment'::public.notification_type,
+        p_actor_id := v_user_id,
+        p_catch_id := p_catch_id,
+        p_comment_id := v_id,
+        p_extra_data := jsonb_build_object('catch_id', p_catch_id, 'comment_id', v_id)
+      );
+    EXCEPTION
+      WHEN OTHERS THEN
+        NULL;
+    END;
   END IF;
 
   RETURN v_id;
