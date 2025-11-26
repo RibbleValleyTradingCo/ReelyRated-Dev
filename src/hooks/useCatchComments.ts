@@ -26,6 +26,36 @@ export interface ThreadedComment extends CatchComment {
   totalChildrenCount?: number;
 }
 
+export interface MentionCandidate {
+  userId: string;
+  username: string;
+  avatarPath: string | null;
+  avatarUrl: string | null;
+  lastInteractedAt: string;
+}
+
+function mapRowToCatchComment(row: any): CatchComment {
+  return {
+    id: row.id,
+    catch_id: row.catch_id,
+    user_id: row.user_id,
+    body: row.body,
+    parent_comment_id: row.parent_comment_id,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    deleted_at: row.deleted_at,
+    is_admin_author: !!row.is_admin_author,
+    profiles: row.profiles
+      ? {
+          id: row.profiles.id,
+          username: row.profiles.username,
+          avatar_path: row.profiles.avatar_path,
+          avatar_url: row.profiles.avatar_url,
+        }
+      : null,
+  };
+}
+
 const buildThread = (flat: CatchComment[]): ThreadedComment[] => {
   const map = new Map<string, ThreadedComment>();
   const parentLookup = new Map<string, string | null>();
@@ -86,6 +116,7 @@ export const useCatchComments = (catchId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(false);
   const hasLoadedOnceRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [mentionCandidates, setMentionCandidates] = useState<MentionCandidate[]>([]);
   const [refreshToken, setRefreshToken] = useState(0);
 
   const replaceIfChanged = useCallback((next: CatchComment[]) => {
@@ -133,15 +164,29 @@ export const useCatchComments = (catchId: string | undefined) => {
       .eq("catch_id", catchId)
       .order("created_at", { ascending: true });
 
+    const { data: mentionData } = await supabase
+      .from("catch_mention_candidates")
+      .select("catch_id, user_id, username, avatar_path, avatar_url, last_interacted_at")
+      .eq("catch_id", catchId)
+      .order("last_interacted_at", { ascending: false, nulls: "last" })
+      .order("username", { ascending: true })
+      .limit(50);
+
     if (fetchError) {
       setError("Failed to load comments");
       toast.error("Failed to load comments");
     } else {
-      const withAdminFlag = (data as CatchComment[] | null | undefined)?.map((c) => ({
-        ...c,
-        is_admin_author: c.is_admin_author ?? false,
-      }));
-      replaceIfChanged(withAdminFlag ?? []);
+      const mapped = (data as any[] | null | undefined)?.map(mapRowToCatchComment) ?? [];
+      replaceIfChanged(mapped);
+      const mappedMentions =
+        (mentionData ?? []).map((row) => ({
+          userId: row.user_id,
+          username: row.username,
+          avatarPath: row.avatar_path,
+          avatarUrl: row.avatar_url,
+          lastInteractedAt: row.last_interacted_at,
+        })) ?? [];
+      setMentionCandidates(mappedMentions);
     }
 
     if (isInitial) {
@@ -178,5 +223,6 @@ export const useCatchComments = (catchId: string | undefined) => {
     refetch: () => setRefreshToken((prev) => prev + 1),
     addLocalComment,
     markLocalCommentDeleted,
+    mentionCandidates,
   };
 };

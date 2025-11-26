@@ -18,9 +18,10 @@ interface ReportButtonProps {
   targetId: string;
   label?: string;
   className?: string;
+  onReported?: () => void;
 }
 
-export const ReportButton = ({ targetType, targetId, label = "Report", className }: ReportButtonProps) => {
+export const ReportButton = ({ targetType, targetId, label = "Report", className, onReported }: ReportButtonProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -75,6 +76,7 @@ export const ReportButton = ({ targetType, targetId, label = "Report", className
       toast.success("Report submitted");
       setOpen(false);
       setReason("");
+      onReported?.();
       void notifyAdmins({
         reporter_id: user.id,
         target_type: targetType,

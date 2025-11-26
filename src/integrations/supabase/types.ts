@@ -1139,6 +1139,7 @@ export const Constants = {
       notification_type: [
         "new_follower",
         "new_comment",
+        "comment_reply",
         "new_rating",
         "new_reaction",
         "mention",

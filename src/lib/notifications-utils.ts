@@ -11,6 +11,7 @@ export const resolveNotificationPath = (notification: NotificationRow): string |
   const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
   const catchTypes = new Set<NotificationRow["type"]>([
     "new_comment",
+    "comment_reply",
     "mention",
     "new_reaction",
     "new_rating",

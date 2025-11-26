@@ -1,4 +1,5 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -13,7 +14,7 @@ import { getProfilePath } from "@/lib/profile";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { useRateLimit, formatResetTime } from "@/hooks/useRateLimit";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
-import { useCatchComments, ThreadedComment, CatchComment } from "@/hooks/useCatchComments";
+import { useCatchComments, ThreadedComment, CatchComment, MentionCandidate } from "@/hooks/useCatchComments";
 
 interface CatchCommentsProps {
   catchId: string;
@@ -23,6 +24,34 @@ interface CatchCommentsProps {
   isAdmin?: boolean;
   targetCommentId?: string;
 }
+
+const INITIAL_VISIBLE_ROOTS = 10;
+const LOAD_MORE_COUNT = 10;
+// Visual indent: Facebook-style, two visual levels (root + replies all share one indent)
+const REPLY_INDENT_PX = 14;
+const REPLIES_PAGE_SIZE = 3;
+type FlatReply = ThreadedComment & {
+  parentAuthor?: string;
+  parentBodySnippet?: string;
+  realDepth: number;
+  parent_comment_id?: string | null;
+};
+type MentionState = {
+  active: boolean;
+  fragment: string;
+  start: number;
+  matches: MentionCandidate[];
+  highlighted: number;
+};
+
+const WORD_CHAR_REGEX = /[a-zA-Z0-9_]/;
+const EMPTY_MENTION_STATE: MentionState = {
+  active: false,
+  fragment: "",
+  start: -1,
+  matches: [],
+  highlighted: 0,
+};
 
 const highlightMentions = (text: string) => {
   const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
@@ -38,13 +67,193 @@ const highlightMentions = (text: string) => {
   });
 };
 
-const INITIAL_VISIBLE_ROOTS = 10;
-const LOAD_MORE_COUNT = 10;
-// Visual indent: Facebook-style, two visual levels (root + replies all share one indent)
-const REPLY_INDENT_PX = 14;
-const REPLIES_PAGE_SIZE = 3;
-
 const getDisplayName = (comment: ThreadedComment) => comment.profiles?.username ?? "Unknown angler";
+
+const findActiveMention = (value: string, cursor: number | null) => {
+  if (cursor === null || cursor === undefined) return null;
+  const safeCursor = Math.max(0, Math.min(cursor, value.length));
+
+  for (let i = safeCursor - 1; i >= 0; i -= 1) {
+    const ch = value[i];
+    if (ch === "@") {
+      const before = i > 0 ? value[i - 1] : " ";
+      if (WORD_CHAR_REGEX.test(before)) return null;
+      const fragment = value.slice(i + 1, safeCursor);
+      if (!/^[a-zA-Z0-9_]*$/.test(fragment)) return null;
+      return { start: i, fragment };
+    }
+    if (!WORD_CHAR_REGEX.test(ch)) {
+      break;
+    }
+  }
+  return null;
+};
+
+const isDefaultMentionState = (state: MentionState) =>
+  !state.active && state.fragment === "" && state.start === -1 && state.matches.length === 0 && state.highlighted === 0;
+
+function useMentionController(mentionCandidates: MentionCandidate[]) {
+  const [mentionStates, setMentionStates] = useState<Record<string, MentionState>>({});
+  const textareaRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
+  const listRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  const getState = useCallback(
+    (key: string) => {
+      return mentionStates[key] ?? EMPTY_MENTION_STATE;
+    },
+    [mentionStates]
+  );
+
+  const setTextareaRef = useCallback((key: string, el: HTMLTextAreaElement | null) => {
+    textareaRefs.current[key] = el;
+  }, []);
+
+  const setListRef = useCallback((key: string, el: HTMLDivElement | null) => {
+    listRefs.current[key] = el;
+  }, []);
+
+  const resetState = useCallback((key: string) => {
+    setMentionStates((prev) => {
+      const prevState = prev[key] ?? EMPTY_MENTION_STATE;
+      if (isDefaultMentionState(prevState)) return prev;
+      return { ...prev, [key]: EMPTY_MENTION_STATE };
+    });
+  }, []);
+
+  const updateFromValue = useCallback(
+    (key: string, value: string, cursor: number | null) => {
+      setMentionStates((prev) => {
+        const activeMention = findActiveMention(value, cursor);
+        if (!activeMention) {
+          const prevState = prev[key] ?? EMPTY_MENTION_STATE;
+          if (isDefaultMentionState(prevState)) return prev;
+          return { ...prev, [key]: EMPTY_MENTION_STATE };
+        }
+
+        const normalizedFragment = activeMention.fragment.toLowerCase();
+        const matches = mentionCandidates
+          .filter((candidate) => candidate.username.toLowerCase().startsWith(normalizedFragment))
+          .slice(0, 8);
+
+        const nextState: MentionState = {
+          active: true,
+          fragment: activeMention.fragment,
+          start: activeMention.start,
+          matches,
+          highlighted: 0,
+        };
+
+        return { ...prev, [key]: nextState };
+      });
+    },
+    [mentionCandidates]
+  );
+
+  const handleSelect = useCallback(
+    (key: string, candidate: MentionCandidate, currentValue: string, onChange: (next: string) => void) => {
+      const state = mentionStates[key] ?? EMPTY_MENTION_STATE;
+      if (!state.active || state.start < 0) return;
+      const textarea = textareaRefs.current[key];
+      const currentCursor = textarea?.selectionEnd ?? state.start + state.fragment.length + 1;
+      const mentionStart = state.start;
+      const mentionEnd = mentionStart + state.fragment.length + 1;
+      const replaceEnd = Math.max(mentionEnd, currentCursor);
+
+      const before = currentValue.slice(0, mentionStart);
+      const after = currentValue.slice(replaceEnd);
+      const mentionText = `@${candidate.username}`;
+      const needsSpace = after.length > 0 && WORD_CHAR_REGEX.test(after[0]) ? " " : after.length === 0 ? " " : "";
+
+      const nextValue = `${before}${mentionText}${needsSpace}${after}`;
+      onChange(nextValue);
+      resetState(key);
+
+      requestAnimationFrame(() => {
+        const nextCursor = before.length + mentionText.length + needsSpace.length;
+        if (textarea) {
+          textarea.focus();
+          textarea.selectionStart = nextCursor;
+          textarea.selectionEnd = nextCursor;
+        }
+      });
+    },
+    [mentionStates, resetState]
+  );
+
+  const handleKeyDown = useCallback(
+    (
+      key: string,
+      e: KeyboardEvent<HTMLTextAreaElement>,
+      currentValue: string,
+      onChange: (next: string) => void
+    ) => {
+      const state = mentionStates[key] ?? EMPTY_MENTION_STATE;
+      if (!state.active) return;
+
+      if (e.key === "Escape") {
+        resetState(key);
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        if (state.matches.length === 0) return;
+        e.preventDefault();
+        setMentionStates((prev) => {
+          const current = prev[key] ?? state;
+          const count = current.matches.length;
+          if (count === 0) return prev;
+          const next = current.highlighted + 1 >= count ? 0 : current.highlighted + 1;
+          return { ...prev, [key]: { ...current, highlighted: next } };
+        });
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        if (state.matches.length === 0) return;
+        e.preventDefault();
+        setMentionStates((prev) => {
+          const current = prev[key] ?? state;
+          const count = current.matches.length;
+          if (count === 0) return prev;
+          const next = current.highlighted - 1 < 0 ? count - 1 : current.highlighted - 1;
+          return { ...prev, [key]: { ...current, highlighted: next } };
+        });
+        return;
+      }
+
+      if ((e.key === "Enter" || e.key === "Tab") && state.matches.length > 0) {
+        e.preventDefault();
+        const candidate = state.matches[state.highlighted] ?? state.matches[0] ?? null;
+        if (candidate) {
+          handleSelect(key, candidate, currentValue, onChange);
+        }
+      }
+    },
+    [handleSelect, mentionStates, resetState]
+  );
+
+  useEffect(() => {
+    Object.entries(mentionStates).forEach(([key, state]) => {
+      if (!state.active) return;
+      const container = listRefs.current[key];
+      if (!container) return;
+      const activeId = state.matches[state.highlighted]?.userId;
+      if (!activeId) return;
+      const activeEl = container.querySelector<HTMLButtonElement>(`[data-mention-option="${activeId}"]`);
+      activeEl?.scrollIntoView({ block: "nearest" });
+    });
+  }, [mentionStates]);
+
+  return {
+    getState,
+    setTextareaRef,
+    setListRef,
+    updateFromValue,
+    handleKeyDown,
+    handleSelect,
+    resetState,
+  };
+}
 
 function buildOptimisticComment(args: {
   id: string;
@@ -82,24 +291,8 @@ function buildOptimisticComment(args: {
   };
 }
 
-function flattenReplies(
-  root: ThreadedComment
-): Array<
-  ThreadedComment & {
-    parentAuthor?: string;
-    parentBodySnippet?: string;
-    realDepth: number;
-    parent_comment_id?: string | null;
-  }
-> {
-  const flat: Array<
-    ThreadedComment & {
-      parentAuthor?: string;
-      parentBodySnippet?: string;
-      realDepth: number;
-      parent_comment_id?: string | null;
-    }
-  > = [];
+function flattenReplies(root: ThreadedComment): FlatReply[] {
+  const flat: FlatReply[] = [];
   const walk = (node: ThreadedComment, realDepth: number, parentAuthor?: string, parentBodySnippet?: string) => {
     node.children.forEach((child) => {
       const snippet =
@@ -125,7 +318,14 @@ export const CatchComments = memo(
     const [reportedComments, setReportedComments] = useState<Record<string, boolean>>({});
 
     const { user } = useAuth();
-    const { commentsTree, isLoading, refetch, addLocalComment, markLocalCommentDeleted } = useCatchComments(catchId);
+    const {
+      commentsTree,
+      isLoading,
+      refetch,
+      addLocalComment,
+      markLocalCommentDeleted,
+      mentionCandidates,
+    } = useCatchComments(catchId);
     const [newComment, setNewComment] = useState("");
     const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
     const [activeReply, setActiveReply] = useState<string | null>(null);
@@ -169,7 +369,9 @@ export const CatchComments = memo(
       },
     });
 
-    const mentionTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+    const mentionController = useMentionController(mentionCandidates);
+    const TOP_MENTION_KEY = "top-level";
+    const topMentionState = mentionController.getState(TOP_MENTION_KEY);
 
     const handleCreateComment = useCallback(
       async (body: string, parentCommentId: string | null) => {
@@ -272,6 +474,7 @@ export const CatchComments = memo(
       const success = await handleCreateComment(newComment, null);
       if (success) {
         setNewComment("");
+        mentionController.resetState(TOP_MENTION_KEY);
       }
     };
 
@@ -281,6 +484,7 @@ export const CatchComments = memo(
       if (success) {
         setReplyDrafts((prev) => ({ ...prev, [commentId]: "" }));
         setActiveReply(null);
+        mentionController.resetState(`reply-${commentId}`);
       }
     };
 
@@ -299,6 +503,8 @@ export const CatchComments = memo(
       const canDelete = (isOwner || isAdmin) && !comment.deleted_at;
       const isDeleted = Boolean(comment.deleted_at);
       const replyDraft = replyDrafts[comment.id] ?? "";
+      const replyMentionKey = `reply-${comment.id}`;
+      const replyMentionState = mentionController.getState(replyMentionKey);
       const indentPx = options.isRoot ? 0 : REPLY_INDENT_PX;
       const isOp = comment.user_id === catchOwnerId;
       const isAdminAuthor = comment.is_admin_author === true;
@@ -447,17 +653,83 @@ export const CatchComments = memo(
                   <div className="text-xs text-muted-foreground">
                     Replying to <span className="font-semibold text-foreground">@{displayName}</span>
                   </div>
-                  <Textarea
-                    value={replyDraft}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      setReplyDrafts((prev) => ({ ...prev, [comment.id]: value }));
-                      setReplyErrors((prev) => ({ ...prev, [comment.id]: null }));
-                    }}
-                    rows={3}
-                    className="w-full bg-background/60 rounded-md"
-                    placeholder={`Reply to ${displayName}…`}
-                  />
+                  <div className="relative space-y-2">
+                    <Textarea
+                      ref={(el) => mentionController.setTextareaRef(replyMentionKey, el)}
+                      value={replyDraft}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setReplyDrafts((prev) => ({ ...prev, [comment.id]: value }));
+                        setReplyErrors((prev) => ({ ...prev, [comment.id]: null }));
+                        mentionController.updateFromValue(
+                          replyMentionKey,
+                          e.target.value,
+                          e.target.selectionStart ?? null
+                        );
+                      }}
+                      onSelect={(e) =>
+                        mentionController.updateFromValue(
+                          replyMentionKey,
+                          e.currentTarget.value,
+                          e.currentTarget.selectionStart ?? null
+                        )
+                      }
+                      onKeyDown={(e) =>
+                        mentionController.handleKeyDown(replyMentionKey, e, replyDraft, (next) =>
+                          setReplyDrafts((prev) => ({ ...prev, [comment.id]: next }))
+                        )
+                      }
+                      onBlur={() => mentionController.resetState(replyMentionKey)}
+                      rows={3}
+                      className="w-full bg-background/60 rounded-md"
+                      placeholder={`Reply to ${displayName}…`}
+                    />
+                    {replyMentionState.active && (
+                      <div
+                        ref={(el) => mentionController.setListRef(replyMentionKey, el)}
+                        className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-lg"
+                      >
+                        {replyMentionState.matches.length > 0 ? (
+                          replyMentionState.matches.map((candidate, idx) => (
+                            <button
+                              key={candidate.userId}
+                              type="button"
+                              data-mention-option={candidate.userId}
+                              className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition hover:bg-muted ${
+                                replyMentionState.highlighted === idx ? "bg-muted text-foreground" : ""
+                              }`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() =>
+                                mentionController.handleSelect(replyMentionKey, candidate, replyDraft, (next) =>
+                                  setReplyDrafts((prev) => ({ ...prev, [comment.id]: next }))
+                                )
+                              }
+                            >
+                              <Avatar className="h-7 w-7">
+                                <AvatarImage
+                                  src={
+                                    resolveAvatarUrl({
+                                      path: candidate.avatarPath,
+                                      legacyUrl: candidate.avatarUrl,
+                                    }) ?? ""
+                                  }
+                                  alt={candidate.username}
+                                />
+                                <AvatarFallback>{candidate.username?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                              </Avatar>
+                              <span className="font-medium text-foreground">@{candidate.username}</span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-3 py-2 text-xs text-muted-foreground">
+                            {replyMentionState.fragment
+                              ? `No matches for "@${replyMentionState.fragment}"`
+                              : "No users to mention yet"}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   {replyErrors[comment.id] ? (
                     <p className="mt-1 text-xs text-destructive">{replyErrors[comment.id]}</p>
                   ) : null}
@@ -475,6 +747,7 @@ export const CatchComments = memo(
                       onClick={() => {
                         setActiveReply(null);
                         setReplyDrafts((prev) => ({ ...prev, [comment.id]: "" }));
+                        mentionController.resetState(replyMentionKey);
                       }}
                     >
                       Cancel
@@ -573,16 +846,75 @@ export const CatchComments = memo(
         <CardContent className="space-y-8">
           {currentUserId && (
             <div className="space-y-3">
-              <Textarea
-                ref={mentionTextareaRef}
-                value={newComment}
-                onChange={(e) => {
-                  setNewComment(e.target.value);
-                  setTopLevelError(null);
-                }}
-                placeholder="Share your thoughts..."
-                rows={3}
-              />
+              <div className="relative space-y-2">
+                <Textarea
+                  ref={(el) => mentionController.setTextareaRef(TOP_MENTION_KEY, el)}
+                  value={newComment}
+                  onChange={(e) => {
+                    setNewComment(e.target.value);
+                    setTopLevelError(null);
+                    mentionController.updateFromValue(TOP_MENTION_KEY, e.target.value, e.target.selectionStart ?? null);
+                  }}
+                  onSelect={(e) =>
+                    mentionController.updateFromValue(
+                      TOP_MENTION_KEY,
+                      e.currentTarget.value,
+                      e.currentTarget.selectionStart ?? null
+                    )
+                  }
+                  onKeyDown={(e) =>
+                    mentionController.handleKeyDown(TOP_MENTION_KEY, e, newComment, (next) => setNewComment(next))
+                  }
+                  onBlur={() => mentionController.resetState(TOP_MENTION_KEY)}
+                  placeholder="Share your thoughts..."
+                  rows={3}
+                />
+                {topMentionState.active && (
+                  <div
+                    ref={(el) => mentionController.setListRef(TOP_MENTION_KEY, el)}
+                    className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-lg"
+                  >
+                    {topMentionState.matches.length > 0 ? (
+                      topMentionState.matches.map((candidate, idx) => (
+                        <button
+                          key={candidate.userId}
+                          type="button"
+                          data-mention-option={candidate.userId}
+                          className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition hover:bg-muted ${
+                            topMentionState.highlighted === idx ? "bg-muted text-foreground" : ""
+                          }`}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() =>
+                            mentionController.handleSelect(TOP_MENTION_KEY, candidate, newComment, (next) =>
+                              setNewComment(next)
+                            )
+                          }
+                        >
+                          <Avatar className="h-7 w-7">
+                            <AvatarImage
+                              src={
+                                resolveAvatarUrl({
+                                  path: candidate.avatarPath,
+                                  legacyUrl: candidate.avatarUrl,
+                                }) ?? ""
+                              }
+                              alt={candidate.username}
+                            />
+                            <AvatarFallback>{candidate.username?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-foreground">@{candidate.username}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-xs text-muted-foreground">
+                        {topMentionState.fragment
+                          ? `No matches for "@${topMentionState.fragment}"`
+                          : "No users to mention yet"}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
               {topLevelError ? <p className="text-xs text-destructive">{topLevelError}</p> : null}
               <div className="flex justify-end">
                 <Button

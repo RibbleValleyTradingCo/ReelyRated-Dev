@@ -31,6 +31,15 @@ describe('resolveNotificationPath', () => {
     expect(resolveNotificationPath(notification)).toBe('/catch/catch-123');
   });
 
+  it('returns catch path with commentId for comment replies', () => {
+    const notification = baseNotification({
+      type: 'comment_reply',
+      catch_id: 'catch-123',
+      comment_id: 'comment-456',
+    });
+    expect(resolveNotificationPath(notification)).toBe('/catch/catch-123?commentId=comment-456');
+  });
+
   it('falls back to actor profile path when catch id missing', () => {
     const notification = baseNotification({
       type: 'new_follower',

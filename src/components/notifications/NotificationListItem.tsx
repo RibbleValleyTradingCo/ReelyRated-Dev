@@ -23,6 +23,8 @@ const getNotificationTitle = (type: NotificationRow["type"]) => {
       return "New rating";
     case "mention":
       return "Mention";
+    case "comment_reply":
+      return "Comment reply";
     case "admin_report":
       return "New report";
     case "admin_warning":
@@ -77,10 +79,6 @@ export const NotificationListItem = ({
   onMarkRead,
 }: NotificationListItemProps) => {
   const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
-  const message =
-    (typeof notification.message === "string" && notification.message.trim().length > 0)
-      ? notification.message
-      : "You have a new notification.";
   const adminDetail = formatAdminDetails(notification, extraData);
   const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
     addSuffix: true,
@@ -89,6 +87,14 @@ export const NotificationListItem = ({
     typeof extraData.actor_username === "string" && extraData.actor_username.trim().length > 0
       ? extraData.actor_username
       : null;
+  const message =
+    typeof notification.message === "string" && notification.message.trim().length > 0
+      ? notification.message
+      : notification.type === "mention"
+        ? `${actorUsername ? `@${actorUsername} ` : "Someone "}mentioned you in a comment.`
+        : notification.type === "comment_reply"
+          ? `${actorUsername ? `@${actorUsername} ` : "Someone "}replied to your comment.`
+          : "You have a new notification.";
 
   return (
     <div
