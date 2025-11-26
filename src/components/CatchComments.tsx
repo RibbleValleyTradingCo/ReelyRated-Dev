@@ -41,7 +41,7 @@ const highlightMentions = (text: string) => {
 const INITIAL_VISIBLE_ROOTS = 10;
 const LOAD_MORE_COUNT = 10;
 const MAX_INDENT_LEVEL = 4;
-const INDENT_PER_LEVEL = 12;
+const INDENT_PER_LEVEL = 14;
 
 export const CatchComments = memo(
   ({ catchId, catchOwnerId, catchTitle, currentUserId, isAdmin = false, targetCommentId }: CatchCommentsProps) => {
@@ -167,8 +167,13 @@ export const CatchComments = memo(
       const indentPx = indentLevel * INDENT_PER_LEVEL;
 
       return (
-        <div key={comment.id} id={`comment-${comment.id}`} className="flex w-full min-w-0 py-2">
-          <div className="flex gap-3 w-full min-w-0" style={{ paddingLeft: indentPx }}>
+        <div
+          key={comment.id}
+          id={`comment-${comment.id}`}
+          className="flex w-full min-w-0 py-3"
+          style={{ paddingLeft: indentPx }}
+        >
+          <div className="flex gap-3 w-full min-w-0">
             <Link
               to={getProfilePath({ username: comment.profiles?.username, id: comment.user_id })}
               className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-full shrink-0"
@@ -375,7 +380,7 @@ export const CatchComments = memo(
           ) : topLevelComments.length === 0 ? (
             <p className="text-sm text-muted-foreground">No comments yet. Be the first to share one!</p>
           ) : (
-            <div className="space-y-4 overflow-x-hidden">
+            <div className="space-y-4">
               {visibleRoots.map((comment) => renderComment(comment))}
               {visibleRootCount < topLevelComments.length && (
                 <div className="flex justify-center">
