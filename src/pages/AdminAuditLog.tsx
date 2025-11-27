@@ -21,6 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type SortDirection = "asc" | "desc";
+type DateRange = "24h" | "7d" | "30d" | "all";
 
 interface AdminProfileSummary {
   id: string | null;
@@ -75,16 +76,39 @@ const AdminAuditLog = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isExporting, setIsExporting] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange>("7d");
+  const [page, setPage] = useState(1);
+  const pageSize = 100;
 
   const fetchAuditLog = useCallback(async () => {
     if (!user || !isAdmin) return;
     setIsLoading(true);
 
-    const { data, error } = await supabase
+    const range =
+      dateRange === "24h"
+        ? 1
+        : dateRange === "7d"
+        ? 7
+        : dateRange === "30d"
+        ? 30
+        : null;
+
+    const since = range ? new Date(Date.now() - range * 24 * 60 * 60 * 1000).toISOString() : null;
+
+    let query = supabase
       .from("moderation_log")
       .select("id, action, user_id, catch_id, comment_id, metadata, created_at, admin:admin_id (id, username)")
-      .order("created_at", { ascending: false })
-      .limit(500);
+      .order("created_at", { ascending: sortDirection === "asc" });
+
+    if (since) {
+      query = query.gte("created_at", since);
+    }
+
+    const from = (page - 1) * pageSize;
+    const to = from + pageSize - 1;
+    query = query.range(from, to);
+
+    const { data, error } = await query;
 
     if (error) {
       toast.error("Unable to load moderation log");
@@ -115,7 +139,7 @@ const AdminAuditLog = () => {
 
     setLogRows(normalized);
     setIsLoading(false);
-  }, [user, isAdmin]);
+  }, [user, isAdmin, dateRange, page, pageSize, sortDirection]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -171,6 +195,8 @@ const AdminAuditLog = () => {
       });
   }, [actionFilter, logRows, searchTerm, sortDirection]);
 
+  const canGoNext = logRows.length === pageSize;
+
   const handleViewTarget = useCallback(
     async (row: LogRow) => {
       if (row.target_type === "catch") {
@@ -213,7 +239,7 @@ const AdminAuditLog = () => {
     (row: LogRow) => {
       const targetUserId = resolveModerationUserId(row);
       if (!targetUserId) return;
-      navigate(`/admin/users/${targetUserId}/moderation`);
+      navigate(`/admin/users/${targetUserId}/moderation`, { state: { from: "audit-log" } });
     },
     [navigate]
   );
@@ -286,9 +312,10 @@ const AdminAuditLog = () => {
       <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Moderation audit log</h1>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+            <h1 className="text-3xl font-bold text-foreground">Audit log</h1>
             <p className="text-sm text-muted-foreground">
-              Review every moderation action taken by administrators.
+              History of moderation actions.
             </p>
           </div>
           <div className="flex gap-2">
@@ -305,10 +332,10 @@ const AdminAuditLog = () => {
           <CardHeader>
             <CardTitle>Filters</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4 md:flex-row md:items-end">
-            <div className="w-full md:w-52">
+          <CardContent className="flex flex-col gap-4 md:flex-row md:items-end md:flex-wrap">
+            <div className="w-full md:w-48">
               <label className="mb-2 block text-sm font-medium text-muted-foreground">Action</label>
-              <Select value={actionFilter} onValueChange={(value) => setActionFilter(value as typeof actionFilter)}>
+              <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value as typeof actionFilter); setPage(1); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Filter by action" />
                 </SelectTrigger>
@@ -321,15 +348,32 @@ const AdminAuditLog = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex-1">
+            <div className="w-full md:w-48">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">Date range</label>
+              <Select value={dateRange} onValueChange={(value) => { setDateRange(value as DateRange); setPage(1); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="24h">Last 24 hours</SelectItem>
+                  <SelectItem value="7d">Last 7 days</SelectItem>
+                  <SelectItem value="30d">Last 30 days</SelectItem>
+                  <SelectItem value="all">All time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex-1 min-w-[240px]">
               <label className="mb-2 block text-sm font-medium text-muted-foreground">Search</label>
               <Input
                 placeholder="Search by admin, reason, target, or details"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setPage(1);
+                }}
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Button variant="outline" onClick={handleToggleSort}>
                 Sort: {sortDirection === "asc" ? "Oldest first" : "Newest first"}
               </Button>
@@ -339,6 +383,39 @@ const AdminAuditLog = () => {
             </div>
           </CardContent>
         </Card>
+
+        {(dateRange !== "7d" || actionFilter !== "all" || searchTerm.trim()) && (
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full bg-muted px-3 py-1">
+              {dateRange === "24h"
+                ? "Last 24 hours"
+                : dateRange === "7d"
+                ? "Last 7 days"
+                : dateRange === "30d"
+                ? "Last 30 days"
+                : "All time"}
+            </span>
+            {actionFilter !== "all" && (
+              <span className="rounded-full bg-muted px-3 py-1">
+                {actionLabels[actionFilter] ?? actionFilter}
+              </span>
+            )}
+            {searchTerm.trim() ? <span className="rounded-full bg-muted px-3 py-1">“{searchTerm.trim()}”</span> : null}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs"
+              onClick={() => {
+                setDateRange("7d");
+                setActionFilter("all");
+                setSearchTerm("");
+                setPage(1);
+              }}
+            >
+              Clear all
+            </Button>
+          </div>
+        )}
 
         <Card>
           <CardHeader>
@@ -369,6 +446,14 @@ const AdminAuditLog = () => {
                       const adminName = row.admin?.username ?? row.admin?.id ?? "Unknown";
                       const displayAction = actionLabels[row.action] ?? row.action;
                       const detailsText = row.details ? JSON.stringify(row.details, null, 2) : "—";
+                      const targetLabel =
+                        row.target_type === "user"
+                          ? `@${row.target_id ?? "user"}`
+                          : row.target_type === "catch"
+                          ? "Catch"
+                          : row.target_type === "comment"
+                          ? "Comment"
+                          : "Unknown";
 
                       return (
                         <TableRow key={row.id}>
@@ -381,10 +466,16 @@ const AdminAuditLog = () => {
                           <TableCell className="whitespace-nowrap text-sm text-foreground">
                             {adminName}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap text-sm">{displayAction}</TableCell>
+                          <TableCell className="whitespace-nowrap text-sm">
+                            <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                              {displayAction}
+                            </span>
+                          </TableCell>
                           <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                            {row.target_type}:{" "}
-                            <span className="font-mono">{row.target_id}</span>
+                            <div className="flex flex-col">
+                              <span className="text-sm text-foreground">{targetLabel}</span>
+                              {row.target_id ? <span className="font-mono text-[11px] text-muted-foreground">{row.target_id}</span> : null}
+                            </div>
                           </TableCell>
                           <TableCell className="min-w-[14rem] text-sm text-foreground">
                             {row.reason}
@@ -418,6 +509,29 @@ const AdminAuditLog = () => {
                 </Table>
               </div>
             )}
+            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
+              <span>
+                {`Showing ${filteredRows.length} action${filteredRows.length === 1 ? "" : "s"} (${dateRange === "24h" ? "Last 24 hours" : dateRange === "7d" ? "Last 7 days" : dateRange === "30d" ? "Last 30 days" : "All time"}, ${actionFilter === "all" ? "All actions" : actionLabels[actionFilter] ?? actionFilter})`}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={page === 1 || isLoading}
+                >
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((prev) => prev + 1)}
+                  disabled={!canGoNext || isLoading}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

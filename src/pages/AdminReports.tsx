@@ -139,6 +139,10 @@ const AdminReports = () => {
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "catch" | "comment" | "profile">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "open" | "resolved" | "dismissed">("open");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [pageSize] = useState(20);
+  const [page, setPage] = useState(1);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const [selectedReport, setSelectedReport] = useState<ReportRow | null>(null);
@@ -164,7 +168,8 @@ const AdminReports = () => {
         .select(
           "id, target_type, target_id, reason, status, created_at, reporter:reporter_id (id, username, avatar_path, avatar_url)"
         )
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: sortOrder === "oldest" ? true : false })
+        .range(0, pageSize * page - 1);
 
       if (error) {
         toast.error("Unable to load reports");
@@ -647,9 +652,15 @@ const AdminReports = () => {
   }, [details, fetchReportDetails, fetchReports, handleUpdateStatus, selectedReport, warnDuration, warnReason, warnSeverity]);
 
   const filteredReports = useMemo(() => {
-    if (filter === "all") return reports;
-    return reports.filter((report) => report.target_type === filter);
-  }, [reports, filter]);
+    return reports.filter((report) => {
+      const typeMatches = filter === "all" ? true : report.target_type === filter;
+      const statusMatches =
+        statusFilter === "all" ? true : report.status.toLowerCase() === statusFilter;
+      return typeMatches && statusMatches;
+    });
+  }, [reports, filter, statusFilter]);
+
+  const canLoadMore = reports.length === pageSize * page;
 
   const handleCloseDetails = () => {
     setSelectedReport(null);
@@ -681,9 +692,10 @@ const AdminReports = () => {
       <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Reports dashboard</h1>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
+            <h1 className="text-3xl font-bold text-foreground">Reports</h1>
             <p className="text-sm text-muted-foreground">
-              Review user submitted reports for catches, comments, and profiles.
+              Review and act on user reports.
             </p>
           </div>
           <Button variant="outline" onClick={() => navigate(-1)}>
@@ -695,7 +707,7 @@ const AdminReports = () => {
           <CardHeader>
             <CardTitle>Filters</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
+          <CardContent className="flex flex-wrap gap-3 items-center">
             {(["all", "catch", "comment", "profile"] as const).map((type) => (
               <Button
                 key={type}
@@ -705,6 +717,38 @@ const AdminReports = () => {
                 {type === "all" ? "All reports" : type.charAt(0).toUpperCase() + type.slice(1)}
               </Button>
             ))}
+            <div className="h-8 w-px bg-border/60" aria-hidden />
+            {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
+              <Button
+                key={status}
+                variant={statusFilter === status ? "ocean" : "outline"}
+                onClick={() => setStatusFilter(status)}
+              >
+                {status === "all"
+                  ? "All statuses"
+                  : status.charAt(0).toUpperCase() + status.slice(1)}
+              </Button>
+            ))}
+            <div className="h-8 w-px bg-border/60" aria-hidden />
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Sort</span>
+              <div className="flex rounded-md border border-border/70 overflow-hidden">
+                {(["newest", "oldest"] as const).map((order) => (
+                  <Button
+                    key={order}
+                    variant={sortOrder === order ? "ocean" : "ghost"}
+                    size="sm"
+                    className="rounded-none"
+                    onClick={() => {
+                      setSortOrder(order);
+                      setPage(1);
+                    }}
+                  >
+                    {order === "newest" ? "Newest first" : "Oldest first"}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -712,11 +756,11 @@ const AdminReports = () => {
           <CardHeader>
             <CardTitle>Reports</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {isLoading ? (
               <p className="text-sm text-muted-foreground">Loading reports…</p>
             ) : filteredReports.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No reports yet.</p>
+              <p className="text-sm text-muted-foreground">No reports match these filters.</p>
             ) : (
               filteredReports.map((report) => {
                 const isSelected = selectedReport?.id === report.id;
@@ -735,15 +779,16 @@ const AdminReports = () => {
                   ["catch", "comment"].includes(report.target_type);
 
                 return (
-                  <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div className="flex flex-wrap items-center gap-3">
+                  <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
                         <Badge variant="secondary" className="uppercase tracking-wide">
                           {report.target_type}
                         </Badge>
-                        <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusBadgeVariants[report.status]}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusBadgeVariants[report.status]}`}>
                           {report.status.toUpperCase()}
                         </span>
+                        <span className="text-xs text-muted-foreground">·</span>
                         <span className="text-xs text-muted-foreground">
                           {formatRelative(report.created_at)}
                         </span>
@@ -768,13 +813,13 @@ const AdminReports = () => {
                         )}
                       </div>
                     </div>
-                    <p className="mt-3 text-sm text-foreground whitespace-pre-wrap">{report.reason}</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
+                    <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{report.reason}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       Reported by {report.reporter?.username ?? report.reporter?.id ?? "Unknown"}
                     </p>
 
                     {isSelected && (
-                      <div className="mt-4 space-y-3">
+                      <div className="mt-3 space-y-3">
                         {detailsLoading ? (
                           <p className="text-sm text-muted-foreground">Loading moderation context…</p>
                         ) : currentDetails ? (
@@ -789,7 +834,9 @@ const AdminReports = () => {
                                   size="sm"
                                   className="text-primary"
                                   onClick={() =>
-                                    navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`)
+                                    navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`, {
+                                      state: { from: "reports" },
+                                    })
                                   }
                                 >
                                   View moderation history
@@ -943,6 +990,35 @@ const AdminReports = () => {
                   </div>
                 );
               })
+            )}
+            {!isLoading && filteredReports.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
+                <p className="text-xs text-muted-foreground">
+                  {`Showing ${filteredReports.length} report${filteredReports.length === 1 ? "" : "s"}`}
+                </p>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    disabled={page === 1 || isLoading}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (canLoadMore) {
+                        setPage((prev) => prev + 1);
+                      }
+                    }}
+                    disabled={!canLoadMore || isLoading}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>
