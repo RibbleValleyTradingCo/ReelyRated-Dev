@@ -409,8 +409,28 @@ const Profile = () => {
   const totalFollowers = followersCount ?? 0;
   const statusPill = {
     label: "Active",
-    className: "bg-white/10 text-white border border-white/20",
+    className: "border-emerald-300/60 bg-emerald-500/10 text-emerald-50",
   };
+  const heroStatTiles = [
+    {
+      label: "Total catches",
+      value: catches.length,
+      hint: catches.length === 0 ? "Log your first catch to start your profile." : null,
+    },
+    {
+      label: "Followers",
+      value: totalFollowers,
+      hint:
+        totalFollowers === 0
+          ? "Followers will appear once anglers subscribe to you."
+          : null,
+    },
+    {
+      label: "Avg rating",
+      value: overallStats.avgRating !== "-" ? overallStats.avgRating : "–",
+      hint: overallStats.avgRating === "-" ? "Ratings will appear after reviews." : null,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -419,79 +439,86 @@ const Profile = () => {
         <div className="space-y-8">
           <section
             aria-label="Angler profile overview"
-            className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 text-white shadow-xl min-h-[320px] md:min-h-[280px]"
+            className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 text-white shadow-xl"
           >
             <div className="absolute -top-24 right-10 h-56 w-56 rounded-full bg-sky-500/30 blur-3xl" />
             <div className="absolute bottom-0 left-0 h-48 w-48 -translate-x-1/3 translate-y-1/3 rounded-full bg-sky-600/20 blur-3xl" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.25)_0%,_rgba(15,23,42,0.92)_45%,_rgba(10,12,15,0.98)_100%)]" />
-            <div className="relative z-10 flex flex-col gap-8 px-5 py-6 md:flex-row md:items-start md:justify-between md:px-6 md:py-7 lg:gap-10 lg:px-8">
-              <div className="flex flex-col items-center gap-6 text-center md:flex-1 md:items-start md:text-left">
-                <div className="flex w-full flex-col items-center gap-4 md:flex-row md:items-start md:gap-6">
-                  <div className="flex justify-center md:justify-start">
-                    <Avatar className="h-20 w-20 ring-4 ring-white/80 ring-offset-4 ring-offset-slate-900 shadow-2xl md:h-24 md:w-24">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.2)_0%,_rgba(15,23,42,0.94)_50%,_rgba(8,12,20,0.98)_100%)]" />
+            <div className="relative z-10 grid gap-8 px-5 py-8 sm:px-7 sm:py-10 md:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="flex flex-col gap-6">
+                <div className="space-y-4">
+                  <span className="inline-flex w-fit items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-100/90 shadow-sm">
+                    <Sparkles className="h-3 w-3" aria-hidden="true" />
+                    {isOwnProfile ? "My account" : "Angler spotlight"}
+                  </span>
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
+                    <Avatar className="h-20 w-20 shrink-0 ring-2 ring-white/30 ring-offset-4 ring-offset-slate-900 shadow-2xl sm:h-24 sm:w-24">
                       <AvatarImage src={profileAvatarUrl ?? ""} />
                       <AvatarFallback className="text-2xl">
                         {profile.username[0].toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                  </div>
-                  <div className="flex w-full flex-1 flex-col items-center gap-3 text-center md:items-start md:text-left">
-                    <span className="mt-2 inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-100 shadow-sm md:mt-0">
-                      <Sparkles className="h-3 w-3" aria-hidden="true" />
-                      {isOwnProfile ? "My account" : "Angler spotlight"}
-                    </span>
-                    <h1 className="text-3xl font-bold leading-tight text-white line-clamp-2 md:text-4xl md:leading-snug md:line-clamp-none">
-                      {profile.username}
-                    </h1>
-                    <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
-                      <span className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-medium text-white/90">
-                        @{profile.username}
-                      </span>
-                      <span className={cn("inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold", statusPill.className)}>
-                        {statusPill.label}
-                      </span>
+                    <div className="space-y-2">
+                      <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl sm:leading-snug">
+                        {profile.username}
+                      </h1>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
+                        <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 font-medium text-white/90">
+                          @{profile.username}
+                        </span>
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm",
+                            statusPill.className
+                          )}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
+                          {statusPill.label}
+                        </span>
+                      </div>
                     </div>
-                    {isEditing && isOwnProfile ? (
-                      <div className="space-y-3 rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                        <Textarea
-                          value={editedBio}
-                          onChange={(e) => setEditedBio(e.target.value)}
-                          placeholder="Tell us about yourself..."
-                          rows={3}
-                          className="bg-white text-slate-900"
-                        />
-                        <div className="flex flex-wrap gap-3">
-                          <Button size="sm" onClick={handleUpdateBio} className="h-9 rounded-full bg-sky-500 text-white hover:bg-sky-600">
-                            Save
-                          </Button>
-                          <Button size="sm" variant="outline" className="h-9 rounded-full border-white/40 bg-white/10 text-white hover:bg-white/20" onClick={() => setIsEditing(false)}>
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="w-full space-y-2">
-                        <p className={cn("text-sm leading-relaxed text-slate-100/80", bioExpanded ? "" : "line-clamp-3")}>
-                          {profileBio}
-                        </p>
-                        {profile.bio && profile.bio.length > 180 ? (
-                          <button
-                            type="button"
-                            className="text-xs font-semibold text-white/90 underline underline-offset-2"
-                            onClick={() => setBioExpanded((prev) => !prev)}
-                          >
-                            {bioExpanded ? "Show less" : "Show more"}
-                          </button>
-                        ) : null}
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                <div className="flex w-full flex-wrap justify-center gap-3 md:justify-start md:gap-4">
+                {isEditing && isOwnProfile ? (
+                  <div className="w-full max-w-2xl space-y-3 rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+                    <Textarea
+                      value={editedBio}
+                      onChange={(e) => setEditedBio(e.target.value)}
+                      placeholder="Tell us about yourself..."
+                      rows={3}
+                      className="bg-white text-slate-900"
+                    />
+                    <div className="flex flex-wrap gap-3">
+                      <Button size="sm" onClick={handleUpdateBio} className="h-9 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-slate-900 shadow-lg shadow-cyan-500/30 hover:from-sky-500 hover:to-cyan-300">
+                        Save
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-9 rounded-full border-white/40 bg-white/10 px-4 text-white hover:bg-white/15" onClick={() => setIsEditing(false)}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="w-full max-w-2xl space-y-2">
+                    <p className={cn("text-sm leading-relaxed", profile.bio ? "text-white/80" : "text-white/60", bioExpanded ? "" : "line-clamp-3 sm:line-clamp-4")}>
+                      {profileBio}
+                    </p>
+                    {profile.bio && profile.bio.length > 180 ? (
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-white/90 underline underline-offset-2"
+                        onClick={() => setBioExpanded((prev) => !prev)}
+                      >
+                        {bioExpanded ? "Show less" : "Show more"}
+                      </button>
+                    ) : null}
+                  </div>
+                )}
+
+                <div className="flex w-full flex-wrap items-center gap-3 md:max-w-3xl">
                   {isOwnProfile && (
                     <Button
-                      className="h-11 rounded-full bg-sky-500 px-6 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 hover:bg-sky-600"
+                      className="h-10 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-900 shadow-lg shadow-cyan-500/30 hover:from-sky-500 hover:to-cyan-300"
                       onClick={() => navigate("/add-catch")}
                     >
                       Add catch
@@ -502,21 +529,21 @@ const Profile = () => {
                     <>
                       <Button
                         variant="outline"
-                        className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                        className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
                         onClick={() => setIsEditing(true)}
                       >
                         Edit profile
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                        className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
                         asChild
                       >
                         <Link to="/insights">View my stats</Link>
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                        className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
                         asChild
                       >
                         <Link to="/settings/profile" className="flex items-center gap-2">
@@ -527,7 +554,7 @@ const Profile = () => {
                     </>
                   ) : (
                     <Button
-                      className="h-10 rounded-full bg-sky-500 px-5 text-sm font-semibold text-white hover:bg-sky-600"
+                      className="h-10 rounded-full border border-white/25 bg-white/90 px-5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-white"
                       onClick={handleToggleFollow}
                       disabled={followLoading}
                     >
@@ -536,7 +563,7 @@ const Profile = () => {
                   )}
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                    className="h-10 rounded-full border-white/20 bg-white/0 px-5 text-sm font-semibold text-white hover:bg-white/10"
                     onClick={() => navigate("/feed")}
                   >
                     View community feed
@@ -544,7 +571,7 @@ const Profile = () => {
                   {isAdminViewer && profileId ? (
                     <Button
                       variant="outline"
-                      className="h-10 rounded-full border-white/40 bg-white/10 px-5 text-sm text-white hover:bg-white/20"
+                      className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
                       onClick={() => navigate(`/admin/users/${profileId}/moderation`)}
                     >
                       Moderation
@@ -553,21 +580,16 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="grid w-full grid-cols-2 gap-4 md:flex-none md:w-56 md:grid-cols-1 lg:w-60">
-                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-                  <p className="text-xs uppercase tracking-wide text-white/70">Total catches</p>
-                  <p className="mt-2 text-2xl font-semibold">{catches.length}</p>
-                  {catches.length === 0 && (
-                    <p className="text-xs text-white/60">Log your first catch to start your profile.</p>
-                  )}
-                </div>
-                <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
-                  <p className="text-xs uppercase tracking-wide text-white/70">Followers</p>
-                  <p className="mt-2 text-2xl font-semibold">{totalFollowers}</p>
-                  {totalFollowers === 0 && (
-                    <p className="text-xs text-white/60">Followers will appear once anglers subscribe to you.</p>
-                  )}
-                </div>
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
+                {heroStatTiles.map((tile) => (
+                  <div key={tile.label} className="rounded-2xl border border-white/15 bg-slate-900/60 p-4 shadow-lg shadow-slate-900/30 backdrop-blur">
+                    <p className="text-[11px] uppercase tracking-[0.12em] text-white/70">{tile.label}</p>
+                    <p className="mt-2 text-3xl font-semibold text-white">{tile.value}</p>
+                    {tile.hint ? (
+                      <p className="text-xs text-white/65">{tile.hint}</p>
+                    ) : null}
+                  </div>
+                ))}
               </div>
             </div>
           </section>

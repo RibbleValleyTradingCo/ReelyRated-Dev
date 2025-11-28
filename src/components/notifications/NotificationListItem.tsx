@@ -174,7 +174,7 @@ export const NotificationListItem = ({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border/40 bg-card/70 p-3 transition hover:-translate-y-0.5 hover:shadow-sm",
+        "rounded-lg border border-border/40 bg-card/70 p-3 transition hover:bg-muted/60 hover:shadow-sm cursor-pointer",
         !notification.is_read && "border-primary/40 bg-primary/5"
       )}
       role="button"
@@ -188,7 +188,7 @@ export const NotificationListItem = ({
       }}
     >
       <div className="flex items-start gap-3">
-        <div className={cn("mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground")}>
+        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
           {typeIcon}
         </div>
         <div className="flex-1">
@@ -211,7 +211,7 @@ export const NotificationListItem = ({
                 <p className="text-xs text-muted-foreground mt-1">{adminDetail}</p>
               ) : null}
             </div>
-            <p className="text-xs text-muted-foreground whitespace-nowrap">{timeAgo}</p>
+            <p className="text-[11px] text-muted-foreground whitespace-nowrap ml-2">{timeAgo}</p>
           </div>
           {showModerationLink ? (
             <button

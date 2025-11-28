@@ -123,7 +123,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {showStatusCard ? (
-        <Card className="border border-slate-200 bg-white/80 shadow-sm">
+        <Card className="border border-slate-200 bg-white/90 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Account status</CardTitle>
             <CardDescription>Summary of moderation affecting your account.</CardDescription>
@@ -131,7 +131,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-slate-900">{statusLabel}</span>
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">
+              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
                 Warnings: {status?.warn_count ?? 0}/3
               </span>
             </div>
@@ -155,7 +155,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
         <div className="space-y-4 md:col-span-1" />
       )}
 
-      <Card className="border border-slate-200 bg-white/80 shadow-sm">
+      <Card className="border border-slate-200 bg-white/90 shadow-sm">
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-slate-900">Notifications</CardTitle>
@@ -166,7 +166,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
               Unread: {unreadCount}
             </span>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => {
                 void refresh();
@@ -182,7 +182,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
               )}
             </Button>
             <Button
-              variant="outline"
+              variant="ghost"
               size="sm"
               onClick={() => {
                 if (unreadCount > 0) {
