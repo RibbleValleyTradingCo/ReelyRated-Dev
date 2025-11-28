@@ -34,6 +34,6 @@ COMMENT ON TABLE public.moderation_log IS 'Preserve for audit even if account is
 COMMENT ON TABLE public.notifications IS 'Rows for deleted users may be cleared; other users’ rows remain (see docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md).';
 
 -- RLS notes (non-functional): future tightening to exclude deleted accounts/content
-COMMENT ON POLICY catches_public_read ON public.catches IS 'TODO: future tighten to exclude deleted/hidden catches for deleted accounts per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
-COMMENT ON POLICY catch_comments_public_read ON public.catch_comments IS 'TODO: future tighten to exclude deleted comments and deleted accounts per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
-COMMENT ON POLICY profiles_select_all ON public.profiles IS 'TODO: future filter out is_deleted profiles from search/feed surfaces per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
+-- COMMENT ON POLICY catches_public_read ON public.catches IS 'TODO: future tighten to exclude deleted/hidden catches for deleted accounts per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
+-- COMMENT ON POLICY catch_comments_public_read ON public.catch_comments IS 'TODO: future tighten to exclude deleted comments and deleted accounts per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
+-- COMMENT ON POLICY profiles_select_all ON public.profiles IS 'TODO: future filter out is_deleted profiles from search/feed surfaces per docs/ACCOUNT-DELETION-AND-EXPORT-DESIGN.md.';
