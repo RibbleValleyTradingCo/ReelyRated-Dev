@@ -603,80 +603,104 @@ const Profile = () => {
             <ProfileNotificationsSection userId={profileId} />
           )}
 
-          <section className="space-y-4">
+          <section className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">
                 {isOwnProfile ? "Anglers you follow" : `${profile.username} follows`}
               </h2>
               {isOwnProfile && followingProfiles.length > 0 && (
-                <span className="text-sm text-slate-500">{followingProfiles.length} angler{followingProfiles.length === 1 ? "" : "s"}</span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {followingProfiles.length} angler{followingProfiles.length === 1 ? "" : "s"}
+                </span>
               )}
             </div>
-            {followingProfiles.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
-                {followingProfiles.map((angler) => (
-                  <Link
-                    key={angler.id}
-                    to={getProfilePath({ username: angler.username, id: angler.id })}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+            <div className="rounded-xl border border-slate-200 bg-white/90 p-4 shadow-sm overflow-visible">
+              {followingProfiles.length > 0 ? (
+                <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2">
+                  {followingProfiles.map((angler) => (
+                    <Link
+                      key={angler.id}
+                      to={getProfilePath({ username: angler.username, id: angler.id })}
+                      className="flex min-w-[180px] items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm transition-shadow duration-200 hover:bg-white hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 snap-start"
+                    >
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={resolveAvatarUrl({ path: angler.avatar_path, legacyUrl: angler.avatar_url }) ?? ""}
+                        />
+                        <AvatarFallback>{angler.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
+                      </Avatar>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900">{angler.username}</p>
+                        <p className="truncate text-xs text-slate-500">
+                          {angler.bio || "No bio yet"}
+                        </p>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-3 text-center text-sm text-slate-600">
+                  <Fish className="h-10 w-10 text-slate-400" />
+                  <div className="space-y-1">
+                    <p className="text-base font-semibold text-slate-900">You’re not following anyone yet.</p>
+                    <p className="text-sm text-slate-500">
+                      Browse the feed and follow anglers to see their PBs here.
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-full px-5 text-sm font-semibold"
+                    onClick={() => navigate("/feed")}
                   >
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage
-                        src={resolveAvatarUrl({ path: angler.avatar_path, legacyUrl: angler.avatar_url }) ?? ""}
-                      />
-                      <AvatarFallback>{angler.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-900">{angler.username}</p>
-                      <p className="truncate text-xs text-slate-500">
-                        {angler.bio || "No bio yet"}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900">You’re not following anyone yet</h3>
-                <p className="mt-2 text-sm text-slate-500">
-                  Browse the feed and follow anglers to see their PBs here.
-                </p>
-                <Button
-                  className="mt-4 h-10 rounded-full bg-sky-500 px-5 text-sm font-semibold text-white hover:bg-sky-600"
-                  onClick={() => navigate("/feed")}
-                >
-                  Go to feed
-                </Button>
-              </div>
-            )}
+                    Go to feed
+                  </Button>
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">
-                {isOwnProfile ? "Your catches" : `${profile.username}'s catches`}
-              </h2>
-              <span className="text-sm text-slate-500">{catches.length} logged</span>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {isOwnProfile ? "Your catches" : `${profile.username}'s catches`}
+                </h2>
+                <span className="text-sm text-slate-500">{catches.length} logged</span>
+              </div>
+              {isOwnProfile ? (
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-full px-4 text-sm"
+                  onClick={() => navigate("/add-catch")}
+                >
+                  Log a catch
+                </Button>
+              ) : null}
             </div>
             {catches.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-                <Fish className="h-12 w-12 text-slate-400" />
-                <h3 className="text-base font-semibold text-slate-900">No catches yet</h3>
-                <p className="text-sm text-slate-500">Add your first session to start building your reel.</p>
+              <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+                <Fish className="h-10 w-10 text-slate-400" />
+                <div className="space-y-1">
+                  <h3 className="text-base font-semibold text-slate-900">You haven’t logged any catches yet.</h3>
+                  <p className="text-sm text-slate-500">
+                    Log your first catch to start building your angler profile and rankings.
+                  </p>
+                </div>
                 {isOwnProfile ? (
                   <Button
-                    className="h-10 rounded-full bg-sky-500 px-5 text-sm font-semibold text-white hover:bg-sky-600"
+                    variant="outline"
+                    className="h-10 rounded-full px-5 text-sm font-semibold"
                     onClick={() => navigate("/add-catch")}
                   >
-                    Add catch
+                    Log a catch
                   </Button>
                 ) : (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-slate-300 px-5 text-sm text-slate-700 hover:bg-slate-100"
+                    className="h-10 rounded-full px-5 text-sm font-semibold"
                     onClick={() => navigate("/feed")}
                   >
-                    Browse feed
+                    View community feed
                   </Button>
                 )}
               </div>
