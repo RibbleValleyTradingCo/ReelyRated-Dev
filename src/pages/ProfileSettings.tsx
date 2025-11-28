@@ -55,6 +55,7 @@ const ProfileSettings = () => {
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [initialAvatarPath, setInitialAvatarPath] = useState<string | null>(null);
   const [legacyAvatarUrl, setLegacyAvatarUrl] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -209,6 +210,36 @@ const ProfileSettings = () => {
     } catch (error) {
       console.error("Failed to change email", error);
       toast.error(error instanceof Error ? error.message : "Unable to change email.");
+    }
+  };
+
+  const handleDownloadExport = async () => {
+    try {
+      setIsExporting(true);
+      const { data, error } = await supabase.rpc("request_account_export");
+
+      if (error) {
+        console.error(error);
+        toast.error("Unable to generate data export");
+        return;
+      }
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const stamp = new Date().toISOString().slice(0, 10);
+      link.href = url;
+      link.download = `reelyrated-export-${stamp}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Data export downloaded");
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong creating your export");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -493,6 +524,36 @@ const ProfileSettings = () => {
               </CardContent>
             </Card>
           </form>
+
+          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
+              <CardTitle className="text-lg">Your data & privacy</CardTitle>
+              <p className="text-sm text-slate-600">
+                You can download a technical JSON file containing your catches, comments, ratings, follows, and other account data. This is mainly for your own records, or to share with support if you ever need help with your account.
+              </p>
+              <p className="text-xs text-slate-500 mt-2">Note: this export is not a pretty report — it&apos;s a developer-style JSON file.</p>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 px-5 pb-5 md:flex-row md:items-center md:justify-between md:px-8 md:pb-8">
+              <p className="text-sm text-slate-600 md:max-w-lg">
+                Use this export for your own records. Deletion/anonymisation will be added later.
+              </p>
+              <Button
+                type="button"
+                className="h-11 min-w-[200px] bg-slate-900 text-white hover:bg-slate-800"
+                onClick={handleDownloadExport}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Preparing export…
+                  </>
+                ) : (
+                  "Download my data (JSON)"
+                )}
+              </Button>
+            </CardContent>
+          </Card>
 
           <Card className="rounded-xl border border-red-200 bg-red-50/70 shadow-none">
             <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">

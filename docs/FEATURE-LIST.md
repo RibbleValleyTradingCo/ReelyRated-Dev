@@ -21,6 +21,7 @@ Future / optional
 • Social login (Apple / Google, etc.)
 • 2FA
 • Device management (list + revoke sessions)
+• Data export (JSON) — basic in-app download for user-owned data
 
 ⸻
 

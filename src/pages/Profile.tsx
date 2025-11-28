@@ -415,8 +415,8 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="space-y-10">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+        <div className="space-y-8">
           <section
             aria-label="Angler profile overview"
             className="relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 text-white shadow-xl min-h-[320px] md:min-h-[280px]"
@@ -572,7 +572,7 @@ const Profile = () => {
             </div>
           </section>
 
-          <section className="space-y-4">
+          <section className="relative -mt-8 space-y-3 rounded-3xl border border-slate-200 bg-white/90 p-4 shadow-md ring-1 ring-slate-100 sm:p-6">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-slate-900">Angler stats</h2>
             </div>
@@ -580,7 +580,7 @@ const Profile = () => {
               {statsCards.map((card) => (
                 <div
                   key={card.label}
-                  className="rounded-xl border border-slate-200 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  className="rounded-xl border border-slate-200 bg-white/80 p-5 shadow-sm transition hover:shadow-md hover:bg-white"
                 >
                   <div className="flex items-center gap-3">
                     <div className={statIconClasses}>{card.icon}</div>
@@ -600,7 +600,9 @@ const Profile = () => {
           </section>
 
           {isOwnProfile && (
-            <ProfileNotificationsSection userId={profileId} />
+            <div className="space-y-4">
+              <ProfileNotificationsSection userId={profileId} />
+            </div>
           )}
 
           <section className="space-y-3">
