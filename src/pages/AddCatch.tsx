@@ -18,6 +18,7 @@ import { ConditionsSection } from "@/components/catch-form/ConditionsSection";
 import { MediaSection } from "@/components/catch-form/MediaSection";
 import { PrivacySection } from "@/components/catch-form/PrivacySection";
 import { logger } from "@/lib/logger";
+import { mapModerationError } from "@/lib/moderation-errors";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -563,7 +564,15 @@ const AddCatch = () => {
       if (message?.toLowerCase().includes("bucket")) {
         toast.error("Unable to upload images. Please create a 'catches' storage bucket in Supabase.");
       } else {
-        toast.error(message ?? "Failed to add catch. Please try again.");
+        const moderation = mapModerationError(error);
+        if (moderation.type === "suspended") {
+          const untilText = moderation.until ? ` until ${new Date(moderation.until).toLocaleString()}` : "";
+          toast.error(`You’re currently suspended${untilText} and can’t post new catches right now.`);
+        } else if (moderation.type === "banned") {
+          toast.error("Your account is banned and you can’t post new catches.");
+        } else {
+          toast.error(message ?? "Failed to add catch. Please try again.");
+        }
       }
     } finally {
       setIsSubmitting(false);

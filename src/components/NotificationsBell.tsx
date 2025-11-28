@@ -120,7 +120,16 @@ export const NotificationsBell = ({
 
       const destination = resolveNotificationPath(notification);
       if (destination) {
-        navigate(destination);
+        const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
+        const targetId =
+          typeof extraData.target_id === "string" && extraData.target_id.length > 0
+            ? (extraData.target_id as string)
+            : null;
+        if (notification.type === "admin_report") {
+          navigate(destination, { state: targetId ? { filterUserId: targetId } : undefined });
+        } else {
+          navigate(destination);
+        }
         setOpen(false);
       }
     },

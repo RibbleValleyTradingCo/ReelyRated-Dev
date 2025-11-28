@@ -142,7 +142,9 @@ const AdminUserModeration = () => {
                 </TableCell>
                 <TableCell className="text-sm font-medium capitalize">{warning.severity.replace("_", " ")}</TableCell>
                 <TableCell className="text-sm text-foreground">
-                  <span title={warning.reason}>{truncate(warning.reason, 120)}</span>
+                  <span title={warning.reason} className="block max-w-[24rem] truncate">
+                    {truncate(warning.reason, 120)}
+                  </span>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {warning.duration_hours ? `${warning.duration_hours}h` : "—"}
@@ -214,7 +216,9 @@ const AdminUserModeration = () => {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-foreground">
-                    <span title={row.reason}>{truncate(row.reason, 120)}</span>
+                    <span title={row.reason} className="block max-w-[24rem] truncate">
+                      {truncate(row.reason, 120)}
+                    </span>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {row.admin?.id ? (

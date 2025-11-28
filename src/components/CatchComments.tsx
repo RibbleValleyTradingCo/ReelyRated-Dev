@@ -15,6 +15,7 @@ import { resolveAvatarUrl } from "@/lib/storage";
 import { useRateLimit, formatResetTime } from "@/hooks/useRateLimit";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
 import { useCatchComments, ThreadedComment, CatchComment, MentionCandidate } from "@/hooks/useCatchComments";
+import { mapModerationError } from "@/lib/moderation-errors";
 
 interface CatchCommentsProps {
   catchId: string;
@@ -401,7 +402,13 @@ export const CatchComments = memo(
         });
 
         if (error) {
-          if (isRateLimitError(error)) {
+          const moderation = mapModerationError(error);
+          if (moderation.type === "suspended") {
+            const untilText = moderation.until ? ` until ${new Date(moderation.until).toLocaleString()}` : "";
+            toast.error(`You’re currently suspended${untilText} and can’t post comments right now.`);
+          } else if (moderation.type === "banned") {
+            toast.error("Your account is banned and you can’t post comments.");
+          } else if (isRateLimitError(error)) {
             toast.error(getRateLimitMessage(error));
           } else if (error.message?.includes("Catch is not accessible")) {
             toast.error("You don't have access to comment on this catch");
@@ -419,7 +426,7 @@ export const CatchComments = memo(
             }
           }
           setIsPosting(false);
-          return false;
+          return moderation.type ? false : false;
         }
 
         const nowIso = new Date().toISOString();

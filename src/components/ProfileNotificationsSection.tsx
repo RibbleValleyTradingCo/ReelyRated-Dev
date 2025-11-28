@@ -125,7 +125,16 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
                 onView={(current) => {
                   const destination = resolveNotificationPath(current);
                   if (destination) {
-                    navigate(destination);
+                    const extraData = (current.extra_data ?? {}) as Record<string, unknown>;
+                    const targetId =
+                      typeof extraData.target_id === "string" && extraData.target_id.length > 0
+                        ? (extraData.target_id as string)
+                        : null;
+                    if (current.type === "admin_report") {
+                      navigate(destination, { state: targetId ? { filterUserId: targetId } : undefined });
+                    } else {
+                      navigate(destination);
+                    }
                   }
                   void markOne(current.id);
                 }}
