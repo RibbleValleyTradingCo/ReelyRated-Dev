@@ -160,6 +160,8 @@ Note: Schema + settings toggle + profile stub are implemented (is_private on pro
 
 **Goal:** Give anglers tools to control their experience (hide content from specific users) without needing admin intervention.
 
+Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_schema.sql) is implemented. RLS/enforcement/UX remains TODO.
+
 **Backend**
 
 - New tables:
