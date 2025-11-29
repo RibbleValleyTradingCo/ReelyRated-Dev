@@ -105,7 +105,7 @@ Phase 2.1 (account deletion/export) can ship independently. Phase 2.2 (profile p
 
 **Goal:** Allow users to mark their profile as private so only followers (and admins) can see their catches and details.
 
-Note: Schema + settings toggle + profile stub are implemented (is_private on profiles; settings toggle; non-followers see a “private account” stub). RLS/feed/search enforcement for privacy remains TODO in a later phase.
+Note: Schema + settings toggle + profile stub are implemented (is_private on profiles; settings toggle; non-followers see a “private account” stub). RLS enforcement on catches/comments is now in place; feed/search reuse these rules. Future work: ensure browse/leaderboard/advanced search reuse the same checks; block/mute integration is later.
 
 **Backend**
 

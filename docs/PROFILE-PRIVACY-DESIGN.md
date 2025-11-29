@@ -1,6 +1,6 @@
-# Profile Privacy – Design (Not Yet Implemented)
+# Profile Privacy – Design (Implemented: schema, UI, and basic RLS)
 
-This document describes the planned approach for “public vs private” profiles in ReelyRated. It is **design-only** for now – no behaviour is implemented yet.
+This document describes the approach for “public vs private” profiles in ReelyRated. Schema, settings toggle, profile stub, and RLS on catches/comments are implemented. Feed/search/browse reuse the RLS and existing client guards; block/mute integration is future work.
 
 The goal is to let anglers mark their account as **private**, so only followers (and admins) can see their catches and detailed profile content. This must integrate cleanly with existing RLS, feed/search RPCs, and moderation.
 
@@ -84,7 +84,7 @@ For a given viewer `viewer_id` and profile `profile_id`:
 
 ### 4.2 Feed / Search / Discovery
 
-All **server-side** RPCs that return catches must be updated (or wrapped) to respect:
+All **server-side** RPCs/selects now rely on RLS for `catches`/`catch_comments` to respect:
 
 - Profile privacy: `profiles.is_private`.
 - Relationship: only return private-profile catches when:
@@ -92,32 +92,18 @@ All **server-side** RPCs that return catches must be updated (or wrapped) to res
   - Viewer is a follower, OR
   - Viewer is admin.
 
-Concretely:
-
-- Feed RPCs should:
-  - Join `profiles` and filter out rows where:
-    - `profiles.is_private = TRUE` AND viewer is neither owner nor follower nor admin.
-- Search RPCs (existing and future advanced search) should:
-  - Apply the same rule set as feed; do not implement a separate visibility logic.
-
-Future browse/leaderboard endpoints (from the roadmap) must also reuse this rule.
+Future browse/leaderboard endpoints must reuse this rule. Client guards remain as a secondary check; RLS is the source of truth.
 
 ---
 
 ## 5. RLS & RPC Considerations
 
-This phase will require a careful **RLS and RPC review**. The concrete changes will happen in migrations, but the design guardrails:
-
-- RLS policies on `catches` should:
-  - Check `profiles.is_private` combined with:
-    - Viewer = owner,
-    - Viewer is follower (via `profile_follows`),
-    - Viewer is admin.
-- RLS policies on `profiles`:
-  - May still allow basic profile row visibility for discoverability.
-  - But detailed fields (e.g. some stats, or future contact info) might be limited server-side via RPCs, not RLS alone.
-
-We will likely implement privacy logic primarily in **RPCs** that power feed/search, with RLS acting as a safety net and consistency layer.
+- RLS policies on `catches` and `catch_comments` now check `profiles.is_private` combined with:
+  - Viewer = owner,
+  - Viewer is follower (via `profile_follows`),
+  - Viewer is admin.
+- RLS on `profiles` remains open for discoverability; privacy is enforced on catches/comments. Future contact fields may need RPC-level filtering if added.
+- Feed/search currently use client guards; RLS now provides backend enforcement. Future RPCs must not bypass these checks.
 
 ---
 
@@ -175,7 +161,7 @@ We must not rely solely on client-side checks for privacy; server-side RPCs/RLS 
 
 ## 7. Manual Test Plan (High Level)
 
-Will be broken out into `PROFILE-PRIVACY-TESTS.md`, but core scenarios:
+See `PROFILE-PRIVACY-TESTS.md` for detailed cases. Core scenarios:
 
 1. **Owner view**
 
@@ -189,7 +175,7 @@ Will be broken out into `PROFILE-PRIVACY-TESTS.md`, but core scenarios:
    - User C does not follow A.
    - Check:
      - B can see A’s catches in feed/profile.
-     - C cannot see A’s catches (gets private stub).
+     - C cannot see A’s catches (gets private stub) and does not see A’s catches in feed/search.
 
 3. **Admin view**
 
