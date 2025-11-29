@@ -177,7 +177,7 @@ Status: Implemented via migrations 2056_venues_schema.sql (venues table, catches
   - `get_venue_by_slug(p_slug text)`
   - `get_venue_top_catches(p_venue_id uuid, p_limit int)`
   - `get_venue_recent_catches(p_venue_id uuid, p_limit int)`
-  - Optional: `get_venue_leaderboard(p_venue_id uuid, p_limit int)` (per-angler stats)
+  - `get_venue_top_anglers(p_venue_id uuid, p_limit int)` (per-angler stats, read-only, RLS enforced)
 
 - Frontend:
 
@@ -185,7 +185,7 @@ Status: Implemented via migrations 2056_venues_schema.sql (venues table, catches
   - `/venues/:slug` detail page with:
     - Hero (name/location/description).
     - Top catches section (reusing existing catch cards).
-    - Optional “Top anglers at this venue” strip.
+    - Top anglers strip (per-angler leaderboard) using the new RPC.
     - Recent catches section.
 
 - Navigation:
@@ -194,7 +194,7 @@ Status: Implemented via migrations 2056_venues_schema.sql (venues table, catches
 
 Privacy/moderation enforcement is handled by RPCs and RLS; React only renders what it is allowed to see.
 
-Status: Phase 1 read-only venue pages implemented (RPCs, /venues, /venues/:slug, nav links). No editing/admin features yet.
+Status: Phase 1 read-only venue pages implemented (RPCs, /venues, /venues/:slug, nav links). Top anglers strip is live. No editing/admin features yet.
 
 ---
 

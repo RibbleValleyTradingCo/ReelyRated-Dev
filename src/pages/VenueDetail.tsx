@@ -55,6 +55,17 @@ const normalizeCatchRow = (row: CatchRow): CatchRow => ({
   venues: row.venues ?? null,
 });
 
+type TopAngler = {
+  user_id: string;
+  username: string | null;
+  avatar_path: string | null;
+  avatar_url: string | null;
+  catch_count: number;
+  best_weight: number | null;
+  best_weight_unit: string | null;
+  last_catch_at: string | null;
+};
+
 const VenueDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const [venue, setVenue] = useState<Venue | null>(null);
@@ -65,6 +76,8 @@ const VenueDetail = () => {
   const [topLoading, setTopLoading] = useState(false);
   const [recentOffset, setRecentOffset] = useState(0);
   const [recentHasMore, setRecentHasMore] = useState(true);
+  const [topAnglers, setTopAnglers] = useState<TopAngler[]>([]);
+  const [topAnglersLoading, setTopAnglersLoading] = useState(false);
 
   useEffect(() => {
     const loadVenue = async () => {
@@ -95,6 +108,21 @@ const VenueDetail = () => {
     setTopLoading(false);
   };
 
+  const loadTopAnglers = async (venueId: string) => {
+    setTopAnglersLoading(true);
+    const { data, error } = await supabase.rpc("get_venue_top_anglers", {
+      p_venue_id: venueId,
+      p_limit: 12,
+    });
+    if (error) {
+      console.error("Failed to load top anglers", error);
+      setTopAnglers([]);
+    } else {
+      setTopAnglers((data as TopAngler[]) ?? []);
+    }
+    setTopAnglersLoading(false);
+  };
+
   const loadRecentCatches = async (venueId: string, nextOffset = 0, append = false) => {
     setRecentLoading(true);
     const limit = 12;
@@ -119,6 +147,7 @@ const VenueDetail = () => {
   useEffect(() => {
     if (venue?.id) {
       void loadTopCatches(venue.id);
+      void loadTopAnglers(venue.id);
       void loadRecentCatches(venue.id, 0, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -200,6 +229,58 @@ const VenueDetail = () => {
             </Button>
           </div>
         </div>
+
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h2 className="text-xl font-semibold text-slate-900">Top anglers at this venue</h2>
+              <p className="text-sm text-slate-600">Based on catches logged on ReelyRated.</p>
+            </div>
+          </div>
+          {topAnglersLoading ? (
+            <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading top anglers…
+            </div>
+          ) : topAnglers.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-600">
+              No catches logged at this venue yet.
+            </div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {topAnglers.map((angler) => (
+                <Link
+                  key={angler.user_id}
+                  to={`/profile/${angler.username ?? angler.user_id}`}
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary/30 hover:shadow-md"
+                >
+                  <Avatar className="h-11 w-11">
+                    <AvatarImage
+                      src={
+                        angler.avatar_path
+                          ? undefined
+                          : angler.avatar_url ?? undefined
+                      }
+                    />
+                    <AvatarFallback>{(angler.username ?? "A")[0]?.toUpperCase() ?? "A"}</AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1">
+                    <div className="text-sm font-semibold text-slate-900">{angler.username ?? "Unknown angler"}</div>
+                    <div className="text-xs text-slate-600">
+                      {angler.catch_count} catch{angler.catch_count === 1 ? "" : "es"} logged
+                    </div>
+                    {angler.best_weight ? (
+                      <div className="text-xs font-medium text-slate-700">
+                        PB {angler.best_weight}
+                        {angler.best_weight_unit === "kg" ? "kg" : "lb"}
+                      </div>
+                    ) : null}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="space-y-4">
           <div className="flex items-center justify-between">

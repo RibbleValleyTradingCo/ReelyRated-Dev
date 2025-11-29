@@ -42,8 +42,8 @@ Seed data: Venues seeded from Add Catch options via 2058_seed_venues_from_add_ca
 - Top catches at this venue:
   - Leaderboard of best catches (by weight or existing catch score).
   - Reuse existing catch card and feed grid styling.
-- Top anglers at this venue (optional/nice-to-have in v1):
-  - Per-angler stats: username, best_weight at venue, total_catches_at_venue.
+- Top anglers at this venue:
+  - Implemented: strip of anglers with avatar, username, catch_count, PB weight (visible catches only).
 - Recent catches at this venue:
   - Reverse-chronological list/grid, reusing existing catch cards/grid layout.
 
@@ -69,9 +69,10 @@ Planned RPCs/views (no SQL yet):
   - Returns top catches (by weight/score) with profile basics.
   - Same privacy/moderation requirements as above.
 
-- `get_venue_leaderboard(p_venue_id uuid, p_limit int, p_viewer_id uuid)` (optional v1)
-  - Per-angler stats (username, best weight, total catches at venue).
-  - Must follow the same visibility/privacy rules.
+- `get_venue_top_anglers(p_venue_id uuid, p_limit int, p_viewer_id uuid)`
+  - Implemented as SECURITY INVOKER; aggregates per-angler stats (catch_count, best_weight + unit, last_catch_at) for visible catches at the venue.
+  - Returns profile basics (username, avatar_path, avatar_url).
+  - Must follow the same visibility/privacy rules via existing RLS.
 
 All RPCs must honor:
 - Catch `visibility`
