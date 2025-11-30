@@ -160,7 +160,7 @@ Note: Schema + settings toggle + profile stub are implemented (is_private on pro
 
 **Goal:** Give anglers tools to control their experience (hide content from specific users) without needing admin intervention.
 
-Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_schema.sql) is implemented. RLS/enforcement/UX remains TODO.
+Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_schema.sql) is implemented. Backend block RPCs and RLS enforcement on catches/comments are now in place; UI remains TODO.
 
 **Backend**
 
@@ -174,9 +174,9 @@ Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_sche
 - RLS:
   - Rows only visible to `blocker_id` (and admins).
   - Enforce in queries/RPCs:
-    - Feed/search should exclude content authored by users the viewer has blocked.
-    - Comments from blocked users can be hidden or collapsed.
-    - Disallow follow relationships where a block exists in either direction.
+    - Feed/search/venue should exclude content authored by users the viewer has blocked (now enforced in catches RLS).
+    - Comments from blocked users hidden via RLS.
+    - Disallow follow relationships where a block exists in either direction (follow links cleaned on block).
 
 **Frontend**
 
