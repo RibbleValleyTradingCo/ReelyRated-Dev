@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,6 +13,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import ProfileAvatarSection from "@/components/settings/ProfileAvatarSection";
 import { isAdminUser } from "@/lib/admin";
 import { Loader2, LogOut } from "lucide-react";
@@ -59,6 +71,14 @@ const ProfileSettings = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const [isUpdatingPrivacy, setIsUpdatingPrivacy] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [blockedProfiles, setBlockedProfiles] = useState<
+    { blocked_id: string; profiles: { id: string; username: string | null; avatar_path: string | null; avatar_url: string | null; bio: string | null } | null }[]
+  >([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
+  const [blockedError, setBlockedError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -279,6 +299,67 @@ const ProfileSettings = () => {
     toast.success("Signed out");
     navigate("/auth");
   };
+
+  const handleAccountDeletion = async () => {
+    if (!user) {
+      toast.error("You need to be signed in to delete your account.");
+      return;
+    }
+    try {
+      setIsDeletingAccount(true);
+      const { error } = await supabase.rpc("request_account_deletion", {
+        p_reason: deleteReason.trim() || null,
+      });
+
+      if (error) {
+        console.error("Failed to delete account", error);
+        toast.error("We couldn't delete your account right now. Please try again in a moment.");
+        return;
+      }
+
+      toast.success("Your account has been deleted.");
+      const { error: signOutError } = await signOut();
+      if (signOutError) {
+        toast.error("Account deleted, but sign out failed. Please refresh and sign in again.");
+        return;
+      }
+      navigate("/account-deleted");
+    } catch (error) {
+      console.error("Error deleting account", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsDeletingAccount(false);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const fetchBlockedProfiles = useCallback(async () => {
+    if (!user) {
+      setBlockedProfiles([]);
+      return;
+    }
+    try {
+      setBlockedLoading(true);
+      setBlockedError(null);
+      const { data, error } = await supabase
+        .from("profile_blocks")
+        .select("blocked_id, profiles:blocked_id (id, username, avatar_path, avatar_url, bio)")
+        .eq("blocker_id", user.id);
+      if (error) {
+        throw error;
+      }
+      setBlockedProfiles(data ?? []);
+    } catch (error) {
+      console.error("Failed to load blocked anglers", error);
+      setBlockedError("Unable to load blocked anglers right now.");
+    } finally {
+      setBlockedLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void fetchBlockedProfiles();
+  }, [fetchBlockedProfiles]);
 
   if (loading || isLoading) {
     return (
@@ -584,6 +665,61 @@ const ProfileSettings = () => {
 
           <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
             <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
+              <CardTitle className="text-lg">Delete your account</CardTitle>
+              <p className="text-sm text-slate-600">
+                This will log you out and begin the deletion process. Your profile will be anonymised and your catches/comments hidden from normal surfaces, while moderation history may be retained for safety. This can’t be undone from the UI.
+              </p>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4 px-5 pb-5 md:flex-row md:items-center md:justify-between md:px-8 md:pb-8">
+              <p className="text-sm text-slate-600 md:max-w-lg">
+                You can optionally share why you&apos;re leaving before confirming. Deletion is permanent for this account.
+              </p>
+              <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" className="h-11 min-w-[200px]">
+                    Request account deletion
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure you want to delete your account?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will log you out, anonymise your profile, and hide your catches/comments. Some data is retained for moderation and safety. This cannot be undone from the UI.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="space-y-2">
+                    <Label htmlFor="deleteReason">Reason for leaving (optional)</Label>
+                    <Textarea
+                      id="deleteReason"
+                      value={deleteReason}
+                      onChange={(e) => setDeleteReason(e.target.value)}
+                      placeholder="Let us know why you’re leaving..."
+                    />
+                  </div>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isDeletingAccount}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleAccountDeletion}
+                      disabled={isDeletingAccount}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      {isDeletingAccount ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Deleting…
+                        </>
+                      ) : (
+                        "Delete my account"
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
               <CardTitle className="text-lg">Profile privacy</CardTitle>
               <p className="text-sm text-slate-600">
                 Only people who follow you can see your catches. Your profile may still appear in search and leaderboards.
@@ -616,10 +752,78 @@ const ProfileSettings = () => {
             </CardContent>
           </Card>
 
+          <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
+              <CardTitle className="text-lg">Safety &amp; blocking</CardTitle>
+              <p className="text-sm text-slate-600">See and manage anglers you&apos;ve blocked.</p>
+            </CardHeader>
+            <CardContent className="space-y-4 px-5 pb-5 md:px-8 md:pb-8">
+              {blockedLoading ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading blocked anglers…
+                </div>
+              ) : blockedError ? (
+                <p className="text-sm text-red-600">{blockedError}</p>
+              ) : blockedProfiles.length === 0 ? (
+                <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  You haven&apos;t blocked any anglers yet. If someone&apos;s behaviour isn&apos;t for you, you can block them from their profile.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {blockedProfiles.map((row) => {
+                    const blockedProfile = row.profiles;
+                    const username = blockedProfile?.username || "Unknown angler";
+                    const bio = blockedProfile?.bio?.trim() || "No bio yet.";
+                    return (
+                      <div
+                        key={row.blocked_id}
+                        className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={blockedProfile?.avatar_url ?? undefined} />
+                            <AvatarFallback>{username.slice(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-1">
+                            <div className="text-sm font-medium text-slate-900">{username}</div>
+                            <p className="text-xs text-slate-600 line-clamp-2">{bio}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="h-9"
+                          onClick={async () => {
+                            try {
+                              const { error } = await supabase.rpc("unblock_profile", {
+                                p_blocked_id: row.blocked_id,
+                              });
+                              if (error) {
+                                throw error;
+                              }
+                              toast.success("User unblocked. Their content will reappear based on privacy settings.");
+                              setBlockedProfiles((prev) => prev.filter((entry) => entry.blocked_id !== row.blocked_id));
+                              void fetchBlockedProfiles();
+                            } catch (error) {
+                              console.error("Failed to unblock user", error);
+                              toast.error("We couldn’t unblock this user. Please try again.");
+                            }
+                          }}
+                        >
+                          Unblock
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           <Card className="rounded-xl border border-red-200 bg-red-50/70 shadow-none">
             <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
               <CardTitle className="text-base font-semibold text-red-600">Danger zone</CardTitle>
-              <p className="text-sm text-red-600/80">Sign out safely or prepare to delete your account (coming soon).</p>
+              <p className="text-sm text-red-600/80">Sign out safely to secure your account.</p>
             </CardHeader>
             <CardContent className="flex flex-col gap-4 px-5 pb-5 md:flex-row md:items-center md:justify-between md:px-8 md:pb-8">
               <p className="text-sm text-red-600/80 md:max-w-md">
@@ -629,9 +833,6 @@ const ProfileSettings = () => {
                 <Button variant="destructive" className="h-11 min-w-[140px]" onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
-                </Button>
-                <Button variant="outline" disabled className="h-11 border-red-300 text-red-500">
-                  Delete account (coming soon)
                 </Button>
               </div>
             </CardContent>

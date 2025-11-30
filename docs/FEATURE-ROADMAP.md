@@ -160,7 +160,12 @@ Note: Schema + settings toggle + profile stub are implemented (is_private on pro
 
 **Goal:** Give anglers tools to control their experience (hide content from specific users) without needing admin intervention.
 
-Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_schema.sql) is implemented. Backend block RPCs and RLS enforcement on catches/comments are now in place; UI remains TODO.
+Status:
+- Backend block enforcement (RPCs, RLS on catches/comments, blocked-viewer stub) implemented.
+- Profile hero supports Block / Unblock actions and a blocked banner.
+- Next: blocked-anglers list in Settings.
+
+Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_schema.sql) is implemented. Backend block RPCs and RLS enforcement on catches/comments are now in place.
 
 **Backend**
 
@@ -185,6 +190,20 @@ Note: Schema groundwork (`profile_blocks` via migration 2053_profile_blocks_sche
   - Overflow menu or secondary button:
     - “Block user” / “Unblock user”.
     - Confirmation dialog explaining effects.
+  - 2.3a – Profile block UI (in progress):
+    - Hero-level Block/Unblock controls using existing RPCs (`block_profile`, `unblock_profile`).
+    - Follow disabled while blocked; banner when blocked.
+    - Comment-level mute UI is deferred to a later 2.3b.
+  - 2.3b – Blocked anglers list (up next):
+    - Add a subtle “Safety & blocking” section to **Settings → Profile**:
+      - Shows a list of anglers the current user has blocked (via `profile_blocks`).
+      - Each entry: avatar, username, short bio, Unblock button.
+      - Uses existing `block_profile` / `unblock_profile` RPCs; no new backend logic.
+    - Keep this list Settings-only, mirroring modern social apps.
+  - 2.3c – Admin profile UX polish:
+    - Admin profiles display an Admin badge and short staff explainer.
+    - Follow/Block CTAs are suppressed for admin profiles.
+    - Admins may be excluded from competitive leaderboards/venue top-anglers strips where appropriate.
 
 - Comments:
 

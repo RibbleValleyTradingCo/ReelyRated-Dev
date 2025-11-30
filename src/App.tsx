@@ -19,6 +19,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 const VenueDetail = lazy(() => import("./pages/VenueDetail"));
 const VenuesIndex = lazy(() => import("./pages/VenuesIndex"));
+const AccountDeleted = lazy(() => import("./pages/AccountDeleted"));
 const Sessions = lazy(() => import("./pages/Sessions"));
 const AdminReports = lazy(() => import("./pages/AdminReports"));
 const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
@@ -77,6 +78,7 @@ const App = () => (
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/venues" element={<VenuesIndex />} />
                 <Route path="/venues/:slug" element={<VenueDetail />} />
+                <Route path="/account-deleted" element={<AccountDeleted />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

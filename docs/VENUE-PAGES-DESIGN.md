@@ -107,7 +107,76 @@ All RPCs must honor:
 
 ---
 
-## 6. Manual Test Checklist (design-level)
+## 6. Venue metadata & CTAs – v1
+
+This pass focuses on surfacing “bookable” signals without turning venues into a booking engine. Split between auto-derived stats (no owner effort) and light owner/admin-authored metadata.
+
+### A. Auto-derived fields (read-only, computed from existing data)
+- `total_catches_at_venue` (lifetime) derived from catches with `venue_id`.
+- `recent_catches_window` (e.g. last 7 or 30 days) using the same venue_id linkage.
+- `headline_pb` for the venue:
+  - Heaviest logged catch overall.
+  - Future: species-specific PBs (e.g. “Best carp here: 32lb”).
+- `top_species_at_venue`: top 1–3 species by count at this venue.
+- `friends_activity` (future): “Fished by N anglers you follow.”
+- Simple “trending” flag (recent activity vs baseline).
+
+Notes:
+- These do not require venue-owner input; they are read-only and driven by existing catches + venue_id and existing RPC patterns.
+- They power live card/hero snippets such as “7 catches this month”, “Best carp: 24lb”, “Top species: Carp, Pike”.
+- Implementation is new views/RPCs only; no new write paths.
+
+### B. Owner / admin-authored fields (editable via venue settings)
+Propose columns on `public.venues` (or a related table). Do not write SQL here.
+- `short_tagline` (text, ~80–120 chars) — “Big carp day-ticket venue with 3 main lakes.”
+- `ticket_type` (string/enum-ish) — e.g. “Day ticket”, “Syndicate”, “Club water”, “Coaching venue”.
+- `price_from` (numeric + currency or simple text) — e.g. “from £10 / day”.
+- `best_for_tags` (text[]) — e.g. ["Carp", "Match", "Families", "Predator"].
+- `facilities` (text[] or JSONB) — e.g. ["Toilets", "Café", "Tackle shop", "Parking", "Accessible pegs"].
+- `website_url`
+- `booking_url` (can mirror website to start)
+- `contact_phone` (optional)
+- `notes_for_rr_team` (admin-only, not exposed to end users)
+
+Notes:
+- v1: admin-editable only via an internal/owner panel. Verified owner model is out of scope here.
+- All fields are optional; UI must degrade gracefully when missing.
+
+### C. Venue card (Venues index) content hierarchy
+- Top: venue name + location (existing).
+- Middle text line: prefer `short_tagline`; fallback “Community catches coming soon. Imported from Add Catch venue options.”
+- Stats row:
+  - Left: `total_catches_at_venue` or “No catches logged yet.”
+  - Right: `recent_catches_window` (e.g. “3 this week”) or “Be the first to log a catch here.”
+- Chip row: 1–2 pills from `best_for_tags` and/or key `facilities` (e.g. “Carp”, “Day ticket”, “Café”).
+- CTA: Keep “View venue” primary button. Optionally show subtle “From £X/day” text near the button when `price_from` exists.
+
+Degradation:
+- Missing tagline → fallback copy.
+- No catches → empty-state stats text.
+- No tags/facilities → omit chips without adding empty placeholders.
+- No price → omit “from £X/day”.
+
+### D. Venue hero (Venue detail)
+- Under venue name: location + “X catches logged here” + “Y in the last 30 days” (from auto-derived stats).
+- Description line: use `short_tagline` when present; fallback to existing “Imported from Add Catch…” copy.
+- Right side (or stacked on mobile):
+  - “From £X/day” when `price_from` exists.
+  - Row of `best_for_tags` chips (e.g. “Carp”, “Match”, “Families”).
+- Below hero (later section): “Venue info” with `facilities`, `website_url`, `booking_url`.
+
+### E. Permissions and safety
+- All venue metadata is public read.
+- Edit rights:
+  - v1: admins only.
+  - v2: optional `venue_managers` table mapping auth users to venues.
+- Booking/safety:
+  - Require HTTPS for `booking_url`; avoid shorteners where possible.
+  - No in-app payments in this phase; links are outbound only.
+
+---
+
+## 7. Manual Test Checklist (design-level)
 - Public vs private profiles at a venue:
   - Owner sees own catches.
   - Follower vs non-follower visibility matches feed/search rules.

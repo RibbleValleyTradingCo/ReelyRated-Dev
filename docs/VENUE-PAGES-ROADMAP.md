@@ -198,6 +198,20 @@ Status: Phase 1 read-only venue pages implemented (RPCs, /venues, /venues/:slug,
 
 ---
 
+## Phase 3.1 – Venue metadata & cards
+
+**Goal:** Add metadata and CTAs to make venues more “bookable” while staying read-only and outbound-only.
+
+- Migrations for venue metadata fields (tagline, ticket type, price_from, best_for_tags, facilities, URLs, contact, admin notes).
+- RPC/view to derive `total_catches_at_venue`, `recent_catches_window`, `headline_pb` (and prep slots for top species/trending/friends activity).
+- Venues index card presentation pass using metadata + derived stats (tagline fallback, catches counts, chips, price text).
+- Venue hero presentation pass surfacing tagline, from-price, tags, and recent activity window.
+- Out of scope: booking/checkout; links remain outbound. Owner/admin editing model follows in the next phase.
+
+Status: Design captured in `docs/VENUE-PAGES-DESIGN.md` (“Venue metadata & CTAs – v1”). Implementation not started.
+
+---
+
 ## Phase 4 – Venue details & business info (read-only)
 
 **Goal:** Make venue pages more informative using additional fields on `venues`, still only editable via database/admin tools.
@@ -249,9 +263,10 @@ Status: TODO (events not implemented).
 1. **Phase 1:** `VENUE-PAGES-DESIGN.md` (design only).
 2. **Phase 2:** Schema for `venues` + `catches.venue_id`.
 3. **Phase 3:** Read-only venue pages, leaderboards and nav links.
-4. **Phase 4:** Business/contact details on venue pages.
-5. **Phase 5:** Venue admin access and editing.
-6. **Phase 6:** Venue events.
+4. **Phase 3.1:** Venue metadata fields + derived stats + card/hero presentation (read-only, outbound links only).
+5. **Phase 4:** Business/contact details on venue pages.
+6. **Phase 5:** Venue admin access and editing.
+7. **Phase 6:** Venue events.
 
 Each phase should follow the same pattern we use elsewhere:
 
