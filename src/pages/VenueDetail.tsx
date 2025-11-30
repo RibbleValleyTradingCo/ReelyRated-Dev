@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, MapPin } from "lucide-react";
+import { ExternalLink, Loader2, MapPin } from "lucide-react";
 import { CatchCard } from "@/components/feed/CatchCard";
 
 type Venue = {
@@ -203,6 +203,14 @@ const VenueDetail = () => {
     );
   }
 
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.name)}`;
+  const catchCountLabel =
+    recentCatches.length === 0
+      ? "No catches logged yet"
+      : recentCatches.length === 1
+        ? "1 catch logged here"
+        : `${recentCatches.length} catches logged here`;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <Navbar />
@@ -212,12 +220,27 @@ const VenueDetail = () => {
             <div className="space-y-3">
               <p className="text-sm font-semibold uppercase tracking-wide text-primary">Venue</p>
               <h1 className="text-3xl font-bold leading-tight text-slate-900 md:text-4xl">{venue.name}</h1>
-              {venue.location ? (
-                <p className="flex items-center gap-2 text-sm text-slate-600">
-                  <MapPin className="h-4 w-4 text-slate-500" />
-                  {venue.location}
-                </p>
-              ) : null}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+                {venue.location ? (
+                  <span className="inline-flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-slate-500" />
+                    <span>{venue.location}</span>
+                  </span>
+                ) : null}
+                <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:inline-block" />
+                <span className="text-slate-500">{catchCountLabel}</span>
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-xs font-semibold text-primary hover:text-primary"
+                >
+                  <a href={mapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+                    View on maps
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </Button>
+              </div>
               {venue.description ? (
                 <p className="text-sm text-slate-600 max-w-3xl">{venue.description}</p>
               ) : (
