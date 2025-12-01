@@ -150,6 +150,7 @@ const MyVenueEdit = () => {
       p_venue_id: venue.id,
       p_tagline: form.short_tagline || null,
       p_description: form.description || null,
+      p_ticket_type: form.ticket_type || null,
       p_best_for_tags: parseCsv(form.best_for_tags),
       p_facilities: parseCsv(form.facilities),
       p_price_from: form.price_from || null,

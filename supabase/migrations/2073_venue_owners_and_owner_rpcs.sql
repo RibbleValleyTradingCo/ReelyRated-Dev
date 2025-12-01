@@ -135,6 +135,7 @@ create or replace function public.owner_update_venue_metadata(
   p_venue_id uuid,
   p_tagline text,
   p_description text,
+  p_ticket_type text,
   p_best_for_tags text[],
   p_facilities text[],
   p_price_from text,
@@ -160,6 +161,7 @@ begin
   set
     short_tagline = p_tagline,
     description = p_description,
+    ticket_type = p_ticket_type,
     best_for_tags = p_best_for_tags,
     facilities = p_facilities,
     price_from = p_price_from,
@@ -175,7 +177,7 @@ end;
 $$;
 
 grant execute on function public.owner_update_venue_metadata(
-  uuid, text, text, text[], text[], text, text, text, text
+  uuid, text, text, text, text[], text[], text, text, text, text
 ) to authenticated;
 
 -- Owner-aware events RPCs
