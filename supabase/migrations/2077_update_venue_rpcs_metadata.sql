@@ -3,7 +3,11 @@
 
 SET search_path = public, extensions;
 
-CREATE OR REPLACE FUNCTION public.get_venues(
+-- Drop old RPCs so we can change their return types
+DROP FUNCTION IF EXISTS public.get_venues(text, int, int);
+DROP FUNCTION IF EXISTS public.get_venue_by_slug(text);
+
+CREATE FUNCTION public.get_venues(
   p_search text DEFAULT NULL,
   p_limit int DEFAULT 20,
   p_offset int DEFAULT 0
@@ -61,7 +65,7 @@ AS $$
   OFFSET GREATEST(COALESCE(p_offset, 0), 0);
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_venue_by_slug(
+CREATE FUNCTION public.get_venue_by_slug(
   p_slug text
 )
 RETURNS TABLE (
