@@ -18,6 +18,7 @@ type Venue = {
   short_tagline: string | null;
   total_catches: number | null;
   recent_catches_30d: number | null;
+  upcoming_events_count?: number;
 };
 
 const AdminVenuesList = () => {
@@ -170,6 +171,11 @@ const AdminVenuesList = () => {
                   <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
                     {venue.recent_catches_30d ?? 0} in last 30d
                   </span>
+                  {venue.upcoming_events_count !== undefined ? (
+                    <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                      {venue.upcoming_events_count} upcoming events
+                    </span>
+                  ) : null}
                   <Link
                     to={`/venues/${venue.slug}`}
                     className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline"

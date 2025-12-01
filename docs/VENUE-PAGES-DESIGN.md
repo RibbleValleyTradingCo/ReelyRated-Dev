@@ -176,7 +176,70 @@ Degradation:
 
 ---
 
-## 7. Manual Test Checklist (design-level)
+## 7. Venue events / matches / announcements – v1 (design only)
+
+Goal: add a simple, flexible events/matches/announcements model, admin-authored only in this phase.
+
+### A. Data model (venue_events)
+- Table: `public.venue_events`
+- Columns (nullable where noted):
+  - `id uuid primary key default gen_random_uuid()`
+  - `venue_id uuid not null references public.venues(id)`
+  - `title text not null`
+  - `event_type text` (match | open_day | maintenance | announcement | other; text for now, enum later)
+  - `starts_at timestamptz not null`
+  - `ends_at timestamptz` (nullable for one-off announcements)
+  - `description text`
+  - `ticket_info text` (or `entry_fee text` free-form: “£25, 30 pegs, payout to top 3”)
+  - `website_url text` (optional override)
+  - `booking_url text` (optional override)
+  - `is_published boolean not null default false`
+  - `created_at timestamptz not null default now()`
+  - `updated_at timestamptz not null default now()`
+- Indexes:
+  - `(venue_id, starts_at)` for upcoming queries.
+  - `(starts_at)` optional for global lists later.
+- RLS/ownership:
+  - Reads: public can read published events; primary focus on upcoming.
+  - Writes: admin-only via SECURITY DEFINER RPCs checking `admin_users`.
+  - Future: venue-owner scoped writes (out of scope here).
+
+### B. RPCs (design only)
+- `get_venue_upcoming_events(p_venue_id uuid, p_now timestamptz default now(), p_limit int default 10)`
+  - Returns published events for a venue where `starts_at >= p_now`, ordered by `starts_at ASC`, limit with sane cap.
+  - Security: SECURITY INVOKER; relies on table RLS (published-only).
+- `get_venue_past_events(p_venue_id uuid, p_now timestamptz default now(), p_limit int default 10, p_offset int default 0)`
+  - Returns published past events for admin/manage views (or future public “past events”), ordered `starts_at DESC`.
+- Admin CRUD (SECURITY DEFINER, admin_users check):
+  - `admin_create_venue_event(...)` with the columns above (venue_id, title, event_type, starts_at, ends_at, description, ticket_info, website_url, booking_url, is_published).
+  - `admin_update_venue_event(...)` same fields + event id.
+  - `admin_delete_venue_event(p_event_id uuid)` or admin_unpublish.
+  - All admin RPCs update `updated_at = now()`.
+
+### C. Public venue page UX (/venues/:slug)
+- Placement: “Upcoming events” section between hero and leaderboards (or similarly prominent).
+- When events exist:
+  - Small cards/rows showing title, date/time, short description snippet, optional “More details”/“Book now” link when `booking_url` present.
+  - Order by soonest first.
+- When none: light empty state (“No upcoming events — check back soon.”).
+- Past events: optional later; can be a follow-on subsection/tab, not required in this first pass.
+- Events are informational only; they do not affect catch privacy/RLS.
+
+### D. Admin venue tools
+- `/admin/venues/:slug`:
+  - Add “Events” panel/tab listing upcoming + recent past events.
+  - Actions: Create, Edit, Unpublish/Delete.
+  - Form fields map 1:1 to `venue_events` columns; validation: title required, starts_at required, ends_at >= starts_at when present, is_published toggle.
+- `/admin/venues` list:
+  - Nice-to-have: show upcoming events count per venue (optional for a later pass).
+
+### E. Safety / moderation notes
+- Phase 3.2: admin-authored only → low abuse risk.
+- Future venue-owner editing: consider moderation/approval, audit logging (moderation_log or dedicated audit), HTTPS enforcement on URLs, and unchanged catch/venue RLS.
+
+---
+
+## 8. Manual Test Checklist (design-level)
 - Public vs private profiles at a venue:
   - Owner sees own catches.
   - Follower vs non-follower visibility matches feed/search rules.

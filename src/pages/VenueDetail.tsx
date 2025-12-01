@@ -63,6 +63,22 @@ type CatchRow = {
   } | null;
 };
 
+type VenueEvent = {
+  id: string;
+  venue_id: string;
+  title: string;
+  event_type: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  description: string | null;
+  ticket_info: string | null;
+  website_url: string | null;
+  booking_url: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 const normalizeCatchRow = (row: CatchRow): CatchRow => ({
   ...row,
   profiles: row.profiles ?? { username: "Unknown", avatar_path: null, avatar_url: null },
@@ -97,6 +113,8 @@ const VenueDetail = () => {
   const [topAnglers, setTopAnglers] = useState<TopAngler[]>([]);
   const [topAnglersLoading, setTopAnglersLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<VenueEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   useEffect(() => {
     const loadVenue = async () => {
@@ -163,11 +181,26 @@ const VenueDetail = () => {
     setRecentLoading(false);
   };
 
+  const loadUpcomingEvents = async (venueId: string) => {
+    setEventsLoading(true);
+    const { data, error } = await supabase.rpc("get_venue_upcoming_events", {
+      p_venue_id: venueId,
+    });
+    if (error) {
+      console.error("Failed to load events", error);
+      setUpcomingEvents([]);
+    } else {
+      setUpcomingEvents((data as VenueEvent[]) ?? []);
+    }
+    setEventsLoading(false);
+  };
+
   useEffect(() => {
     if (venue?.id) {
       void loadTopCatches(venue.id);
       void loadTopAnglers(venue.id);
       void loadRecentCatches(venue.id, 0, false);
+      void loadUpcomingEvents(venue.id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venue?.id]);
@@ -233,6 +266,15 @@ const VenueDetail = () => {
       </div>
     );
   }
+
+  const formatEventDate = (startsAt: string, endsAt: string | null) => {
+    const start = new Date(startsAt);
+    const end = endsAt ? new Date(endsAt) : null;
+    const startDate = start.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+    const startTime = start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    const endTime = end ? end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : null;
+    return endTime ? `${startDate} · ${startTime}–${endTime}` : `${startDate} · ${startTime}`;
+  };
 
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.name)}`;
   const totalCatches = venue.total_catches ?? 0;
@@ -427,6 +469,67 @@ const VenueDetail = () => {
             </div>
           </section>
         )}
+
+        <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Venue updates</p>
+            <h2 className="text-xl font-semibold text-slate-900">Upcoming events</h2>
+            <p className="text-sm text-slate-600">Matches, open days, and announcements from this venue.</p>
+          </div>
+          {eventsLoading ? (
+            <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading events…
+            </div>
+          ) : upcomingEvents.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-200 bg-white p-5 text-sm text-slate-600">
+              No upcoming events — check back soon.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingEvents.map((event) => (
+                <Card key={event.id} className="border border-slate-200 bg-white shadow-sm">
+                  <CardContent className="space-y-2 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-slate-900">{event.title}</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {formatEventDate(event.starts_at, event.ends_at)}
+                        </p>
+                      </div>
+                      {event.event_type ? (
+                        <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700">
+                          {event.event_type}
+                        </span>
+                      ) : null}
+                    </div>
+                    {event.description ? (
+                      <p className="text-sm text-slate-600 line-clamp-3">{event.description}</p>
+                    ) : null}
+                    {event.ticket_info ? (
+                      <p className="text-xs font-semibold text-slate-700">Tickets: {event.ticket_info}</p>
+                    ) : null}
+                    <div className="flex flex-wrap items-center gap-3">
+                      {event.booking_url ? (
+                        <Button asChild size="sm" variant="outline" className="rounded-full">
+                          <a href={event.booking_url} target="_blank" rel="noreferrer">
+                            Book now
+                          </a>
+                        </Button>
+                      ) : event.website_url ? (
+                        <Button asChild size="sm" variant="outline" className="rounded-full">
+                          <a href={event.website_url} target="_blank" rel="noreferrer">
+                            More details
+                          </a>
+                        </Button>
+                      ) : null}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
 
         <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="space-y-1">

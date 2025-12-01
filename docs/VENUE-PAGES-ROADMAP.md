@@ -212,6 +212,35 @@ Status: Design captured in `docs/VENUE-PAGES-DESIGN.md` (“Venue metadata & CTA
 
 ---
 
+## Phase 3.2 – Admin venue editing
+
+**Goal:** Let admins edit venue metadata via admin tools and RPCs (no owner model yet).
+
+- Admin-only RPC (`admin_update_venue_metadata`) with internal `admin_users` check.
+- Admin UI: /admin/venues list + /admin/venues/:slug edit surface for metadata fields.
+- Public pages remain unchanged for non-admins; metadata flows to existing cards/hero.
+
+Status: In progress (admin RPC/UI being added).
+
+---
+
+## Phase 3.3 – Venue events & announcements (design)
+
+**Goal:** Add events/matches/announcements schema and public/admin surfaces.
+
+- Schema: `venue_events` table (title, event_type, starts/ends, description, ticket_info, URLs, published flag, venue_id, timestamps).
+- RPCs:
+  - Public read: `get_venue_upcoming_events`, `get_venue_past_events` (published-only, ordered by time).
+  - Admin CRUD: create/update/delete/unpublish events (SECURITY DEFINER, admin_users check).
+- UI:
+  - Public: “Upcoming events” section on venue detail; light empty state when none.
+  - Admin: Events panel/tab on `/admin/venues/:slug` to manage events.
+- Dependencies: venues + venue_stats + admin venue tools; owner-editable events deferred.
+
+Status: Design captured; implementation pending.
+
+---
+
 ## Phase 4 – Venue details & business info (read-only)
 
 **Goal:** Make venue pages more informative using additional fields on `venues`, still only editable via database/admin tools.
@@ -264,9 +293,11 @@ Status: TODO (events not implemented).
 2. **Phase 2:** Schema for `venues` + `catches.venue_id`.
 3. **Phase 3:** Read-only venue pages, leaderboards and nav links.
 4. **Phase 3.1:** Venue metadata fields + derived stats + card/hero presentation (read-only, outbound links only).
-5. **Phase 4:** Business/contact details on venue pages.
-6. **Phase 5:** Venue admin access and editing.
-7. **Phase 6:** Venue events.
+5. **Phase 3.2:** Admin venue editing (metadata RPC + admin UI).
+6. **Phase 3.3:** Venue events schema/RPCs + public/admin surfacing.
+7. **Phase 4:** Business/contact details on venue pages.
+8. **Phase 5:** Venue admin/owner access and editing.
+9. **Phase 6:** Venue events.
 
 Each phase should follow the same pattern we use elsewhere:
 

@@ -27,6 +27,22 @@ type Venue = {
   notes_for_rr_team: string | null;
 };
 
+type VenueEvent = {
+  id: string;
+  venue_id: string;
+  title: string;
+  event_type: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  description: string | null;
+  ticket_info: string | null;
+  website_url: string | null;
+  booking_url: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
 const AdminVenueEdit = () => {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
@@ -46,6 +62,21 @@ const AdminVenueEdit = () => {
     contact_phone: "",
     notes_for_rr_team: "",
   });
+  const [events, setEvents] = useState<VenueEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
+  const [eventForm, setEventForm] = useState({
+    id: "" as string | "",
+    title: "",
+    event_type: "",
+    starts_at: "",
+    ends_at: "",
+    description: "",
+    ticket_info: "",
+    website_url: "",
+    booking_url: "",
+    is_published: false,
+  });
+  const [eventSaving, setEventSaving] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -96,6 +127,25 @@ const AdminVenueEdit = () => {
     void loadVenue();
   }, [slug]);
 
+  useEffect(() => {
+    const loadEvents = async () => {
+      if (!venue?.id) return;
+      setEventsLoading(true);
+      const { data, error } = await supabase.rpc("get_venue_upcoming_events", {
+        p_venue_id: venue.id,
+      });
+      if (error) {
+        console.error("Failed to load events", error);
+        toast.error("Failed to load events");
+        setEvents([]);
+      } else {
+        setEvents((data as VenueEvent[]) ?? []);
+      }
+      setEventsLoading(false);
+    };
+    void loadEvents();
+  }, [venue?.id]);
+
   const parseCsv = (value: string) =>
     value
       .split(",")
@@ -128,6 +178,116 @@ const AdminVenueEdit = () => {
       setVenue(row);
     }
     setSaving(false);
+  };
+
+  const resetEventForm = () =>
+    setEventForm({
+      id: "",
+      title: "",
+      event_type: "",
+      starts_at: "",
+      ends_at: "",
+      description: "",
+      ticket_info: "",
+      website_url: "",
+      booking_url: "",
+      is_published: false,
+    });
+
+  const handleEditEvent = (event?: VenueEvent) => {
+    if (!event) {
+      resetEventForm();
+      return;
+    }
+    setEventForm({
+      id: event.id,
+      title: event.title,
+      event_type: event.event_type ?? "",
+      starts_at: event.starts_at,
+      ends_at: event.ends_at ?? "",
+      description: event.description ?? "",
+      ticket_info: event.ticket_info ?? "",
+      website_url: event.website_url ?? "",
+      booking_url: event.booking_url ?? "",
+      is_published: event.is_published,
+    });
+  };
+
+  const handleSaveEvent = async () => {
+    if (!venue?.id) return;
+    if (!eventForm.title || !eventForm.starts_at) {
+      toast.error("Title and start date/time are required");
+      return;
+    }
+    setEventSaving(true);
+    if (eventForm.id) {
+      const { error } = await supabase.rpc("admin_update_venue_event", {
+        p_event_id: eventForm.id,
+        p_venue_id: venue.id,
+        p_title: eventForm.title,
+        p_event_type: eventForm.event_type || null,
+        p_starts_at: eventForm.starts_at,
+        p_ends_at: eventForm.ends_at || null,
+        p_description: eventForm.description || null,
+        p_ticket_info: eventForm.ticket_info || null,
+        p_website_url: eventForm.website_url || null,
+        p_booking_url: eventForm.booking_url || null,
+        p_is_published: eventForm.is_published,
+      });
+      if (error) {
+        console.error("Failed to update event", error);
+        toast.error("Failed to update event");
+      } else {
+        toast.success("Event updated");
+      }
+    } else {
+      const { error } = await supabase.rpc("admin_create_venue_event", {
+        p_venue_id: venue.id,
+        p_title: eventForm.title,
+        p_event_type: eventForm.event_type || null,
+        p_starts_at: eventForm.starts_at,
+        p_ends_at: eventForm.ends_at || null,
+        p_description: eventForm.description || null,
+        p_ticket_info: eventForm.ticket_info || null,
+        p_website_url: eventForm.website_url || null,
+        p_booking_url: eventForm.booking_url || null,
+        p_is_published: eventForm.is_published,
+      });
+      if (error) {
+        console.error("Failed to create event", error);
+        toast.error("Failed to create event");
+      } else {
+        toast.success("Event created");
+      }
+    }
+    const { data: refreshed, error: refreshError } = await supabase.rpc("get_venue_upcoming_events", {
+      p_venue_id: venue.id,
+    });
+    if (!refreshError) {
+      setEvents((refreshed as VenueEvent[]) ?? []);
+    }
+    resetEventForm();
+    setEventSaving(false);
+  };
+
+  const handleDeleteEvent = async (eventId: string) => {
+    if (!eventId) return;
+    const confirmed = window.confirm("Delete this event?");
+    if (!confirmed) return;
+    const { error } = await supabase.rpc("admin_delete_venue_event", { p_event_id: eventId });
+    if (error) {
+      console.error("Failed to delete event", error);
+      toast.error("Failed to delete event");
+      return;
+    }
+    toast.success("Event deleted");
+    if (venue?.id) {
+      const { data: refreshed } = await supabase.rpc("get_venue_upcoming_events", { p_venue_id: venue.id });
+      setEvents((refreshed as VenueEvent[]) ?? []);
+    }
+    if (eventForm.id === eventId) {
+      resetEventForm();
+    }
   };
 
   if (!isAdmin) {
@@ -285,6 +445,166 @@ const AdminVenueEdit = () => {
                   "Save changes"
                 )}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-slate-200 bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle>Events</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <h3 className="text-sm font-semibold text-slate-800">Create / edit event</h3>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Title*</label>
+                  <Input
+                    value={eventForm.title}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Event type</label>
+                  <Input
+                    value={eventForm.event_type}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, event_type: e.target.value }))}
+                    placeholder="Match, open_day, maintenance..."
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Starts at*</label>
+                  <Input
+                    type="datetime-local"
+                    value={eventForm.starts_at}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, starts_at: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Ends at</label>
+                  <Input
+                    type="datetime-local"
+                    value={eventForm.ends_at}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, ends_at: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Ticket info</label>
+                  <Input
+                    value={eventForm.ticket_info}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_info: e.target.value }))}
+                    placeholder="£25, 30 pegs, payout to top 3"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Website URL</label>
+                  <Input
+                    value={eventForm.website_url}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, website_url: e.target.value }))}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-semibold text-slate-800">Booking URL</label>
+                  <Input
+                    value={eventForm.booking_url}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, booking_url: e.target.value }))}
+                    placeholder="https://example.com/book"
+                  />
+                </div>
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-semibold text-slate-800">Description</label>
+                  <Textarea
+                    value={eventForm.description}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="is_published"
+                    type="checkbox"
+                    checked={eventForm.is_published}
+                    onChange={(e) => setEventForm((prev) => ({ ...prev, is_published: e.target.checked }))}
+                  />
+                  <label htmlFor="is_published" className="text-sm font-semibold text-slate-800">
+                    Published
+                  </label>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Button onClick={handleSaveEvent} disabled={eventSaving} className="rounded-full">
+                  {eventSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save event"
+                  )}
+                </Button>
+                <Button variant="ghost" onClick={() => handleEditEvent(undefined)} className="rounded-full">
+                  Clear form
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-800">Upcoming events</h3>
+                {eventsLoading ? (
+                  <span className="text-xs text-slate-500">Loading…</span>
+                ) : (
+                  <span className="text-xs text-slate-500">{events.length} event{events.length === 1 ? "" : "s"}</span>
+                )}
+              </div>
+              {eventsLoading ? (
+                <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Loading events…
+                </div>
+              ) : events.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
+                  No upcoming events.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {events.map((event) => (
+                    <div
+                      key={event.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
+                    >
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-slate-900">{event.title}</p>
+                        <p className="text-xs text-slate-600">
+                          {new Date(event.starts_at).toLocaleString()} {event.event_type ? `• ${event.event_type}` : ""}
+                        </p>
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${event.is_published ? "bg-emerald-100 text-emerald-800" : "bg-amber-100 text-amber-800"}`}>
+                          {event.is_published ? "Published" : "Unpublished"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={() => handleEditEvent(event)}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteEvent(event.id)}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
