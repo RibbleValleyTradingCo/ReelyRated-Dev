@@ -113,6 +113,7 @@ const VenueDetail = () => {
   const [topAnglers, setTopAnglers] = useState<TopAngler[]>([]);
   const [topAnglersLoading, setTopAnglersLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<VenueEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
   const [pastEvents, setPastEvents] = useState<VenueEvent[]>([]);
@@ -243,6 +244,27 @@ const VenueDetail = () => {
     };
     void checkAdmin();
   }, [user]);
+
+  useEffect(() => {
+    const checkOwner = async () => {
+      if (!venue?.id || !user) {
+        setIsOwner(false);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("venue_owners")
+        .select("venue_id")
+        .eq("venue_id", venue.id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (error || !data) {
+        setIsOwner(false);
+        return;
+      }
+      setIsOwner(true);
+    };
+    void checkOwner();
+  }, [user, venue?.id]);
 
   const renderCatchesGrid = (items: CatchRow[]) => {
     if (items.length === 0) {
@@ -386,6 +408,15 @@ const VenueDetail = () => {
                     className="h-9 rounded-full border border-white/20 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/15"
                   >
                     <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
+                  </Button>
+                ) : isOwner ? (
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-full border border-white/20 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/15"
+                  >
+                    <Link to={`/my/venues/${venue.slug}`}>Manage venue</Link>
                   </Button>
                 ) : null}
               </div>

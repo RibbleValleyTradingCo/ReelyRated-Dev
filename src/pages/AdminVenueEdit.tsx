@@ -77,6 +77,10 @@ const AdminVenueEdit = () => {
     is_published: false,
   });
   const [eventSaving, setEventSaving] = useState(false);
+  const [owners, setOwners] = useState<{ user_id: string; username: string | null; role: string }[]>([]);
+  const [ownersLoading, setOwnersLoading] = useState(false);
+  const [ownerInput, setOwnerInput] = useState("");
+  const [ownerSaving, setOwnerSaving] = useState(false);
 
   useEffect(() => {
     const checkAdmin = async () => {
@@ -146,6 +150,32 @@ const AdminVenueEdit = () => {
     void loadEvents();
   }, [venue?.id]);
 
+  useEffect(() => {
+    const loadOwners = async () => {
+      if (!venue?.id) return;
+      setOwnersLoading(true);
+      const { data, error } = await supabase
+        .from("venue_owners")
+        .select("user_id, role, profiles:user_id (username)")
+        .eq("venue_id", venue.id);
+      if (error) {
+        console.error("Failed to load owners", error);
+        toast.error("Failed to load venue owners");
+        setOwners([]);
+      } else {
+        setOwners(
+          (data ?? []).map((row: any) => ({
+            user_id: row.user_id,
+            username: row.profiles?.username ?? null,
+            role: row.role ?? "owner",
+          }))
+        );
+      }
+      setOwnersLoading(false);
+    };
+    void loadOwners();
+  }, [venue?.id]);
+
   const parseCsv = (value: string) =>
     value
       .split(",")
@@ -193,6 +223,70 @@ const AdminVenueEdit = () => {
       booking_url: "",
       is_published: false,
     });
+
+  const resolveOwnerUser = async (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username")
+      .or(`id.eq.${trimmed},username.eq.${trimmed}`)
+      .maybeSingle();
+    if (error || !data) {
+      return null;
+    }
+    return data.id as string;
+  };
+
+  const handleAddOwner = async () => {
+    if (!venue?.id) return;
+    const userId = await resolveOwnerUser(ownerInput);
+    if (!userId) {
+      toast.error("User not found. Enter a valid username or user ID.");
+      return;
+    }
+    setOwnerSaving(true);
+    const { error } = await supabase.rpc("admin_add_venue_owner", {
+      p_venue_id: venue.id,
+      p_user_id: userId,
+      p_role: "owner",
+    });
+    if (error) {
+      console.error("Failed to add owner", error);
+      toast.error("Unable to add owner");
+    } else {
+      toast.success("Owner added");
+      setOwnerInput("");
+      const { data } = await supabase
+        .from("venue_owners")
+        .select("user_id, role, profiles:user_id (username)")
+        .eq("venue_id", venue.id);
+      setOwners(
+        (data ?? []).map((row: any) => ({
+          user_id: row.user_id,
+          username: row.profiles?.username ?? null,
+          role: row.role ?? "owner",
+        }))
+      );
+    }
+    setOwnerSaving(false);
+  };
+
+  const handleRemoveOwner = async (userId: string) => {
+    if (!venue?.id) return;
+    if (!window.confirm("Remove this owner?")) return;
+    const { error } = await supabase.rpc("admin_remove_venue_owner", {
+      p_venue_id: venue.id,
+      p_user_id: userId,
+    });
+    if (error) {
+      console.error("Failed to remove owner", error);
+      toast.error("Unable to remove owner");
+    } else {
+      toast.success("Owner removed");
+      setOwners((prev) => prev.filter((o) => o.user_id !== userId));
+    }
+  };
 
   const handleEditEvent = (event?: VenueEvent) => {
     if (!event) {
@@ -452,6 +546,65 @@ const AdminVenueEdit = () => {
                   "Save changes"
                 )}
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-slate-200 bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle>Owners</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Assign venue owners/managers who can self-manage metadata and events for this venue.
+            </p>
+            <div className="space-y-2">
+              {ownersLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Loading owners…
+                </div>
+              ) : owners.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No owners assigned yet.</p>
+              ) : (
+                <div className="space-y-2">
+                  {owners.map((owner) => (
+                    <div
+                      key={owner.user_id}
+                      className="flex items-center justify-between rounded border border-border/70 bg-muted/40 px-3 py-2"
+                    >
+                      <div className="text-sm text-foreground">
+                        {owner.username ? `@${owner.username}` : owner.user_id}{" "}
+                        <span className="text-xs text-muted-foreground">({owner.role})</span>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => void handleRemoveOwner(owner.user_id)}>
+                        Remove
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Add owner by username or user ID</label>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Input
+                  value={ownerInput}
+                  onChange={(e) => setOwnerInput(e.target.value)}
+                  placeholder="username or user id"
+                  className="sm:w-72"
+                />
+                <Button onClick={() => void handleAddOwner()} disabled={ownerSaving}>
+                  {ownerSaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Adding…
+                    </>
+                  ) : (
+                    "Add owner"
+                  )}
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

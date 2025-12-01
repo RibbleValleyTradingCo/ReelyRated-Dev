@@ -26,6 +26,8 @@ const AdminAuditLog = lazy(() => import("./pages/AdminAuditLog"));
 const AdminUserModeration = lazy(() => import("./pages/AdminUserModeration"));
 const AdminVenuesList = lazy(() => import("./pages/AdminVenuesList"));
 const AdminVenueEdit = lazy(() => import("./pages/AdminVenueEdit"));
+const MyVenues = lazy(() => import("./pages/MyVenues"));
+const MyVenueEdit = lazy(() => import("./pages/MyVenueEdit"));
 const SearchPage = lazy(() => import("./pages/Search"));
 const Insights = lazy(() => import("./pages/Insights"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
@@ -82,6 +84,8 @@ const App = () => (
                 <Route path="/insights" element={<Insights />} />
                 <Route path="/venues" element={<VenuesIndex />} />
                 <Route path="/venues/:slug" element={<VenueDetail />} />
+                <Route path="/my/venues" element={<MyVenues />} />
+                <Route path="/my/venues/:slug" element={<MyVenueEdit />} />
                 <Route path="/account-deleted" element={<AccountDeleted />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
