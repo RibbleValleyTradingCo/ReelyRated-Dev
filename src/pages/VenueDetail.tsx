@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, Loader2, MapPin } from "lucide-react";
 import { CatchCard } from "@/components/feed/CatchCard";
+import { isAdminUser } from "@/lib/admin";
+import { useAuth } from "@/components/AuthProvider";
 
 type Venue = {
   id: string;
@@ -83,6 +85,7 @@ type TopAngler = {
 
 const VenueDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const { user } = useAuth();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [venueLoading, setVenueLoading] = useState(true);
   const [topCatches, setTopCatches] = useState<CatchRow[]>([]);
@@ -93,6 +96,7 @@ const VenueDetail = () => {
   const [recentHasMore, setRecentHasMore] = useState(true);
   const [topAnglers, setTopAnglers] = useState<TopAngler[]>([]);
   const [topAnglersLoading, setTopAnglersLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const loadVenue = async () => {
@@ -167,6 +171,18 @@ const VenueDetail = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venue?.id]);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      const adminStatus = await isAdminUser(user.id);
+      setIsAdmin(adminStatus);
+    };
+    void checkAdmin();
+  }, [user]);
 
   const renderCatchesGrid = (items: CatchRow[]) => {
     if (items.length === 0) {
@@ -293,6 +309,16 @@ const VenueDetail = () => {
                     <ExternalLink className="h-3.5 w-3.5" />
                   </a>
                 </Button>
+                {isAdmin ? (
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 rounded-full border border-white/20 bg-white/5 px-3 text-xs font-semibold text-white hover:bg-white/15"
+                  >
+                    <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
+                  </Button>
+                ) : null}
               </div>
             </div>
             <div className="space-y-4 rounded-2xl border border-white/15 bg-white/5 p-4">

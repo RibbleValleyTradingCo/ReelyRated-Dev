@@ -190,6 +190,7 @@ export const Navbar = () => {
               <DropdownMenuLabel>Admin</DropdownMenuLabel>
               <DropdownMenuItem onSelect={() => navigate("/admin/reports")}>Admin reports</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => navigate("/admin/audit-log")}>Audit log</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => navigate("/admin/venues")}>Manage venues</DropdownMenuItem>
             </>
           ) : null}
           <DropdownMenuSeparator />
