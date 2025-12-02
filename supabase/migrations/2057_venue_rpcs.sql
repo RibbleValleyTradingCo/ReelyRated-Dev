@@ -14,6 +14,15 @@ BEGIN
   ) THEN
     CREATE TYPE public.weight_unit AS ENUM ('kg', 'lb_oz');
   END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE t.typname = 'visibility_type'
+      AND n.nspname = 'public'
+  ) THEN
+    CREATE TYPE public.visibility_type AS ENUM ('public', 'followers', 'private');
+  END IF;
 END
 $$;
 
