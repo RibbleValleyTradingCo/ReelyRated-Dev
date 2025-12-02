@@ -4,6 +4,7 @@ import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { toast } from "sonner";
@@ -76,6 +77,7 @@ const Feed = () => {
   const { loading } = useAuthLoading();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const venueSlug = searchParams.get("venue");
   const [catches, setCatches] = useState<Catch[]>([]);
   const [filteredCatches, setFilteredCatches] = useState<Catch[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +91,8 @@ const Feed = () => {
   const [nextCursor, setNextCursor] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const sessionFilter = searchParams.get("session");
+  const [venueFilter, setVenueFilter] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [venueFilterError, setVenueFilterError] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -97,7 +101,53 @@ const Feed = () => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    if (!venueSlug) {
+      setVenueFilter(null);
+      setVenueFilterError(false);
+      return;
+    }
+
+    let active = true;
+    const loadVenue = async () => {
+      setVenueFilterError(false);
+      const { data, error } = await supabase
+        .from("venues")
+        .select("id, name, slug")
+        .eq("slug", venueSlug)
+        .maybeSingle();
+
+      if (!active) return;
+
+      if (error || !data) {
+        setVenueFilter(null);
+        setVenueFilterError(true);
+      } else {
+        setVenueFilter(data as { id: string; name: string; slug: string });
+      }
+    };
+
+    void loadVenue();
+
+    return () => {
+      active = false;
+    };
+  }, [venueSlug]);
+
+  useEffect(() => {
     if (!user) {
+      setCatches([]);
+      setFilteredCatches([]);
+      setHasMore(false);
+      setNextCursor(0);
+      setIsLoading(false);
+      return;
+    }
+
+    if (venueSlug && !venueFilter && !venueFilterError) {
+      return;
+    }
+
+    if (venueSlug && venueFilterError) {
       setCatches([]);
       setFilteredCatches([]);
       setHasMore(false);
@@ -124,6 +174,10 @@ const Feed = () => {
         .is("deleted_at", null)
         .is("comments.deleted_at", null)
         .order("created_at", { ascending: false });
+
+      if (venueFilter?.id) {
+        baseQuery.eq("venue_id", venueFilter.id);
+      }
 
       const query = sessionFilter
         ? baseQuery.eq("session_id", sessionFilter)
@@ -159,7 +213,7 @@ const Feed = () => {
     return () => {
       active = false;
     };
-  }, [sessionFilter, user]);
+  }, [sessionFilter, user, venueFilter, venueSlug, venueFilterError]);
 
   useEffect(() => {
     if (!user) {
@@ -208,6 +262,15 @@ const Feed = () => {
     return (sum / ratings.length).toFixed(1);
   };
 
+  const clearVenueFilter = useCallback(() => {
+    const params = new URLSearchParams(searchParams);
+    params.delete("venue");
+    navigate({
+      pathname: "/feed",
+      search: params.toString() ? `?${params.toString()}` : "",
+    });
+  }, [navigate, searchParams]);
+
   const filterAndSortCatches = useCallback(() => {
     let filtered = [...catches];
 
@@ -223,6 +286,10 @@ const Feed = () => {
 
     if (sessionFilter) {
       filtered = filtered.filter((catchItem) => catchItem.session_id === sessionFilter);
+    }
+
+    if (venueFilter?.id) {
+      filtered = filtered.filter((catchItem) => catchItem.venues?.id === venueFilter.id);
     }
 
     if (feedScope === "following") {
@@ -262,7 +329,7 @@ const Feed = () => {
     }
 
     setFilteredCatches(filtered);
-  }, [catches, feedScope, followingIds, speciesFilter, customSpeciesFilter, sortBy, user?.id, sessionFilter]);
+  }, [catches, feedScope, followingIds, speciesFilter, customSpeciesFilter, sortBy, user?.id, sessionFilter, venueFilter]);
 
   useEffect(() => {
     filterAndSortCatches();
@@ -279,10 +346,18 @@ const Feed = () => {
       return;
     }
 
+    if (venueSlug && !venueFilter && !venueFilterError) {
+      return;
+    }
+
+    if (venueSlug && venueFilterError) {
+      return;
+    }
+
     setIsFetchingMore(true);
-    const { data, error } = await supabase
-        .from("catches")
-        .select(`
+    const supabaseQuery = supabase
+      .from("catches")
+      .select(`
           *,
           profiles:user_id (username, avatar_path, avatar_url),
           ratings (rating),
@@ -295,6 +370,12 @@ const Feed = () => {
       .order("created_at", { ascending: false })
       .range(nextCursor, nextCursor + PAGE_SIZE - 1);
 
+    if (venueFilter?.id) {
+      supabaseQuery.eq("venue_id", venueFilter.id);
+    }
+
+    const { data, error } = await supabaseQuery;
+
     if (error) {
       toast.error("Unable to load more catches");
       logger.error("Failed to load additional catches", error, { userId: user?.id });
@@ -306,7 +387,7 @@ const Feed = () => {
     }
 
     setIsFetchingMore(false);
-  }, [hasMore, isFetchingMore, nextCursor, sessionFilter, user]);
+  }, [hasMore, isFetchingMore, nextCursor, sessionFilter, user, venueFilter, venueSlug, venueFilterError]);
 
   if (loading || isLoading) {
     return (
@@ -342,6 +423,27 @@ const Feed = () => {
             </Button>
           </div>
         </div>
+
+        {venueSlug ? (
+          <Card className="mb-6 border-primary/30 bg-primary/5">
+            <CardContent className="flex flex-wrap items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Venue filter</p>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Catches from {venueFilter?.name ?? venueSlug}
+                </h2>
+                <p className="text-sm text-slate-600">
+                  {venueFilterError
+                    ? "We couldn't find this venue. Clear the filter to see all catches."
+                    : "You're viewing catches logged at this venue."}
+                </p>
+              </div>
+              <Button variant="ghost" size="sm" className="rounded-full" onClick={clearVenueFilter}>
+                Clear filter
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <FeedFilters
           feedScope={feedScope}

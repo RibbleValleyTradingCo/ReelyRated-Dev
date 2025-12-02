@@ -35,9 +35,10 @@ Route: /account-deleted
 Purpose: Confirmation page after deletion request; simple CTAs. No Supabase calls (RPC already ran).
 
 src/pages/AddCatch.tsx – Add catch form  
-Route: /catch/new  
+Route: /add-catch  
 Purpose: Log a catch (sessions, metadata, storage upload).  
-Supabase: tags (methods), baits, water_types, sessions (select/insert), storage (catches bucket), catches.insert with full metadata (location/species/weights/conditions/visibility/etc.).
+Supabase: tags (methods), baits, water_types, sessions (select/insert), storage (catches bucket), catches.insert with full metadata (location/species/weights/conditions/visibility/etc.).  
+Legacy route: /catch/new now redirects to /add-catch.
 
 src/pages/Feed.tsx – Global feed  
 Route: /feed  
@@ -62,25 +63,35 @@ Supabase: catches (created_at, caught_at, weight, location, bait, method, time_o
 src/pages/VenuesIndex.tsx – Venues directory  
 Route: /venues  
 Purpose: Venue discovery (cards aimed at conversion/bookability).  
-Key features: search + pagination; cards show venue name/location/tagline; stats from venue_stats (total/recent catches); chips from metadata (best_for_tags, facilities); optional “From {price_from}” plus “View venue”.  
-Supabase: get_venues RPC (SECURITY INVOKER; returns venues + venue_stats data; uses standard RLS for catches in the stats view).
+Key features: search + pagination; cards show venue name/location/tagline (short_tagline/description fallback), ticket_type, price_from, chips from metadata (best_for_tags, facilities), stats from venue_stats (total/recent catches), top_species, and thumbnails from venue photos or recent catch images.  
+Supabase: get_venues RPC (SECURITY INVOKER; returns id, slug, name, location, short_tagline, ticket_type, price_from, best_for_tags, facilities, total_catches, recent_catches_30d, headline_pb_* fields, top_species; avg_rating/rating_count now available via venue_stats but not yet used on the cards), get_venue_photos (first image_path for thumbnail), get_venue_recent_catches (image_url fallback thumbnail).
 
 src/pages/VenueDetail.tsx – Venue detail  
 Route: /venues/:slug  
 Purpose: Main venue page (hero + leaderboards + events).  
-Key features: hero with name/location/tagline/description, map link, snapshot stats (total/recent catches, PB, top species); “Top anglers at this venue”; “Top catches” leaderboard; “Recent activity” catches grid; “Events & announcements” with Upcoming (published) and Past (published, paginated) tabs; admin-only “Edit venue” link to /admin/venues/:slug.  
-Supabase: get_venue_by_slug, get_venue_recent_catches, get_venue_top_catches, get_venue_top_anglers, get_venue_upcoming_events, get_venue_past_events (all RLS-aware for privacy/blocks/deletion).
+Key features: hero with name/location/tagline and CTAs (maps/website/booking/call/log catch/edit/manage); stats (total_catches, recent_catches_30d, heaviest catch) and top_species; photo gallery using venue photos with recent-catch fallback; events tabs (upcoming/past); community catches grid; mini-leaderboard from top catches; top anglers currently fetched but not rendered.  
+Supabase: get_venue_by_slug (metadata + stats including avg_rating/rating_count, not yet rendered), get_venue_recent_catches (community grid), get_venue_top_catches (mini-leaderboard), get_venue_top_anglers (fetched, not shown), get_venue_upcoming_events, get_venue_past_events (events tabs), get_venue_photos (gallery). Rating RPCs upsert_venue_rating and get_my_venue_rating exist but are not yet used on the page.
 
 src/pages/AdminVenuesList.tsx – Admin venues list  
 Route: /admin/venues (admin-only)  
 Purpose: Admin list/search of venues; jump to edit/public page; shows stats summary.  
-Supabase: get_venues RPC; admin gating via admin_users check in UI.
+Supabase: get_venues RPC (uses id, slug, name, location, short_tagline, total_catches, recent_catches_30d; avg_rating/rating_count now present but not used in the list UI); admin gating via admin_users check in UI.
 
 src/pages/AdminVenueEdit.tsx – Admin venue edit  
 Route: /admin/venues/:slug (admin-only)  
 Purpose: Manage venue metadata and events.  
 Key features: edit metadata (tagline, ticket_type, price_from, tags/facilities, URLs, contact, internal notes); manage events (create/update/delete, publish/unpublish) with status (draft/upcoming/past); link to public page.  
-Supabase: get_venue_by_slug, admin_update_venue_metadata, admin_get_venue_events, admin_create_venue_event, admin_update_venue_event, admin_delete_venue_event.
+Supabase: get_venue_by_slug (returns avg_rating/rating_count but not used in the form), admin_update_venue_metadata, admin_get_venue_events, admin_create_venue_event, admin_update_venue_event, admin_delete_venue_event.
+
+src/pages/MyVenues.tsx – Owner venue list  
+Route: /my/venues  
+Purpose: List of venues assigned to the current owner.  
+Supabase: direct select on venue_owners with embedded venues (id, slug, name, location, short_tagline, price_from); no venue_stats/rating fields used.
+
+src/pages/MyVenueEdit.tsx – Manage owned venue (owner-only)  
+Route: /my/venues/:slug  
+Purpose: Owner venue edit (metadata + events) mirroring admin experience within owner permissions.  
+Supabase: get_venue_by_slug (returns avg_rating/rating_count but not used in the form), owner_update_venue_metadata, owner_get_venue_events, owner_create_venue_event, owner_update_venue_event, owner_delete_venue_event.
 
 ⸻
 

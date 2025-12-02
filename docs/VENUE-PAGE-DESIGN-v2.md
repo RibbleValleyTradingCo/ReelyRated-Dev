@@ -1,375 +1,233 @@
-# Venue Page Design v2 (`/venues/:slug`)
+# Venue Pages – v2 Design Spec
 
-Last updated: 2025-12-01  
-Status: In progress, codex-aligned
+_Last updated: 2025-12-01. Source of truth for /venues and /venues/:slug. Backend migrations up to 2078 are applied (venue photos, metadata, stats)._
 
-## 1. Purpose
+## A. Venue Directory (`/venues`)
 
-This document defines the **v2 “mini-site” design** for a venue detail page:
+### 1. Goals
 
-- Make each venue feel like a **public profile / mini website**.
-- Reuse our existing **home/leaderboard visual language** so the app feels cohesive.
-- Support **venue owners/admins** as content managers, while keeping the public page clean & visitor-focused.
-- Provide a stable reference for **Codex** when planning frontend/backend work related to venues.
+- Help anglers quickly discover venues that fit their style, budget, and location.
+- Surface community activity (catches, ratings) to highlight “alive” venues.
+- Keep cards predictable: title, location, thumbnail, quick stats, and a clear CTA.
 
----
+### 2. Search & Filters (v1 scope)
 
-## 2. High-level goals
+- **Search bar:** free-text over venue name, town, county (postcode if stored).
+- **Filters (first iteration):**
+  - Location: county/region.
+  - Ticket type: `day_ticket`, `club`, `syndicate`.
+  - Water type: `stillwater`, `reservoir`, `river`, `canal`.
+  - Species (limited): Carp, Pike, Perch, Barbel, Catfish.
+  - Facilities: Toilets, Café, Tackle shop, Night fishing.
+- **Sort options:**
+  - Most catches logged.
+  - Most active recently (catches in last 30 days).
+  - Highest rated (once venue ratings exist).
 
-- Feeling: **“TripAdvisor / Facebook meets fishing app”**.
-- Page is optimised for:
-  - **Visitors/anglers** deciding whether to fish there.
-  - **Community**: seeing real catches and activity.
-  - **Venue owners**: showcasing their venue via metadata + photos (managed via Edit/Manage pages).
+### 3. Venue Cards
 
-**Important:**  
-All _editing_ (text, metadata, photos) happens in admin/owner pages (`/admin/venues/:slug`, `/my/venues/:slug`).  
-`/venues/:slug` is primarily **read-only** with subtle admin/owner hints.
+- **Layout & content:**
+  - Title: `name`.
+  - Subtitle: location (e.g. “Kent, UK” or “Town – County”).
+  - Thumbnail:
+    - Prefer venue hero photo (from venue_photos or hero_image if present).
+    - Fallback: best recent catch photo for this venue.
+    - Fixed aspect ratio, object-cover, no warping.
+  - **Headline stats (read-only, community-derived):**
+    - Average rating + count (future venue_ratings).
+    - Total catches logged.
+    - Heaviest catch: weight + species (top-catches RPC).
+    - “Last catch X days ago” (recent-catches RPC).
+  - **Tags:**
+    - Species tags (up to 2–3).
+    - Venue type: Day ticket / Syndicate / Club, etc.
+    - 1–2 key facilities: Toilets, Tackle shop, etc.
+  - **Price snippet:** `price_from` as “From £X / day”.
+  - **Actions:**
+    - Primary: “View venue”.
+    - Phase 2+: optional “Save / ♥” (favourites).
 
----
+### 4. Data Sources
 
-## 3. Section order (top-level layout)
+- **Admin/owner-entered (Edit/Manage venue):**
+- `name`, `location`, `short_tagline`, and (future) an optional dedicated hero/cover image field. For now, the UI should use `venue_photos` plus featured catch images as the primary visuals.
+  - `ticket_type`, `price_from`.
+  - `facilities[]`, `best_for_tags[]` (if used on cards).
+  - Website/booking/contact (for future card snippets).
+- **Community-derived:**
+  - `total_catches`, `recent_catches_30d` (venue_stats).
+  - Heaviest catch: top-catches RPC.
+  - Last catch date: recent-catches RPC.
+  - Venue rating avg + count (future `venue_ratings`).
 
-On `/venues/:slug`, sections should appear in this order:
+### 5. Out of Scope (v1)
 
-1. **Hero banner**
-2. **Stats row** (recent catches)
-3. **About + Photo gallery** (one combined section)
-4. **Plan your visit + Facilities** (trip-planning block)
-5. **Events & announcements** (conditional)
-6. **Community catches** (full-width feed-style)
-7. **Leaderboard: Top catches** (top 3 + species filter)
-
-Everything sits inside our standard `section-container` with consistent vertical spacing and the same max-width as the homepage content.
-
----
-
-## 4. Hero banner
-
-### Content
-
-Hero shows:
-
-- Breadcrumb: `Venues / {venue.name}`.
-- Venue name.
-- Location pill:
-  - `venue.location` with MapPin icon.
-- Short description / tagline:
-  - `venue.short_tagline` or first 1–2 sentences of `venue.description`.
-- CTAs:
-  - **Visit website** → `venue.website_url` (if present).
-  - **View on maps** → external maps URL built from name/location.
-  - **Back to venues** → `/venues`.
-  - **Edit venue** / **Manage venue**:
-    - Shown only to admins/owners (reusing existing logic).
-- Contact:
-  - Phone: `venue.contact_phone` (if present).
-  - (Email can be added in a future schema update.)
-
-### Layout – Desktop
-
-- Two-column hero card:
-
-  - **Left column (content)**:
-
-    - Breadcrumb (small, subtle, uppercase).
-    - Name (large, bold).
-    - Location pill under name.
-    - Tagline under location.
-    - Row of CTAs (Visit website, View on maps, Back to venues, Edit/Manage).
-    - Contact row under CTAs.
-
-  - **Right column (image)**:
-    - Main venue image (primary photo from `venue_photos`, or fallback catch image).
-    - Image inside a card that **slightly overlaps** the right/bottom edge of the hero background.
-    - Rounded corners, border, soft shadow.
-    - Small “View all photos” label/badge on the image.
-
-- Background:
-  - Dark gradient (similar to current hero) with simplified colours.
-  - Use the same typography and spacing scales as the homepage hero.
-
-### Layout – Mobile
-
-- Stack vertically:
-  - Hero text (breadcrumb, name, location, tagline, CTAs, contact).
-  - Main image card as its own **full-width row** under the text.
-- Remove fancy overlap on mobile; use a simple full-width card instead.
-
-**Hero must NOT show:**
-
-- Hero-level PB stats.
-- “Most active angler” content.
-- Ticket-type pill.
-- Raw catch stat line (“X catches logged / Y in last 30 days”).
+- Map view with pins.
+- Trending / “hot this week” strips.
+- Distance-based sort (“Closest to me”).
 
 ---
 
-## 5. Stats row (recent catch stats)
+## B. Venue Detail Page (`/venues/:slug`)
 
-Under the hero, show a **3-card stats row** based on venue stats:
+### 1. Page Goals
 
-- **Card 1 – Catches logged**
+- Act as a mini-site: understand the fishing experience, plan a trip, see live community activity.
+- Separate **owner/admin content** (managed via Edit/Manage) from **community signals** (catches, ratings).
+- Encourage engagement (view catches/profiles), trust (clear info), and conversion (book/visit/log a catch).
 
-  - Value: `venue.total_catches`.
-  - Label: “Catches logged at this venue”.
+### 2. Hero Area
 
-- **Card 2 – Last 30 days**
+- **Left column:**
+  - Breadcrumb: `Venues / {name}`.
+  - Title: `name`.
+  - Location pill: `location`.
+  - Short tagline: `short_tagline` (fallback: trimmed description).
+  - Ratings (future-ready): average stars + count (“Based on N ratings”).
+  - **Headline stats row (compact 3 items):** total catches, catches in last 30 days, heaviest catch (weight + species).
+  - CTAs: View on maps, Visit website, Call venue, Book now, Log a catch (if logged-in), Edit/Manage (admin/owner).
+- **Right column (primary visual):**
+- Prefer a venue hero photo from `venue_photos` (and in future a dedicated hero/cover image field), falling back to a featured catch image.
+  - Fallback: featured catch card (heaviest or editor-picked).
+  - Fixed aspect ratio, responsive; stacks below on mobile.
+- **Do NOT show:** most active angler, ticket pill, raw catch stat line in the hero.
+- **Data sources:** admin/owner fields (short_tagline, website_url, booking_url, contact_phone, optional hero image) + community stats (venue_stats, top catch).
 
-  - Value: `venue.recent_catches_30d`.
-  - Label: “In the last 30 days”.
+### 3. About Section
 
-- **Card 3 – Top species**
-  - Value: `venue.top_species[0]` (if present).
-  - Label: “Top species here”.
+- Heading: “About {Venue name}”.
+- Body: freeform description (admin/owner field); fallback to tagline.
+- Optional basic info (future fields): address/town/postcode, water type, opening times.
+- Editable only via Edit/Manage venue.
 
-Style:
+### 4. “Plan your visit” Section
 
-- Each stat is a **small card**, not a pill:
-  - White background, border, subtle shadow.
-  - Small uppercase label + big value + optional microcopy.
-- Always reuse the **leaderboard card visual language** from the homepage.
+- **Subsections:**
+  - **Tickets & pricing (admin/owner):**
+    - Ticket types (Day ticket, 24hr, Season, Membership).
+    - Price snippet (`price_from`, normalised with `getDisplayPriceFrom`).
+    - “Pre-book only” vs “Walk-on” (future boolean/enum).
+  - **Booking & contact:**
+    - Phone, email (future), website_url, booking_url, social links (FB/IG future).
+  - **Key rules (future):**
+    - Night fishing allowed, max rods, 1–2 key bans (short list/booleans).
+  - **Facilities & access:**
+    - `facilities[]`, `best_for_tags[]`, deduped.
+- **Visibility:** render if any of the above exists; show subtle admin/owner hints when empty.
+- **Fields needing future migrations:** email, social links, rules booleans, water type, opening times.
 
-Empty states:
+### 5. Photos & Media
 
-- If total_catches is 0:
-  - Show “0 catches logged” and “Be the first to log a catch here”.
-- If recent_catches_30d is 0:
-  - Show “0 in the last 30 days” and “Quiet recently”.
+- **Venue gallery (admin/owner-managed):**
+  - Data: `venue_photos` (table from 2078).
+  - Desktop: grid with consistent aspect ratios; mobile: horizontal scroll.
+  - Lightbox on click (or open in new tab as first step).
+  - “View all photos” link can reuse lightbox/modal (no new route required yet).
+- **Community photos:** simple strip from recent catch images at this venue.
+- **Public page is read-only:** uploads/reordering happen in Edit/Manage venue.
+- **Empty state:** “No photos yet. Owners can upload photos from the Manage venue page.” (shown subtly to admins/owners).
 
----
+### 6. Community Catches Feed
 
-## 6. About + Photo gallery (linked section)
+- Full-width section using CatchCard (same as main feed).
+- Data: `get_venue_recent_catches` with pagination.
+- Layout: 1 column mobile, multi-column desktop; “Load more” + “View all catches from this venue” (feed with venue filter).
+- CTA for logged-in users: “Log a catch at this venue.”
+- Purely community-derived; no admin editing here.
 
-This is a single section: **left “About”, right “See the venue”.**
+### 7. Leaderboard & Records
 
-### Left: About the venue
+- Mini-leaderboard matching homepage styling.
+- Data: `get_venue_top_catches` (client-side species filter).
+- Show top 3 (after filter): rank badge, weight + species, angler avatar/username, date, “View catch”.
+- Species filter: “All species” + unique species in top catches.
+- Future: per-species records can build on this.
 
-- Label: “About”.
-- Title: “About the venue”.
-- Body:
-  - Primary: `venue.description`.
-  - Fallback: tagline text if description is missing.
-- Simple text card; no stats or chips here.
+### 8. Events & Announcements (conditional)
 
-### Right: See the venue (photo gallery)
+- Data: `get_venue_upcoming_events`, `get_venue_past_events`.
+- Render only if at least one event exists (upcoming or past).
+- Tabs: Upcoming / Past; cards with title, type badge, date/time, description, ticket info, booking/website CTA.
 
-- Label: “See the venue”.
-- Content:
+### 9. Venue Ratings & Reviews (Phase 2 plan)
 
-  - Use images from `venue_photos` (see backend design below).
-  - Desktop:
-    - 1 large feature image (`aspect 4:3`) at the top.
-    - 2–3 thumbnails below it.
-  - Mobile:
-    - Horizontal scroll of image tiles.
+- **Backend (future):** `venue_ratings` table (avg + count; per-user rating 1–5 + optional text).
+- **UI (future-ready):**
+  - Summary: average stars + count near the hero/stats area.
+  - “Your rating” control for logged-in users (stars + optional short text).
+  - Simple review list: rating, text, avatar, username, date.
+- Call out as Phase 2 so we don’t over-scope current implementation.
 
-- Clicking an image:
-  - Should open an existing lightbox / full-size viewing pattern (or open in new tab as a first step).
+### 10. Owner / Admin-only Notes
 
-**Empty state:**
+- Owners/Admins control:
+  - Description / “Visiting Us” copy.
+  - Tickets & pricing.
+  - Rules/policies (future).
+  - Facilities & access.
+  - Hero/gallery photos.
+  - Contact & social links.
+- Public page:
+  - Show Edit/Manage buttons in hero.
+  - Subtle hints when data is missing (visible only if `isOwner || isAdmin`), e.g. “Add ticket info from Manage venue”.
+  - No inline editing or uploads.
 
-- If no venue photos and no catch fallback photos:
-  - Show message:  
-    “No photos yet. Venue owners can upload photos from the Manage venue page.”
-- No upload controls on this public page.
+### 11. Future Enhancements (out of scope for v2)
 
----
+- Q&A / discussion thread.
+- Owner quick widgets on the venue page.
+- Weather & water conditions.
+- Nearby venue recommendations.
+- Deeper analytics (graphs for baits/species/seasonal trends).
+- Map view for /venues and distance-based sorting.
+- Save/Favourite venues.
 
-## 7. Plan your visit + Facilities (trip-planning block)
+### 12. Cross-page interactions
 
-This is a **single “Plan your visit” section** that combines ticket/booking information with facilities.
+These flows are already implemented and should be preserved when iterating on the venue experience:
 
-### Tickets & booking
+- **From venue → add catch**
 
-Use:
+  - The “Log a catch at this venue” CTA in the hero links to `/add-catch?venue={slug}`.
+  - The Add Catch page reads the `venue` query param, resolves the slug to a `venue_id`, and pre-fills the venue selector / session venue. Anglers can still change the venue manually before submitting.
 
-- `venue.ticket_type` (e.g. Day ticket / Syndicate / Club water).
-- `venue.price_from` (normalised with `getDisplayPriceFrom` helper to avoid “From From …”).
-- `venue.website_url`
-- `venue.booking_url`
-- `venue.contact_phone` (and email later).
-
-Display:
-
-- Label: “Tickets & booking”.
-- Title: “Plan your visit”.
-- Text lines (show only if values exist):
-  - `Ticket type: {ticket_type}`
-  - `{displayPriceFrom}` (e.g. “From £10 / day”).
-  - `Call: {contact_phone}`.
-- Buttons (right-aligned or stacked on mobile):
-  - “Book now” (if `booking_url`).
-  - “Visit website” (if `website_url`).
-
-### Facilities & best for
-
-Based on:
-
-- `venue.best_for_tags` (text[]).
-- `venue.facilities` (text[]).
-
-Rules:
-
-- Deduplicate facilities that appear in best_for_tags.
-- Only render this block if **either** list is non-empty.
-
-Display:
-
-- Subtitle: “On-site & style”.
-- Chip rows:
-  - “Best for” row.
-  - “Facilities” row.
-- Chips must use the same style as tags/filters across the app (CatchCard tags, feed filters).
-
-Visibility:
-
-- Show the whole **Plan your visit** section if at least one of:
-  - ticket_type, price_from, website_url, booking_url, contact_phone, best_for_tags, facilities.
-
----
-
-## 8. Events & announcements (conditional)
-
-- Use existing RPCs:
-  - `get_venue_upcoming_events`
-  - `get_venue_past_events`
-
-Visibility:
-
-- Show this section **only if** at least one event exists:
-  - `upcomingEvents.length > 0` OR `pastEvents.length > 0`.
-
-Layout:
-
-- Label: “Events & announcements”.
-- Title: “Updates from this venue”.
-- Tabs: “Upcoming” / “Past”.
-- Cards:
-  - Title, event_type badge, dates, description, ticket info, booking/website buttons.
-
-No behavioural changes required, just ensure:
-
-- Section is hidden entirely when both lists are empty.
+- **From venue → feed**
+  - The “View all catches from this venue” CTA in the Community Catches section links to `/feed?venue={slug}`.
+  - The feed page reads the `venue` query param, filters catches by `venue_id`, and shows a banner like “Catches from {Venue name} – You’re viewing catches logged at this venue.” with a “Clear filter” button that removes the venue filter and returns to the global feed.
 
 ---
 
-## 9. Community catches (full-width, feed-style)
+## C. How to use this spec
 
-This section uses the **same CatchCard design + layout as the main feed**.
+- Codex should read this file before planning or implementing `/venues` or `/venues/:slug`.
+- Align UI with:
+  - Section order and content per section.
+  - Field ownership (admin/owner vs community).
+  - Visibility rules (when to hide/show sections).
+- Reuse existing components and RPCs:
+  - CatchCard, leaderboard styles, buttons, chips, avatars.
+- RPCs: `get_venues`, `get_venue_by_slug`, top catches/anglers, recent catches, events, photos (with stats coming from the `venue_stats` view).
+- Keep editing in admin/owner flows; public page is read-only with hints only.
+- If implementation needs to diverge, update this spec first or mark it as a future phase (v3) rather than silently changing behaviour.
 
-### Content
+### Implementation status (as of 2025-12-01)
 
-- Fetch from:
-  - Existing `get_venue_recent_catches` RPC.
-- Always render the section, but adapt content based on data.
+- **Implemented in v2:**
 
-### Layout
+  - Hero layout with breadcrumb, name, location, tagline, CTAs, and featured image card.
+  - About section using owner/admin-managed description/tagline.
+  - “Plan your visit” / socials & contact block with ticket type, price snippet, website/booking buttons, phone, and facilities/best-for chips.
+  - Venue gallery backed by `venue_photos` with catch-photo fallback (public page is read-only).
+  - Community Catches feed using `CatchCard`, with “View all catches from this venue” linking to `/feed?venue={slug}` and a venue-aware feed banner.
+  - “Log a catch at this venue” CTA linking to `/add-catch?venue={slug}` with venue prefill in the Add Catch flow.
+  - Mini-leaderboard for top catches (top 3 after species filter) styled to match the homepage leaderboard.
+  - Events section using upcoming/past RPCs, shown only when events exist.
 
-- Label: “Community catches”.
-- Title: “What anglers are logging here”.
-- Optional right-aligned link:
-
-  - “View all catches from this venue” → venue-filtered feed (when available).
-
-- Body:
-  - Full-width grid of CatchCards:
-    - `grid gap-4 sm:grid-cols-2 lg:grid-cols-3`.
-  - “Load more” button centered beneath grid.
-
-### Empty state
-
-- If `venue.total_catches <= 0`:
-  - Replace grid with a single card:
-    - “No catches have been logged at this venue yet.”
-    - If user is authenticated: “Log a catch at this venue” button (link to Add Catch with venue pre-selected, if supported).
-
----
-
-## 10. Leaderboard (top 3 + species filter)
-
-A compact leaderboard, visually matching the **homepage leaderboard**.
-
-### Data
-
-- Use existing `get_venue_top_catches` (already available).
-- Client-side species filter (v1) using species field from the returned catches.
-
-### Layout
-
-- Label: “Leaderboard”.
-- Title: “Biggest catches at this venue”.
-- Right-aligned species filter control:
-  - Dropdown or pill-based segmented control.
-  - Options: “All species” + list derived from `top_species` or unique species in `topCatches`.
-- List:
-  - Take top catches, then filter client-side, then slice to **top 3**.
-  - Each row styled like home leaderboard:
-    - Rank badge (#1/#2/#3).
-    - Angler avatar + username.
-    - Weight + unit.
-    - Species.
-    - “View catch” button on the right.
-
-Empty state:
-
-- If there are no top catches, hide this section or show a subtle “No standout catches yet.”
-
----
-
-## 11. Venue photos backend design (for reference)
-
-Implemented in `supabase/migrations/2078_venue_photos_and_rpcs.sql`:
-
-- Table: `venue_photos`
-  - id, venue_id, image_path, caption, created_at, created_by.
-- RLS:
-  - Public can `select` photos for published venues.
-  - `insert` and `delete` allowed only for admins/venue owners (via `is_venue_admin_or_owner`).
-- RPCs:
-  - `owner_add_venue_photo(p_venue_id, p_image_path, p_caption?)`:
-    - Admin/owner adds a new photo.
-  - `owner_delete_venue_photo(p_id)`:
-    - Admin/owner deletes a photo.
-  - `get_venue_photos(p_venue_id, p_limit, p_offset)`:
-    - Public read, ordered by newest first.
-
-On `/venues/:slug`:
-
-- We **only read** via `get_venue_photos`.
-- Upload/delete happens in Edit/Manage pages, not here.
-
----
-
-## 12. Admin/Owner UX on the public venue page
-
-On `/venues/:slug`:
-
-- Show **Edit venue** / **Manage venue** button in the hero for admins/owners.
-- For admins/owners, show **subtle hints** (no forms) in sections when data is missing:
-  - About: “Add a description in the Edit venue page to help anglers understand this venue.”
-  - Photos: “Upload photos from the Manage venue page to showcase this venue.”
-  - Plan your visit: “Add rates and contact details in Manage venue to help anglers plan their trip.”
-
-No inline file inputs, textareas, or other write UI on this public page.
-
----
-
-## 13. How Codex should use this doc
-
-When planning or implementing changes for `/venues` and `/venues/:slug`, **Codex should**:
-
-1. **Read this file** (and `docs/VENUE-PAGES-DESIGN.md` if needed) before writing a plan.
-2. Align any new UI work with:
-   - Section order.
-   - Content per section.
-   - Behaviour/visibility rules.
-3. Reuse:
-   - Existing CatchCard/leaderboard components/styles where possible.
-   - Existing RPCs (venue stats, top catches/anglers, recent catches, venue photos).
-4. Keep **editing functionality** in admin/owner pages, not on the public `/venues/:slug` page.
-
-If a proposed change conflicts with this doc, Codex should **call it out explicitly** and suggest either:
-
-- Updating this design spec first, or
-- Adding a new phase/variant (e.g. v3) rather than silently diverging.
+- **Planned / not yet implemented:**
+  - Venue ratings & reviews (`venue_ratings` table, rating summary, “Your rating” UI, review list, breakdown).
+  - Rich basic info on the venue page: address/town/postcode, water type, opening times.
+  - Rules & key policies block (night fishing, max rods, key bans, walk-on vs pre-book).
+  - Q&A / discussion per venue (questions, answers, upvotes, pinned info).
+  - Owner/admin quick panel on the venue page (catches this week, latest review, pending questions).
+  - Advanced directory filters and sorts (ratings-based, distance-based, “Trending” strips, map view).
+  - Save/favourite venues and richer social gestures on venue cards.
