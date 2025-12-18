@@ -1,5 +1,11 @@
 **Schema Snapshot (v4 reference, high level)**  
-Updated: 2025-12-17 (UI-only; refer to migrations for authority)
+Updated: 2025-12-17 (UI-only)
+
+## Source of truth
+- Derived from local schema dumps:
+  - `docs/version4/schema/schema.public.local.sql`
+  - `docs/version4/schema/schema.full.local.sql`
+- Migrations are historical context only.
 
 Main tables (public)
 - `profiles` (privacy: `is_private`, avatar fields, warn_count, moderation_status).
@@ -29,10 +35,6 @@ Triggers / functions (from migrations)
 RLS highlights
 - `profiles`, `profile_follows`, `profile_blocks`, `catches`, `catch_comments`, `catch_reactions`, `ratings`, `notifications`, `reports`, `user_warnings`, `moderation_log`, `rate_limits`, `venues` all have RLS enabled (per migrations).
 - Admin access typically via membership in `admin_users` table checked in functions/policies.
-
-Source references
-- Migrations under `supabase/migrations/` (notably 2110–2117 and earlier rate-limit/hardening migrations).
-- Generated types: `src/lib/database.types.ts` for column/function signatures.
 
 TODO
 - Add detailed columns/indexes per table if needed for UI reference.

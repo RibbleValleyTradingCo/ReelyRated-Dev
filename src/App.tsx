@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { supabase } from "./integrations/supabase/client";
 import Layout from "@/components/Layout";
+import { RouteSkeleton } from "@/components/RouteSkeleton";
 
 // Eager load: Critical pages (landing and auth)
 import Index from "./pages/Index";
