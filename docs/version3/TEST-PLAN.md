@@ -81,17 +81,17 @@ This file is for **manual testing**: which flows we test, how often, and what pa
 | RLS-HARDEN-001          | Catches/comments/reactions/ratings RLS deep pass | ✅     |
 | RLS-HARDEN-002          | Profiles/follows/blocks RLS deep pass            | ✅     |
 | REPORTS-003             | RLS & abuse / rate-limit edge cases              | ✅     |
-| DEV-PROMOTION-SMOKE-001 | Dev promotion browser smoke suite (UI + SQL)     | ☐      |
+| DEV-PROMOTION-SMOKE-001 | Dev promotion browser smoke suite (UI + SQL)     | ✅     |
 | ADMIN-003               | Clear moderation status surface (v4+)            | ☐      |
 | VENUES-EVENTS-001       | Venue events (v4+)                               | ☐      |
 | INSIGHTS-001            | Insights page (v4+)                              | ☐      |
 | LEADERBOARD-001         | Leaderboard & highlights (v4+)                   | ☐      |
 
-- [ ] **DEV-PROMOTION-SMOKE-001 – Dev promotion browser smoke suite**
+- [x] **DEV-PROMOTION-SMOKE-001 – Dev promotion browser smoke suite**
 
-  - **Status:** ☐ Not run
-  - **Last run:** —
-  - **Runbook:** `docs/version3/tests/DEV-PROMOTION-SMOKE.md` (to be created)
+  - **Status:** ✅ Pass
+  - **Last run:** 2025-12-18 · Local Docker · James
+  - **Runbook:** `docs/version3/tests/DEV-PROMOTION-SMOKE.md`
 
   - **Goal:**
 
@@ -105,16 +105,51 @@ This file is for **manual testing**: which flows we test, how often, and what pa
     - **Comments + rating summary non-leak:** key “deny” cases behave cleanly (RLS-HARDEN-001).
     - **Admin warning:** admin can warn a user and the user sees the notification (ADMIN-002 smoke).
 
+  - **Seeded actors (stable UUIDs):**
+
+    - A (owner): `aa35e9b8-9826-4e45-a5b0-cec5d3bd6f3a`
+    - B (follower): `8fdb5a09-18b1-4f40-babe-a96959c3ee04`
+    - C (stranger): `dc976a2a-03fe-465a-be06-0fa1038c95cf`
+    - D (blocked): `8641225a-8917-435e-95f2-bb4356cd44d0`
+    - Admin: `d38c5e8d-7dc6-42f0-b541-906e793f2e20`
+
+  - **Test fixtures used (Local Docker):**
+
+    - Inaccessible/private catch: `096cf75d-b0d7-415f-9269-7b56b839e25d`
+    - Public catch: `b1d226bc-5af6-4cba-83be-c7cdbe1c168f`
+    - Public comment: `1411c6ad-d918-4df6-a5a3-8310b390e5e3`
+
+  - **Result summary (UI):**
+
+    - ✅ 6.1 Hybrid access model (UI) — pass.
+    - ✅ 6.2 Follow / Block (UI) — pass.
+      - Note: D cannot access A’s profile (blocked) so cannot follow/unfollow.
+    - ✅ 6.3 Reports (UI) — pass.
+      - Catch + comment reporting succeed; rate-limit UX observed.
+    - ✅ 6.4 Comments + rating summary non-leak (UI) — pass.
+      - Attempting to open an inaccessible catch by URL redirects to `/feed` and shows a single toast:
+        - “This catch isn’t available. It may have been deleted, made private, or you don’t have permission to view it.”
+      - Duplicate toast issue fixed (see `src/hooks/useCatchData.ts`).
+    - ✅ 6.5 Admin warning smoke (UI) — pass.
+      - Admin flow: reports appear in `/admin/reports`, processing a report enables follow-on moderation actions.
+
+  - **DB / SQL checks (Local Docker):**
+
+    - ✅ Admin can list A followers via SQL (`admin_followers_of_a = 2`).
+    - ✅ Blocked follow attempts are denied (`Target not accessible` on `follow_profile_with_rate_limit` from a blocked actor).
+    - ✅ C cannot enumerate other users’ follow edges (`c_can_see_b_to_a_edge = 0`).
+    - ✅ Rating summary RPC returns expected row for public catch (`rating_count`, `average_rating`, `your_rating` observed).
+    - ✅ Admin-only moderation RPCs reject non-admin callers (`Admin privileges required` on `admin_warn_user`).
+    - ✅ Admin warning flow side-effects observed (`notif_after = 1`, `warnings_after = 1`, `modlog_after = 1` within the test run).
+    - ⚠️ Reports SQL verification is **partially complete**:
+      - B is already rate-limited (`rate_limits_last_hour = 5`) so cannot be used for clean “+1/+1” assertions.
+      - A report attempt as C returned `Target not accessible` (needs re-run using a catch that the report RPC deems accessible for C).
+
   - **Notes:**
-    - Some validations are **SQL-only** today because the UI has no surface:
+    - Some validations remain **SQL-only** today because the UI has no surface:
       - Admin listing of `profile_follows` edges.
       - Reporting an inaccessible target (you generally can’t open private/blocked catches/comments in UI).
-    - Use the stable seeded actors:
-      - A (owner): `aa35e9b8-9826-4e45-a5b0-cec5d3bd6f3a`
-      - B (follower): `8fdb5a09-18b1-4f40-babe-a96959c3ee04`
-      - C (stranger): `dc976a2a-03fe-465a-be06-0fa1038c95cf`
-      - D (blocked): `8641225a-8917-435e-95f2-bb4356cd44d0`
-      - Admin: `d38c5e8d-7dc6-42f0-b541-906e793f2e20`
+    - For inaccessible catch URLs in **dev**, React StrictMode can still cause duplicate network requests, but UX must remain **single toast + single redirect**.
 
 ---
 

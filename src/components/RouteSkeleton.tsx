@@ -1,6 +1,13 @@
-const skeletonLine = "h-4 w-full rounded-full bg-slate-200/80";
+import { useEffect } from "react";
+
+const shimmerBase = "bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 animate-pulse";
+const skeletonLine = `h-4 w-full rounded-full ${shimmerBase}`;
 
 export const RouteSkeleton = () => {
+  useEffect(() => {
+    if (import.meta.env.DEV) console.log("RouteSkeleton render");
+  }, []);
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 lg:px-8">
       <div className="space-y-6">

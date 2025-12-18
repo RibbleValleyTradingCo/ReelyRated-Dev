@@ -35,6 +35,13 @@ export const Navbar = () => {
   const isOnSearchRoute = location.pathname.startsWith("/search");
 
   useEffect(() => {
+    if (import.meta.env.DEV) console.log("Navbar mount");
+    return () => {
+      if (import.meta.env.DEV) console.log("Navbar unmount");
+    };
+  }, []);
+
+  useEffect(() => {
     setMenuOpen(false);
     setAvatarMenuOpen(false);
   }, [location.pathname]);
