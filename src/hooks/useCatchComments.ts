@@ -31,10 +31,38 @@ export interface MentionCandidate {
   username: string;
   avatarPath: string | null;
   avatarUrl: string | null;
-  lastInteractedAt: string;
+  lastInteractedAt: string | null;
 }
 
-function mapRowToCatchComment(row: any): CatchComment {
+interface CatchCommentRow {
+  id: string;
+  catch_id: string;
+  user_id: string;
+  body: string;
+  parent_comment_id: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  is_admin_author?: boolean | null;
+  profiles: {
+    id: string;
+    username: string;
+    avatar_path: string | null;
+    avatar_url: string | null;
+    admin_users?: { user_id: string }[] | null;
+  } | null;
+}
+
+interface MentionRow {
+  catch_id: string;
+  user_id: string;
+  username: string;
+  avatar_path: string | null;
+  avatar_url: string | null;
+  last_interacted_at: string | null;
+}
+
+function mapRowToCatchComment(row: CatchCommentRow): CatchComment {
   return {
     id: row.id,
     catch_id: row.catch_id,
@@ -156,19 +184,25 @@ export const useCatchComments = (catchId: string | undefined) => {
     }
     setError(null);
 
+    // Load comments from the view
     const { data, error: fetchError } = await supabase
-      .from("catch_comments_with_admin")
+      // Views are not in the generated Database types, so we treat the table name as any
+      // and cast the result to our local CatchCommentRow interface below.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from("catch_comments_with_admin" as any)
       .select(
         "id, catch_id, user_id, body, parent_comment_id, created_at, updated_at, deleted_at, is_admin_author, profiles:user_id (id, username, avatar_path, avatar_url)"
       )
       .eq("catch_id", catchId)
       .order("created_at", { ascending: true });
 
-    const { data: mentionData } = await supabase
-      .from("catch_mention_candidates")
+    // Load mention candidates from the view
+    const { data: mentionDataRaw } = await supabase
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .from("catch_mention_candidates" as any)
       .select("catch_id, user_id, username, avatar_path, avatar_url, last_interacted_at")
       .eq("catch_id", catchId)
-      .order("last_interacted_at", { ascending: false, nulls: "last" })
+      .order("last_interacted_at", { ascending: false, nullsFirst: false })
       .order("username", { ascending: true })
       .limit(50);
 
@@ -176,16 +210,21 @@ export const useCatchComments = (catchId: string | undefined) => {
       setError("Failed to load comments");
       toast.error("Failed to load comments");
     } else {
-      const mapped = (data as any[] | null | undefined)?.map(mapRowToCatchComment) ?? [];
+      // Cast the raw data into our local row type and map to CatchComment
+      // Cast the raw data into our local row type and map to CatchComment
+      const rows = (data ?? []) as unknown as CatchCommentRow[];
+      const mapped = rows.map(mapRowToCatchComment);
       replaceIfChanged(mapped);
-      const mappedMentions =
-        (mentionData ?? []).map((row) => ({
-          userId: row.user_id,
-          username: row.username,
-          avatarPath: row.avatar_path,
-          avatarUrl: row.avatar_url,
-          lastInteractedAt: row.last_interacted_at,
-        })) ?? [];
+
+      // Cast mention rows and map into MentionCandidate
+      const mentionRows = (mentionDataRaw ?? []) as unknown as MentionRow[];
+      const mappedMentions: MentionCandidate[] = mentionRows.map((row) => ({
+        userId: row.user_id,
+        username: row.username,
+        avatarPath: row.avatar_path,
+        avatarUrl: row.avatar_url,
+        lastInteractedAt: row.last_interacted_at,
+      }));
       setMentionCandidates(mappedMentions);
     }
 

@@ -1,13 +1,13 @@
 import { memo } from "react";
 import { ResponsiveLine } from "@nivo/line";
-import type { Theme } from "@nivo/core";
+import type { PartialTheme } from "@nivo/theming";
 
 interface TrendLineChartProps {
   data: Array<{
     id: string;
     data: Array<{ x: string; y: number }>;
   }>;
-  theme: Theme;
+  theme: PartialTheme;
   color: string;
   gradientId: string;
 }
@@ -21,7 +21,7 @@ export const TrendLineChart = memo(({ data, theme, color, gradientId }: TrendLin
         colors={[color]}
         margin={{ top: 24, right: 24, bottom: 40, left: 48 }}
         xScale={{ type: "point" }}
-        yScale={{ type: "linear", min: 0, stack: false, nice: true }}
+        yScale={{ type: "linear", min: 0, stacked: false, nice: true }}
         enableArea
         areaBaselineValue={0}
         defs={[

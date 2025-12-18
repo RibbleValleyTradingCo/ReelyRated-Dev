@@ -35,7 +35,7 @@ import type {
   ReportStatus,
   ModerationStatus,
   WarningSeverity,
-} from './database';
+} from "./database";
 
 // ============================================================================
 // CLEAN DOMAIN MODELS
@@ -92,13 +92,22 @@ export interface Venue {
   updatedAt: Date;
 }
 
+type VenueRowWithMeta = VenueRow & {
+  region?: string | null;
+  country?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  image_url?: string | null;
+};
+
 /**
  * Session (clean version)
  */
 export interface Session {
   id: string;
   userId: string;
-  venueId: string | null;
+  venue: string | null;
+  venueId?: string | null;
   title: string;
   venueNameManual: string | null;
   date: string | null; // YYYY-MM-DD
@@ -640,19 +649,19 @@ export interface UserRateLimits {
  */
 export function profileFromRow(row: ProfileRow): Profile {
   return {
-    userId: row.user_id,
+    userId: row.id,
     username: row.username,
     fullName: row.full_name,
     avatarPath: row.avatar_path,
     avatarUrl: row.avatar_url,
     bio: row.bio,
-    location: row.location,
-    website: row.website,
-    warnCount: row.warn_count,
-    moderationStatus: row.moderation_status,
-    suspensionUntil: row.suspension_until ? new Date(row.suspension_until) : null,
-    createdAt: new Date(row.created_at),
-    updatedAt: new Date(row.updated_at),
+  location: row.location,
+  website: row.website,
+  warnCount: row.warn_count,
+  moderationStatus: row.moderation_status as ModerationStatus,
+  suspensionUntil: row.suspension_until ? new Date(row.suspension_until) : null,
+  createdAt: new Date(row.created_at),
+  updatedAt: new Date(row.updated_at),
   };
 }
 
@@ -677,16 +686,17 @@ export function speciesFromRow(row: SpeciesRow): Species {
  * Convert database row to domain Venue
  */
 export function venueFromRow(row: VenueRow): Venue {
+  const r = row as VenueRowWithMeta;
   return {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    region: row.region,
-    country: row.country,
-    latitude: row.latitude,
-    longitude: row.longitude,
+    region: r.region ?? null,
+    country: r.country ?? null,
+    latitude: r.latitude ?? null,
+    longitude: r.longitude ?? null,
     description: row.description,
-    imageUrl: row.image_url,
+    imageUrl: r.image_url ?? null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -699,7 +709,8 @@ export function sessionFromRow(row: SessionRow): Session {
   return {
     id: row.id,
     userId: row.user_id,
-    venueId: row.venue_id,
+    venue: row.venue,
+    venueId: null,
     title: row.title,
     venueNameManual: row.venue_name_manual,
     date: row.date,
@@ -718,30 +729,30 @@ export function catchFromRow(row: CatchRow): Catch {
     id: row.id,
     userId: row.user_id,
     sessionId: row.session_id,
-    venueId: row.venue_id,
-    speciesId: row.species_id,
+    venueId: row.venue_id ?? null,
+    speciesId: row.species ?? null,
     imageUrl: row.image_url,
     title: row.title,
-    caughtAt: new Date(row.caught_at),
+    caughtAt: row.caught_at ? new Date(row.caught_at) : new Date(row.created_at),
     description: row.description,
-    speciesSlug: row.species_slug,
+    speciesSlug: row.species_slug ?? null,
     customSpecies: row.custom_species,
     weight: row.weight,
-    weightUnit: row.weight_unit,
+    weightUnit: row.weight_unit as WeightUnit | null,
     length: row.length,
-    lengthUnit: row.length_unit,
+    lengthUnit: row.length_unit as LengthUnit | null,
     locationLabel: row.location_label,
-    normalizedLocation: row.normalized_location,
+    normalizedLocation: row.location,
     waterTypeCode: row.water_type_code,
     baitUsed: row.bait_used,
     methodTag: row.method_tag,
     equipmentUsed: row.equipment_used,
-    timeOfDay: row.time_of_day,
-    conditions: row.conditions as CatchConditions,
-    tags: row.tags,
-    galleryPhotos: row.gallery_photos,
+    timeOfDay: row.time_of_day as TimeOfDay | null,
+    conditions: (row.conditions ?? {}) as CatchConditions,
+    tags: row.tags ?? [],
+    galleryPhotos: row.gallery_photos ?? [],
     videoUrl: row.video_url,
-    visibility: row.visibility,
+    visibility: row.visibility as VisibilityType,
     hideExactSpot: row.hide_exact_spot,
     allowRatings: row.allow_ratings,
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,
@@ -759,7 +770,7 @@ export function commentFromRow(row: CatchCommentRow): Comment {
     catchId: row.catch_id,
     userId: row.user_id,
     body: row.body,
-    mentionedUsernames: row.mentioned_usernames,
+    mentionedUsernames: [],
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : null,
     createdAt: new Date(row.created_at),
   };
@@ -772,7 +783,7 @@ export function reactionFromRow(row: CatchReactionRow): Reaction {
   return {
     catchId: row.catch_id,
     userId: row.user_id,
-    reaction: row.reaction,
+    reaction: row.reaction as ReactionType,
     createdAt: new Date(row.created_at),
   };
 }
@@ -797,11 +808,11 @@ export function notificationFromRow(row: NotificationRow): Notification {
     id: row.id,
     userId: row.user_id,
     actorId: row.actor_id,
-    type: row.type,
+    type: row.type as NotificationType,
     message: row.message,
     catchId: row.catch_id,
     commentId: row.comment_id,
-    extraData: row.extra_data,
+    extraData: (row.extra_data ?? {}) as Record<string, unknown>,
     isRead: row.is_read,
     readAt: row.read_at ? new Date(row.read_at) : null,
     createdAt: new Date(row.created_at),

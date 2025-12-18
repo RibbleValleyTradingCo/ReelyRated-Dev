@@ -133,7 +133,14 @@ const MyVenueEdit = () => {
         toast.error("Unable to load events");
         setEvents([]);
       } else {
-        setEvents((data as VenueEvent[]) ?? []);
+        type VenueEventRpc = Omit<VenueEvent, "contact_phone"> & { contact_phone?: string | null };
+        const rows = (data ?? []) as unknown as VenueEventRpc[];
+        setEvents(
+          rows.map((row) => ({
+            ...row,
+            contact_phone: row.contact_phone ?? null,
+          }))
+        );
       }
       setEventsLoading(false);
     };
@@ -254,7 +261,14 @@ const MyVenueEdit = () => {
       p_venue_id: venue.id,
     });
     if (!refreshError) {
-      setEvents((refreshed as VenueEvent[]) ?? []);
+      type VenueEventRpc = Omit<VenueEvent, "contact_phone"> & { contact_phone?: string | null };
+      const rows = (refreshed ?? []) as unknown as VenueEventRpc[];
+      setEvents(
+        rows.map((row) => ({
+          ...row,
+          contact_phone: row.contact_phone ?? null,
+        }))
+      );
     }
     resetEventForm();
     setEventSaving(false);
@@ -272,7 +286,14 @@ const MyVenueEdit = () => {
     }
     toast.success("Event deleted");
     const { data: refreshed } = await supabase.rpc("owner_get_venue_events", { p_venue_id: venue.id });
-    setEvents((refreshed as VenueEvent[]) ?? []);
+    type VenueEventRpc = Omit<VenueEvent, "contact_phone"> & { contact_phone?: string | null };
+    const rows = (refreshed ?? []) as unknown as VenueEventRpc[];
+    setEvents(
+      rows.map((row) => ({
+        ...row,
+        contact_phone: row.contact_phone ?? null,
+      }))
+    );
     if (eventForm.id === eventId) {
       resetEventForm();
     }

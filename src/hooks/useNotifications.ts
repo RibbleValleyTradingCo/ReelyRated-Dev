@@ -1,13 +1,11 @@
 import { useCallback, useState } from "react";
-import type { Database } from "@/integrations/supabase/types";
 import {
   fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   clearAllNotifications,
 } from "@/lib/notifications";
-
-type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+import type { NotificationRow } from "@/lib/notifications-utils";
 
 export const useNotifications = (userId: string | null | undefined, limit = 50) => {
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);

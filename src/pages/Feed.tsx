@@ -412,16 +412,18 @@ const Feed = () => {
               See what anglers across the community are catching right now. Filter by venue, species or rating.
             </p>
           </div>
-          <div className="w-full md:w-auto">
-            <Button
-              variant="ocean"
-              size="lg"
-              className="w-full md:w-auto rounded-2xl px-6 py-3 font-semibold shadow-[0_12px_28px_-18px_rgba(14,165,233,0.5)]"
-              onClick={() => navigate("/add-catch")}
-            >
-              Log a catch
-            </Button>
-          </div>
+          {!isAdmin && (
+            <div className="w-full md:w-auto">
+              <Button
+                variant="ocean"
+                size="lg"
+                className="w-full md:w-auto rounded-2xl px-6 py-3 font-semibold shadow-[0_12px_28px_-18px_rgba(14,165,233,0.5)]"
+                onClick={() => navigate("/add-catch")}
+              >
+                Log a catch
+              </Button>
+            </div>
+          )}
         </div>
 
         {venueSlug ? (
@@ -487,8 +489,8 @@ const Feed = () => {
                     ? "No catches from anglers you follow yet. Explore the full feed or follow more people."
                     : "No catches match your filters"
             }
-            actionLabel="Log Your First Catch"
-            onActionClick={() => navigate("/add-catch")}
+            actionLabel={isAdmin ? undefined : "Log Your First Catch"}
+            onActionClick={isAdmin ? undefined : () => navigate("/add-catch")}
           />
         )}
       </div>

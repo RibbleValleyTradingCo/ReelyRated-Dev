@@ -16,6 +16,9 @@ const AccountDeleted = () => {
               You have been logged out. Your profile and catches have been anonymised/hidden, while some moderation history
               may be retained for safety. You’re welcome to sign up again with a new account any time.
             </p>
+            <p className="text-sm text-slate-600">
+              This account has been deleted. You can’t reuse this account or email address.
+            </p>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild variant="ocean" className="h-11 rounded-full px-6">

@@ -1,6 +1,18 @@
-project_id = "jyuwmhplvzmkunpizorz"
+[auth]
+site_url = "http://localhost:8080"
 
-[db]
+additional_redirect_urls = [
+  "http://localhost:8080/auth?type=recovery"
+]
 
-[storage]
-enabled = true
+# Delete / comment these:
+# [auth.email]
+#
+# [auth.email.smtp]
+# enabled = true
+# host = "mailpit"
+# port = 1025
+# user = ""
+# pass = ""
+# admin_email = "no-reply@localhost"
+# sender_name = "ReelyRated (Local Dev)"

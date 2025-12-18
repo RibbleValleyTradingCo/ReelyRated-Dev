@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { normalizeVenueName } from "@/lib/freshwater-data";
 import type { Database } from "@/integrations/supabase/types";
 import { catchSchemaWithRefinements } from "@/schemas";
-import { useRateLimit, formatResetTime } from "@/hooks/useRateLimit";
 import { CatchBasicsSection } from "@/components/catch-form/CatchBasicsSection";
 import { LocationSection } from "@/components/catch-form/LocationSection";
 import { TacticsSection } from "@/components/catch-form/TacticsSection";
@@ -22,6 +21,7 @@ import { logger } from "@/lib/logger";
 import { mapModerationError } from "@/lib/moderation-errors";
 import { cn } from "@/lib/utils";
 import { UK_FISHERIES } from "@/lib/freshwater-data";
+import { isAdminUser } from "@/lib/admin";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -44,6 +44,14 @@ type SessionOption = {
   date: string | null;
 };
 
+type VenueRow = {
+  id: string;
+  name: string;
+};
+
+type CatchInsert = Database["public"]["Tables"]["catches"]["Insert"] & {
+  venue_id?: string | null;
+};
 type SectionBlockProps = {
   title: string;
   helper?: string;
@@ -130,17 +138,8 @@ const AddCatch = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Rate limiting: max 10 catches per hour
-  const { checkLimit, isLimited, attemptsRemaining, resetIn } = useRateLimit({
-    maxAttempts: 10,
-    windowMs: 60 * 60 * 1000, // 1 hour
-    storageKey: 'catch-submit-limit',
-    onLimitExceeded: () => {
-      const resetTime = formatResetTime(resetIn);
-      toast.error(`Rate limit exceeded. You can only create 10 catches per hour. Please try again in ${resetTime}.`);
-    },
-  });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -205,16 +204,22 @@ const AddCatch = () => {
     const slug = searchParams.get("venue");
     if (!slug) return;
     const loadVenueFromSlug = async () => {
-      const { data, error } = await supabase.from("venues").select("id,name").eq("slug", slug).maybeSingle();
+      const venueResponse = await supabase
+        .from("venues" as never)
+        .select("id,name")
+        .eq("slug", slug)
+        .maybeSingle();
+      const { data, error } = venueResponse as { data: VenueRow | null; error: unknown };
       if (error || !data) return;
-      setPrefilledVenue({ id: data.id, name: data.name });
+      const venue = data as VenueRow;
+      setPrefilledVenue({ id: venue.id, name: venue.name });
       setFormData((prev) => ({
         ...prev,
-        location: data.name,
+        location: venue.name,
       }));
       setNewSession((prev) => ({
         ...prev,
-        venue: prev.venue || data.name,
+        venue: prev.venue || venue.name,
       }));
     };
     void loadVenueFromSlug();
@@ -227,17 +232,41 @@ const AddCatch = () => {
   }, [user, loading, navigate]);
 
   useEffect(() => {
+    const loadAdmin = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        setAdminChecked(true);
+        return;
+      }
+
+      try {
+        const adminStatus = await isAdminUser(user.id);
+        setIsAdmin(adminStatus);
+      } catch {
+        setIsAdmin(false);
+      } finally {
+        setAdminChecked(true);
+      }
+    };
+
+    void loadAdmin();
+  }, [user]);
+
+  useEffect(() => {
     let isMounted = true;
     setIsLoadingMethods(true);
 
-    supabase
-      .from("tags")
-      .select("slug,label,method_group")
-      .eq("category", "method")
-      .order("method_group", { ascending: true, nullsFirst: false })
-      .order("label", { ascending: true })
-      .then(({ data, error }) => {
+    const loadMethods = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("tags")
+          .select("slug,label,method_group")
+          .eq("category", "method")
+          .order("method_group", { ascending: true, nullsFirst: false })
+          .order("label", { ascending: true });
+
         if (!isMounted) return;
+
         if (error) {
           logger.error("Failed to load method tags", error);
           setMethodOptions([]);
@@ -250,12 +279,14 @@ const AddCatch = () => {
             }))
           );
         }
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) {
           setIsLoadingMethods(false);
         }
-      });
+      }
+    };
+
+    void loadMethods();
 
     return () => {
       isMounted = false;
@@ -266,13 +297,16 @@ const AddCatch = () => {
     let isMounted = true;
     setIsLoadingBaits(true);
 
-    supabase
-      .from("baits")
-      .select("slug,label,category")
-      .order("category", { ascending: true })
-      .order("label", { ascending: true })
-      .then(({ data, error }) => {
+    const loadBaits = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("baits")
+          .select("slug,label,category")
+          .order("category", { ascending: true })
+          .order("label", { ascending: true });
+
         if (!isMounted) return;
+
         if (error) {
           logger.error("Failed to load baits", error);
           setBaitOptions([]);
@@ -285,12 +319,14 @@ const AddCatch = () => {
             }))
           );
         }
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) {
           setIsLoadingBaits(false);
         }
-      });
+      }
+    };
+
+    void loadBaits();
 
     return () => {
       isMounted = false;
@@ -301,13 +337,16 @@ const AddCatch = () => {
     let isMounted = true;
     setIsLoadingWaterTypes(true);
 
-    supabase
-      .from("water_types")
-      .select("code,label,group_name")
-      .order("group_name", { ascending: true, nullsFirst: false })
-      .order("label", { ascending: true })
-      .then(({ data, error }) => {
+    const loadWaterTypes = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("water_types")
+          .select("code,label,group_name")
+          .order("group_name", { ascending: true, nullsFirst: false })
+          .order("label", { ascending: true });
+
         if (!isMounted) return;
+
         if (error) {
           logger.error("Failed to load water types", error);
           setWaterTypeOptions([]);
@@ -320,12 +359,14 @@ const AddCatch = () => {
             }))
           );
         }
-      })
-      .finally(() => {
+      } finally {
         if (isMounted) {
           setIsLoadingWaterTypes(false);
         }
-      });
+      }
+    };
+
+    void loadWaterTypes();
 
     return () => {
       isMounted = false;
@@ -340,7 +381,7 @@ const AddCatch = () => {
       }
       setIsLoadingSessions(true);
       const { data, error } = await supabase
-        .from("sessions")
+        .from("sessions" as never)
         .select("id, title, venue, date")
         .eq("user_id", user.id)
         .order("date", { ascending: false })
@@ -350,7 +391,8 @@ const AddCatch = () => {
         logger.error("Failed to load sessions", error, { userId: user.id });
         setSessions([]);
       } else if (data) {
-        setSessions(data as SessionOption[]);
+        const typedSessions = (data ?? []) as unknown as SessionOption[];
+        setSessions(typedSessions);
       }
       setIsLoadingSessions(false);
     };
@@ -445,11 +487,6 @@ const AddCatch = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check rate limit (client-side)
-    if (!checkLimit()) {
-      return; // Rate limited - toast already shown by onLimitExceeded
-    }
-
     // Validate required image file
     if (!imageFile) {
       toast.error("Please upload a photo of your catch");
@@ -497,18 +534,22 @@ const AddCatch = () => {
     }
 
     const normalizedLocation = normalizeVenueName(finalLocation);
-    const isKnownFishery = normalizedLocation ? UK_FISHERIES.includes(normalizedLocation) : false;
+    const isKnownFishery = normalizedLocation
+      ? (UK_FISHERIES as readonly string[]).includes(normalizedLocation)
+      : false;
     let venueId: string | null = null;
 
     if (prefilledVenue && prefilledVenue.name === finalLocation) {
       venueId = prefilledVenue.id;
     } else if (isKnownFishery) {
-      const { data: venueRow } = await supabase
-        .from("venues")
+      const venueResponse = await supabase
+        .from("venues" as never)
         .select("id")
         .eq("name", normalizedLocation)
         .maybeSingle();
-      venueId = venueRow?.id ?? null;
+      const { data: venueRow } = venueResponse as { data: { id: string } | null; error: unknown };
+      const venue = venueRow ?? null;
+      venueId = venue?.id ?? null;
     }
 
     setIsSubmitting(true);
@@ -533,24 +574,31 @@ const AddCatch = () => {
           ? normalizeVenueName(newSession.venue)
           : normalizedLocation;
 
-        const { data: sessionInsert, error: sessionError } = await supabase
-          .from("sessions")
-          .insert({
-            user_id: user.id,
-            title: newSession.title.trim(),
-            venue: sessionVenue || null,
-            date: newSession.date ? newSession.date : null,
-            notes: newSession.notes.trim() || null,
-          })
+        const sessionValues = {
+          user_id: user.id,
+          title: newSession.title.trim(),
+          venue: sessionVenue || null,
+          date: newSession.date ? newSession.date : null,
+          notes: newSession.notes.trim() || null,
+        };
+
+        const sessionResult = await supabase
+          .from("sessions" as never)
+          .insert(sessionValues as never)
           .select("id, title, venue, date")
           .single();
+
+        const { data: sessionInsert, error: sessionError } = sessionResult as {
+          data: SessionOption | null;
+          error: unknown;
+        };
 
         if (sessionError || !sessionInsert) {
           throw sessionError ?? new Error("Failed to create session");
         }
 
         sessionId = sessionInsert.id;
-        createdSession = sessionInsert as SessionOption;
+        createdSession = sessionInsert;
       }
 
       // Upload main image
@@ -632,7 +680,7 @@ const AddCatch = () => {
           : null;
 
       // Insert catch record
-      const catchData: Database["public"]["Tables"]["catches"]["Insert"] = {
+      const catchData: CatchInsert = {
         user_id: user.id,
         image_url: publicUrl,
         title: formData.title,
@@ -645,7 +693,7 @@ const AddCatch = () => {
         weight: formData.weight ? parseFloat(formData.weight) : null,
         weight_unit: formData.weightUnit as Database["public"]["Enums"]["weight_unit"],
         length: formData.length ? parseFloat(formData.length) : null,
-        length_unit: formData.lengthUnit as Database["public"]["Enums"]["length_unit"],
+        length_unit: formData.lengthUnit as string,
         peg_or_swim: formData.pegOrSwim || null,
         water_type: normalizedWaterType,
         method: formData.method || null,
@@ -675,7 +723,7 @@ const AddCatch = () => {
       toast.success("Catch added successfully!");
       navigate("/feed");
     } catch (error) {
-      logger.error("Error adding catch", error, { userId: user?.id, sessionId: formData.sessionId });
+      logger.error("Error adding catch", error, { userId: user?.id, sessionId: selectedSessionId });
       const message =
         error && typeof error === "object" && "message" in error && typeof (error as { message?: unknown }).message === "string"
           ? (error as { message: string }).message
@@ -685,7 +733,9 @@ const AddCatch = () => {
       } else {
         const moderation = mapModerationError(error);
         if (moderation.type === "suspended") {
-          const untilText = moderation.until ? ` until ${new Date(moderation.until).toLocaleString()}` : "";
+          const suspendedModeration = moderation as { type: "suspended"; until?: string };
+          const untilValue = suspendedModeration.until;
+          const untilText = untilValue ? ` until ${new Date(untilValue).toLocaleString()}` : "";
           toast.error(`You’re currently suspended${untilText} and can’t post new catches right now.`);
         } else if (moderation.type === "banned") {
           toast.error("Your account is banned and you can’t post new catches.");
@@ -698,11 +748,37 @@ const AddCatch = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !adminChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
         <Navbar />
         <div className="container mx-auto px-4 py-8">Loading...</div>
+      </div>
+    );
+  }
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <Navbar />
+        <div className="container mx-auto px-4 py-12">
+          <Card className="max-w-2xl">
+            <CardHeader>
+              <CardTitle>Admins can’t create catches</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Admin accounts are moderation-only. Please switch to an angler account to log catches.
+              </p>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              <Button variant="ocean" onClick={() => navigate("/feed")}>
+                Go to feed
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/admin/reports")}>
+                Open admin tools
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -884,19 +960,15 @@ const AddCatch = () => {
 
               <div className="mt-6 flex flex-col gap-3 rounded-xl border border-border/60 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  We’ll save this to your logbook and update your rankings.
+                  You can log up to 10 catches per hour. We’ll save this to your logbook and update your rankings.
                 </p>
                 <Button
                   type="submit"
                   className="w-full sm:w-auto"
                   size="lg"
-                  disabled={isSubmitting || !imageFile || isLimited}
+                  disabled={isSubmitting || !imageFile}
                 >
-                  {isSubmitting
-                    ? "Publishing catch..."
-                    : isLimited
-                    ? `Rate limited (reset in ${formatResetTime(resetIn)})`
-                    : `Log this catch${attemptsRemaining < 10 ? ` (${attemptsRemaining} remaining)` : ""}`}
+                  {isSubmitting ? "Publishing catch..." : "Log this catch"}
                 </Button>
               </div>
             </form>

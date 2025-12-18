@@ -203,14 +203,37 @@ const VenuesIndex = () => {
     return `From ${trimmed}`;
   };
 
+  const normalizeTicketType = (value: string | null | undefined) => {
+    if (!value) return "";
+    return value
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  };
+
+  const availableTicketTypes = useMemo(() => {
+    const types = new Set<string>();
+    venues.forEach((v) => {
+      const normalized = normalizeTicketType(v.ticket_type);
+      if (normalized) types.add(normalized);
+    });
+    return Array.from(types).sort();
+  }, [venues]);
+
+  const formatTicketLabel = (value: string) =>
+    value
+      .split(" ")
+      .map((part) => (part ? part[0].toUpperCase() + part.slice(1) : ""))
+      .join(" ");
+
   const matchesTicketType = (venue: Venue) => {
     if (ticketTypeFilter === "all") return true;
-    const ticket = venue.ticket_type?.toLowerCase() ?? "";
-    if (!ticket) return false;
-    if (ticketTypeFilter === "day_ticket") return ticket.includes("day");
-    if (ticketTypeFilter === "syndicate") return ticket.includes("syndicate");
-    if (ticketTypeFilter === "club") return ticket.includes("club");
-    return true;
+    const normalizedVenueType = normalizeTicketType(venue.ticket_type);
+    const normalizedFilter = normalizeTicketType(ticketTypeFilter);
+    if (!normalizedVenueType || !normalizedFilter) return false;
+    return normalizedVenueType === normalizedFilter;
   };
 
   const filteredAndSortedVenues = useMemo(() => {
@@ -283,9 +306,10 @@ const VenuesIndex = () => {
               value={ticketTypeFilter}
               options={[
                 { value: "all", label: "All ticket types" },
-                { value: "day_ticket", label: "Day ticket" },
-                { value: "syndicate", label: "Syndicate" },
-                { value: "club", label: "Club" },
+                ...availableTicketTypes.map((type) => ({
+                  value: type,
+                  label: formatTicketLabel(type),
+                })),
               ]}
               onChange={setTicketTypeFilter}
             />

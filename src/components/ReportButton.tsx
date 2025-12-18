@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { toast } from "sonner";
 import { notifyAdmins } from "@/lib/notifications";
-import { useRateLimit, formatResetTime } from "@/hooks/useRateLimit";
 import type { Database } from "@/integrations/supabase/types";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
 
@@ -28,17 +27,6 @@ export const ReportButton = ({ targetType, targetId, label = "Report", className
   const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Rate limiting: max 5 reports per hour
-  const { checkLimit, isLimited, attemptsRemaining, resetIn } = useRateLimit({
-    maxAttempts: 5,
-    windowMs: 60 * 60 * 1000, // 1 hour
-    storageKey: 'report-submit-limit',
-    onLimitExceeded: () => {
-      const resetTime = formatResetTime(resetIn);
-      toast.error(`Rate limit exceeded. You can only submit 5 reports per hour. Try again in ${resetTime}.`);
-    },
-  });
-
   const handleSubmit = async () => {
     if (!user) {
       toast.error("Please sign in to report");
@@ -49,11 +37,6 @@ export const ReportButton = ({ targetType, targetId, label = "Report", className
     if (!reason.trim()) {
       toast.error("Please describe the issue");
       return;
-    }
-
-    // Check rate limit (client-side)
-    if (!checkLimit()) {
-      return; // Rate limited - toast already shown by onLimitExceeded
     }
 
     setSubmitting(true);
@@ -106,22 +89,15 @@ export const ReportButton = ({ targetType, targetId, label = "Report", className
           placeholder="Let us know what doesn't look right."
           rows={4}
         />
+        <p className="text-xs text-muted-foreground">
+          You can send up to 5 reports per hour. If you hit the limit, please try again later.
+        </p>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={submitting || isLimited}
-            title={isLimited ? `Rate limited. Reset in ${formatResetTime(resetIn)}` : ''}
-          >
-            {submitting
-              ? "Sending…"
-              : isLimited
-              ? `Limited (${formatResetTime(resetIn)})`
-              : attemptsRemaining < 5
-              ? `Submit report (${attemptsRemaining} left)`
-              : "Submit report"}
+          <Button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Sending…" : "Submit report"}
           </Button>
         </DialogFooter>
       </DialogContent>

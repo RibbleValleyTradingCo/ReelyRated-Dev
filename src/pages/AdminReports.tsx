@@ -160,6 +160,19 @@ const AdminReports = () => {
   const [warnDuration, setWarnDuration] = useState("24");
   const [isProcessingAction, setIsProcessingAction] = useState(false);
 
+  interface RpcReportRow {
+    id: string;
+    target_type: string;
+    target_id: string;
+    reason: string;
+    status: ReportStatus;
+    created_at: string;
+    reporter_id: string | null;
+    reporter_username: string | null;
+    reporter_avatar_path: string | null;
+    reporter_avatar_url: string | null;
+  }
+
   const fetchReports = useCallback(
     async (options: { silently?: boolean } = {}) => {
       if (!user || !isAdmin) return;
@@ -171,21 +184,24 @@ const AdminReports = () => {
         dateRange === "24h" ? 1 : dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : null;
       const since = dateDays ? new Date(Date.now() - dateDays * 24 * 60 * 60 * 1000).toISOString() : null;
 
-      const { data, error } = await supabase.rpc("admin_list_reports", {
-        p_status: statusFilter === "all" ? null : statusFilter,
-        p_type: filter === "all" ? null : filter,
-        p_reported_user_id: filteredUserId ?? null,
-        p_from: since,
-        p_to: null,
-        p_sort_direction: sortOrder === "oldest" ? "asc" : "desc",
-        p_limit: pageSize,
-        p_offset: (page - 1) * pageSize,
-      });
+      const { data, error } = await supabase.rpc(
+        "admin_list_reports" as never,
+        {
+          p_status: statusFilter === "all" ? null : statusFilter,
+          p_type: filter === "all" ? null : filter,
+          p_reported_user_id: filteredUserId ?? null,
+          p_from: since,
+          p_to: null,
+          p_sort_direction: sortOrder === "oldest" ? "asc" : "desc",
+          p_limit: pageSize,
+          p_offset: (page - 1) * pageSize,
+        } as never
+      );
 
       if (error) {
         toast.error("Unable to load reports");
       } else if (data) {
-        const normalized = (data as any[]).map((row) => ({
+        const normalized = ((data ?? []) as unknown as RpcReportRow[]).map((row) => ({
           id: row.id,
           target_type: row.target_type,
           target_id: row.target_id,
@@ -414,7 +430,7 @@ const AdminReports = () => {
       if (historyResponse.error) throw historyResponse.error;
 
       const warningRows = (warningsResponse.data ?? []) as WarningQueryRow[];
-      const historyRows = (historyResponse.data ?? []) as ModerationLogQueryRow[];
+      const historyRows = (historyResponse.data ?? []) as unknown as ModerationLogQueryRow[];
 
       const userWarnings = warningRows.map((entry) => {
         const severityValue = entry.severity as SeverityOption;
@@ -507,11 +523,14 @@ const AdminReports = () => {
       if (!user || !isAdmin) return;
       setUpdatingId(reportId);
 
-      const { error } = await supabase.rpc("admin_update_report_status", {
-        p_report_id: reportId,
-        p_status: status,
-        p_resolution_notes: null,
-      });
+      const { error } = await supabase.rpc(
+        "admin_update_report_status" as never,
+        {
+          p_report_id: reportId,
+          p_status: status,
+          p_resolution_notes: null,
+        } as never
+      );
 
       if (error) {
         toast.error("Unable to update report status");
@@ -687,7 +706,7 @@ const AdminReports = () => {
         payload.p_duration_hours = duration;
       }
 
-      const { error } = await supabase.rpc("admin_warn_user", payload);
+      const { error } = await supabase.rpc("admin_warn_user" as never, payload as never);
       if (error) throw error;
 
       toast.success("User moderation action recorded");

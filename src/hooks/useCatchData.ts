@@ -1,9 +1,25 @@
-import { useState, useCallback, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import type { Database } from "@/integrations/supabase/types";
 import { logger } from "@/lib/logger";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+const handledInaccessibleCatchIds = new Set<string>();
+
+const extractPgError = (
+  error: unknown
+): { message?: string; code?: string } => {
+  if (
+    error &&
+    typeof error === "object" &&
+    ("message" in error || "code" in error)
+  ) {
+    const errObj = error as { message?: string; code?: string };
+    return { message: errObj.message, code: errObj.code };
+  }
+  return {};
+};
 
 type CustomFields = {
   species?: string;
@@ -66,6 +82,7 @@ export interface CatchData {
     venue_name_manual: string | null;
     date: string | null;
   } | null;
+  species: string | null;
   venues?: {
     id: string;
     slug: string;
@@ -79,6 +96,13 @@ export interface Rating {
   profiles: {
     username: string;
   } | null;
+}
+
+export interface CatchRatingSummary {
+  catch_id: string;
+  rating_count: number;
+  average_rating: number | null;
+  your_rating: number | null;
 }
 
 interface UseCatchDataParams {
@@ -96,43 +120,103 @@ export const useCatchData = ({ catchId, userId }: UseCatchDataParams) => {
   const [userHasReacted, setUserHasReacted] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followStatusLoaded, setFollowStatusLoaded] = useState(false);
+  const [ratingSummary, setRatingSummary] = useState<CatchRatingSummary | null>(
+    null
+  );
+  const [ratingSummaryAccessError, setRatingSummaryAccessError] = useState(false);
+  const [ratingSummaryError, setRatingSummaryError] = useState(false);
+  const hasHandledInaccessibleRef = useRef(false);
 
   const fetchCatchData = useCallback(async () => {
     if (!catchId) return;
     setIsLoading(true);
     const { data, error } = await supabase
       .from("catches")
-      .select("*, profiles:user_id (username, avatar_path, avatar_url), session:session_id (id, title, venue_name_manual, date), venues:venue_id (id, slug, name)")
+      .select(
+        "*, profiles:user_id (username, avatar_path, avatar_url), session:session_id (id, title, venue_name_manual, date), venues:venue_id (id, slug, name)"
+      )
       .eq("id", catchId)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      toast.error("Failed to load catch");
-      navigate("/feed");
+    const handleInaccessible = () => {
+      if (!catchId) return;
+      if (handledInaccessibleCatchIds.has(catchId)) return;
+      handledInaccessibleCatchIds.add(catchId);
+      toast.error(
+        "This catch isn’t available. It may have been deleted, made private, or you don’t have permission to view it.",
+        { id: `catch-inaccessible-${catchId}` }
+      );
+      navigate("/feed", { replace: true });
+    };
+
+    if (error || !data) {
+      handleInaccessible();
     } else {
-      setCatchData(data as CatchData);
+      handledInaccessibleCatchIds.delete(catchId);
+      // Supabase view/joins aren't in generated types; cast via unknown to align with CatchData
+      setCatchData(data as unknown as CatchData);
     }
     setIsLoading(false);
   }, [catchId, navigate]);
 
+  useEffect(() => {
+    hasHandledInaccessibleRef.current = false;
+  }, [catchId]);
+
   const fetchRatings = useCallback(async () => {
     if (!catchId) return;
-    const { data, error } = await supabase
-      .from("ratings")
-      .select("rating, user_id, profiles:user_id (username)")
-      .eq("catch_id", catchId);
+    const { data, error } = await supabase.rpc(
+      "get_catch_rating_summary" as unknown as keyof Database["public"]["Functions"],
+      { p_catch_id: catchId }
+    );
 
-    if (!error && data) {
-      const ratingsData = data as Rating[];
-      setRatings(ratingsData);
-      if (userId) {
-        const userRatingExists = ratingsData.some(
-          (ratingRow) => ratingRow.user_id === userId
-        );
-        setHasRated(userRatingExists);
+    if (error) {
+      const { message, code } = extractPgError(error);
+      const isAccessError =
+        code === "P0001" || (message && message.includes("Catch is not accessible"));
+
+      if (isAccessError) {
+        setRatingSummaryAccessError(true);
       } else {
-        setHasRated(false);
+        setRatingSummaryError(true);
       }
+
+      logger.error("Failed to load rating summary", error, {
+        catchId,
+        message,
+        code,
+      });
+      setRatingSummary(null);
+      setRatings([]);
+      setHasRated(false);
+      return;
+    }
+
+    setRatingSummaryAccessError(false);
+    setRatingSummaryError(false);
+
+    const summary =
+      (data as unknown as CatchRatingSummary[] | null)?.[0] ?? null;
+
+    // If the function returned no rows (blocked/unauthorized), treat as access denied without toasting.
+    if (!summary) {
+      setRatingSummaryAccessError(true);
+      setRatingSummary(null);
+      setRatings([]);
+      setHasRated(false);
+      return;
+    }
+
+    setRatingSummary(summary);
+
+    if (summary?.your_rating && userId) {
+      setHasRated(true);
+      setRatings([
+        { rating: summary.your_rating, user_id: userId, profiles: null },
+      ]);
+    } else {
+      setHasRated(false);
+      setRatings([]);
     }
   }, [catchId, userId]);
 
@@ -173,7 +257,10 @@ export const useCatchData = ({ catchId, userId }: UseCatchDataParams) => {
       .maybeSingle();
 
     if (error) {
-      logger.error("Failed to check following status", error, { ownerId, userId });
+      logger.error("Failed to check following status", error, {
+        ownerId,
+        userId,
+      });
       setFollowStatusLoaded(true);
       return;
     }
@@ -212,6 +299,9 @@ export const useCatchData = ({ catchId, userId }: UseCatchDataParams) => {
   return {
     catchData,
     ratings,
+    ratingSummary,
+    ratingSummaryAccessError,
+    ratingSummaryError,
     hasRated,
     isLoading,
     reactionCount,
@@ -225,5 +315,6 @@ export const useCatchData = ({ catchId, userId }: UseCatchDataParams) => {
     setIsFollowing,
     fetchReactions,
     fetchRatings,
+    fetchCatchData,
   };
 };

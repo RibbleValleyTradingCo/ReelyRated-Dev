@@ -133,11 +133,11 @@ const AdminUserModeration = () => {
       setProfileStatus(null);
     }
 
-    const warningRows = (warningsResp.data as WarningRow[]) ?? [];
+    const warningRows = ((warningsResp.data ?? []) as unknown as WarningRow[]) ?? [];
     setWarnings((prev) => (warningsPage === 1 ? warningRows : [...prev, ...warningRows]));
     setWarningsHasMore(warningRows.length === warningsLimit);
 
-    const mappedLog = ((logResp.data as ModerationLogRow[]) ?? []).map((row) => {
+    const mappedLog = ((logResp.data ?? []) as unknown as ModerationLogRow[]).map((row) => {
       const metadata = row.metadata ?? {};
       const reason = typeof metadata["reason"] === "string" ? (metadata["reason"] as string) : "No reason provided";
       return { ...row, reason } satisfies ModerationLogRow;
@@ -321,7 +321,12 @@ const AdminUserModeration = () => {
 
       setActionLoading(true);
       try {
-        const payload: Record<string, unknown> = {
+        const payload: {
+          p_user_id: string;
+          p_reason: string;
+          p_severity?: "warning" | "temporary_suspension" | "permanent_ban";
+          p_duration_hours?: number;
+        } = {
           p_user_id: userId,
           p_reason: trimmed,
           p_severity: params.severity,
@@ -330,7 +335,7 @@ const AdminUserModeration = () => {
           payload.p_duration_hours = params.durationHours;
         }
 
-        const { error } = await supabase.rpc("admin_warn_user", payload);
+        const { error } = await supabase.rpc("admin_warn_user" as never, payload as never);
         if (error) throw error;
 
         const successMessage =
@@ -371,10 +376,13 @@ const AdminUserModeration = () => {
 
     setActionLoading(true);
     try {
-      const { error } = await supabase.rpc("admin_clear_moderation_status", {
-        p_user_id: userId,
-        p_reason: trimmed,
-      });
+      const { error } = await supabase.rpc(
+        "admin_clear_moderation_status" as never,
+        {
+          p_user_id: userId,
+          p_reason: trimmed,
+        } as never
+      );
       if (error) throw error;
       toast.success("Restrictions lifted");
       setShowLiftDialog(false);

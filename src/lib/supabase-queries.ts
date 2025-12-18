@@ -283,10 +283,33 @@ export async function getSessionCatches(sessionId: string) {
 /**
  * Soft delete a catch
  */
-export async function deleteCatch(catchId: string) {
+export async function deleteCatch(catchId: string, userId?: string) {
+  const now = new Date().toISOString();
+  const query = supabase
+    .from('catches')
+    .update({ deleted_at: now, updated_at: now })
+    .eq('id', catchId);
+
+  if (userId) {
+    query.eq('user_id', userId);
+  }
+
+  const { error } = await query;
+
+  if (error) throw error;
+}
+
+/**
+ * Update a catch's editable fields (owner-only via RLS).
+ * Currently limited to description and tags to keep scope tight.
+ */
+export async function updateCatchFields(
+  catchId: string,
+  updates: { description?: string | null; tags?: string[] | null }
+) {
   const { error } = await supabase
     .from('catches')
-    .update({ deleted_at: new Date().toISOString() })
+    .update(updates)
     .eq('id', catchId);
 
   if (error) throw error;

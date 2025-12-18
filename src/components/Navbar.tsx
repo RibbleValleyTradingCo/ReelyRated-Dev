@@ -176,7 +176,8 @@ export const Navbar = () => {
         </PopoverTrigger>
         <PopoverContent
           align="end"
-          className="w-64 rounded-xl border border-border/60 bg-background p-0 shadow-lg"
+          sideOffset={8}
+          className="z-[80] w-64 rounded-xl border border-border/60 bg-background p-0 shadow-lg"
         >
           <Command>
             <CommandList className="max-h-[min(75vh,340px)] overflow-y-auto">
@@ -242,8 +243,7 @@ export const Navbar = () => {
               <CommandGroup>
                 <CommandItem
                   className="px-4 py-2"
-                  onSelect={(event) => {
-                    event.preventDefault();
+                  onSelect={() => {
                     void handleSignOut();
                     setAvatarMenuOpen(false);
                   }}

@@ -29,7 +29,7 @@ export const sendTestNotification = async (userId: string | null | undefined) =>
     return;
   }
 
-  logger.info("[notifications-debug] create_notification result", data);
+  logger.info("[notifications-debug] create_notification result", { data });
 
   const { data: recent, error: fetchError } = await supabase
     .from("notifications")
@@ -41,6 +41,6 @@ export const sendTestNotification = async (userId: string | null | undefined) =>
   if (fetchError) {
     logger.error("[notifications-debug] Fetch failed", fetchError);
   } else {
-    logger.info("[notifications-debug] Recent notifications", recent);
+    logger.info("[notifications-debug] Recent notifications", { recent });
   }
 };

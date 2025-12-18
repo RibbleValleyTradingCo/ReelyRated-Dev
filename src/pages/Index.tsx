@@ -12,6 +12,7 @@ import type { LucideIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
+import { isAdminUser } from "@/lib/admin";
 
 type FeatureHighlight = {
   title: string;
@@ -123,7 +124,7 @@ const stepAccents = [
   },
 ] as const;
 
-const FeatureHighlights = ({ compact = false }: { compact?: boolean }) => (
+const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boolean; isAdmin?: boolean }) => (
   <div className={cn("space-y-10", compact ? "pt-2" : "pt-6")}>
     <div
       className={cn(
@@ -158,6 +159,7 @@ const FeatureHighlights = ({ compact = false }: { compact?: boolean }) => (
     >
       {featureHighlights.map(({ title, description, supporting, href, icon: Icon }, index) => {
         const accent = featureAccents[index % featureAccents.length];
+        const resolvedHref = isAdmin && href === "/add-catch" ? undefined : href;
 
         if (compact) {
           return (
@@ -227,9 +229,9 @@ const FeatureHighlights = ({ compact = false }: { compact?: boolean }) => (
                       {supporting}
                     </p>
                   ) : null}
-                  {href ? (
+                  {resolvedHref ? (
                     <a
-                      href={href}
+                      href={resolvedHref}
                       className={cn(
                         "group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                         accent.linkColor,
@@ -462,6 +464,7 @@ const Index = () => {
   });
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [dataError, setDataError] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -525,6 +528,21 @@ const Index = () => {
 
     void loadHomepageData();
 
+    const loadAdmin = async () => {
+      if (!user) {
+        setIsAdmin(false);
+        return;
+      }
+      try {
+        const adminStatus = await isAdminUser(user.id);
+        setIsAdmin(adminStatus);
+      } catch {
+        setIsAdmin(false);
+      }
+    };
+
+    void loadAdmin();
+
     return () => {
       isMounted = false;
     };
@@ -533,7 +551,9 @@ const Index = () => {
   const isSignedIn = Boolean(user);
   const primaryCtaLabel = isSignedIn ? "Open Live Feed" : "Create Your Logbook";
   const secondaryCtaLabel = isSignedIn
-    ? "Share a Fresh Catch"
+    ? isAdmin
+      ? "Browse Public Highlights"
+      : "Share a Fresh Catch"
     : "Browse Public Highlights";
 
   const handlePrimaryCta = () => {
@@ -545,11 +565,11 @@ const Index = () => {
   };
 
   const handleSecondaryCta = () => {
-    if (isSignedIn) {
-      navigate("/add-catch");
-    } else {
+    if (!isSignedIn || isAdmin) {
       navigate("/feed");
+      return;
     }
+    navigate("/add-catch");
   };
 
   const heroHeading = (
@@ -610,7 +630,7 @@ const Index = () => {
 
           <div className="section bg-gray-50/40 py-12 md:py-16">
             <HomeLayout>
-              <FeatureHighlights />
+              <FeatureHighlights isAdmin={isAdmin} />
             </HomeLayout>
           </div>
 

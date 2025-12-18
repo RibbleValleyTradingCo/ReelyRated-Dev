@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "@/hooks/useNotifications";
-import { NotificationListItem, type NotificationRow } from "@/components/notifications/NotificationListItem";
+import { NotificationListItem } from "@/components/notifications/NotificationListItem";
 import { resolveNotificationPath } from "@/lib/notifications-utils";
 import { isAdminUser } from "@/lib/admin";
 import { cn } from "@/lib/utils";
+import type { NotificationRow } from "@/lib/notifications-utils";
 
 interface NotificationsBellProps {
   buttonClassName?: string;
@@ -96,6 +97,9 @@ export const NotificationsBell = ({
     [notifications]
   );
 
+  const [markAllLoading, setMarkAllLoading] = useState(false);
+  const [clearAllLoading, setClearAllLoading] = useState(false);
+
   const handleOpenChange = (value: boolean) => {
     setOpen(value);
     if (value) {
@@ -137,14 +141,17 @@ export const NotificationsBell = ({
   );
 
   const handleMarkAllClick = useCallback(() => {
-    if (unreadCount > 0) {
-      void markAll();
+    if (unreadCount > 0 && !markAllLoading) {
+      setMarkAllLoading(true);
+      void markAll().finally(() => setMarkAllLoading(false));
     }
-  }, [markAll, unreadCount]);
+  }, [markAll, unreadCount, markAllLoading]);
 
   const handleClearAll = useCallback(() => {
-    void clearAll();
-  }, [clearAll]);
+    if (clearAllLoading) return;
+    setClearAllLoading(true);
+    void clearAll().finally(() => setClearAllLoading(false));
+  }, [clearAll, clearAllLoading]);
 
   if (authLoading || !user) {
     return null;
@@ -187,50 +194,28 @@ export const NotificationsBell = ({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="z-[70] w-80 p-0" align="end">
-        <div className="border-b px-4 py-3 space-y-2">
+        <div className="border-b px-4 pt-3 pb-2">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-semibold text-foreground">Notifications</p>
-            <div className="flex items-center gap-1">
+            <p className="text-sm font-semibold text-foreground">
+              {unreadCount > 0 ? (
+                <>
+                  Notifications (<span className="text-red-400">{unreadCount}</span>)
+                </>
+              ) : (
+                "Notifications"
+              )}
+            </p>
+            {unreadCount > 0 ? (
               <Button
-                variant="ghost"
+                variant="link"
                 size="sm"
-                className="h-auto px-2 text-xs"
-                onClick={() => {
-                  void refresh();
-                }}
-                disabled={isLoading}
+                className="h-auto px-2 py-1 text-xs font-semibold text-primary hover:no-underline hover:text-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={handleMarkAllClick}
+                disabled={unreadCount === 0 || markAllLoading}
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-                    Loading
-                  </>
-                ) : (
-                  "Refresh"
-                )}
+                Mark all read
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-auto px-2 text-xs text-destructive"
-                onClick={handleClearAll}
-                disabled={notifications.length === 0}
-              >
-                Clear all
-              </Button>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Stay up to date with the latest activity on your catches.</span>
-            <Button
-              variant="link"
-              size="sm"
-              className="h-auto px-0 text-xs"
-              onClick={handleMarkAllClick}
-              disabled={unreadCount === 0}
-            >
-              Mark all read
-            </Button>
+            ) : null}
           </div>
         </div>
         <div className="p-3">
@@ -240,8 +225,11 @@ export const NotificationsBell = ({
               Loading…
             </div>
           ) : notifications.length === 0 ? (
-            <div className="py-6 text-center text-sm text-muted-foreground">
-              You’re all caught up!
+            <div className="py-6 text-center text-sm text-muted-foreground space-y-1">
+              <div>You’re all caught up!</div>
+              <div className="text-xs text-muted-foreground">
+                We’ll let you know when there’s new activity on your catches.
+              </div>
             </div>
           ) : (
             <div className="max-h-[60vh] overflow-y-auto pr-2">
@@ -260,6 +248,19 @@ export const NotificationsBell = ({
             </div>
           )}
         </div>
+        {notifications.length > 0 ? (
+          <div className="border-t px-4 py-2 text-xs">
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto px-0 py-2 text-[11px] text-destructive hover:no-underline hover:text-destructive/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleClearAll}
+              disabled={clearAllLoading}
+            >
+              Clear all notifications
+            </Button>
+          </div>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

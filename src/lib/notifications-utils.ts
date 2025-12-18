@@ -1,14 +1,45 @@
 import type { Database } from "@/integrations/supabase/types";
 import { getProfilePath } from "@/lib/profile";
 
-export type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+type DbNotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
+type NotificationType = DbNotificationRow["type"] | "comment_reply";
+export type NotificationRow = Omit<DbNotificationRow, "type"> & { type: NotificationType };
+
+type NotificationExtraData = {
+  catch_id?: string;
+  catchId?: string;
+  comment_id?: string;
+  commentId?: string;
+  actor_username?: string;
+  catch_title?: string;
+  action?: string;
+  [key: string]: unknown;
+};
+
+export const formatNotificationTimeShort = (timestamp: string | number | Date): string => {
+  const now = Date.now();
+  const value = new Date(timestamp).getTime();
+  if (Number.isNaN(value)) return "";
+  const diffMs = Math.max(0, now - value);
+  const seconds = Math.floor(diffMs / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+  const weeks = Math.floor(days / 7);
+
+  if (minutes < 1) return "<1m";
+  if (minutes < 60) return `${minutes}m`;
+  if (hours < 24) return `${hours}h`;
+  if (days < 7) return `${days}d`;
+  return `${weeks > 0 ? weeks : days}w`;
+};
 
 export const resolveNotificationPath = (notification: NotificationRow): string | null => {
   if (notification.type === "admin_report") {
     return "/admin/reports";
   }
 
-  const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
+  const extraData = (notification.extra_data ?? {}) as NotificationExtraData;
   const catchTypes = new Set<NotificationRow["type"]>([
     "new_comment",
     "comment_reply",
@@ -21,18 +52,16 @@ export const resolveNotificationPath = (notification: NotificationRow): string |
     (typeof extraData.catch_id === "string" && extraData.catch_id.length > 0
       ? extraData.catch_id
       : null) ??
-    (typeof (extraData as Record<string, unknown>).catchId === "string" &&
-    (extraData as Record<string, unknown>).catchId.length > 0
-      ? ((extraData as Record<string, string>).catchId as string)
+    (typeof extraData.catchId === "string" && extraData.catchId.length > 0
+      ? extraData.catchId
       : null);
 
   const commentIdFromExtra =
     (typeof extraData.comment_id === "string" && extraData.comment_id.length > 0
       ? extraData.comment_id
       : null) ??
-    (typeof (extraData as Record<string, unknown>).commentId === "string" &&
-    (extraData as Record<string, unknown>).commentId.length > 0
-      ? ((extraData as Record<string, string>).commentId as string)
+    (typeof extraData.commentId === "string" && extraData.commentId.length > 0
+      ? extraData.commentId
       : null);
 
   if (notification.type === "admin_moderation") {

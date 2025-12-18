@@ -220,7 +220,7 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
         <div className="mt-6 flex flex-col gap-5">
           {renderMenuItems(primaryItems, { heading: "Primary" })}
 
-          {user ? (
+          {user && !isAdmin ? (
             <div className="space-y-2">
               <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Create
@@ -238,28 +238,30 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
                 </Button>
               </div>
             </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Account
-              </p>
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 shadow-md">
-                <Button
-                  variant="ocean"
-                  className="w-full justify-center gap-2 rounded-full py-3 text-base font-semibold"
-                  asChild
-                >
-                  <Link to="/auth" onClick={handleNavigate(onSignIn)}>
-                    Sign In
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {user ? renderMenuItems(accountItems, { heading: "Account" }) : null}
+          ) : null}
 
           {renderMenuItems(adminItems, { heading: "Admin" })}
+
+          {user
+            ? renderMenuItems(accountItems, { heading: "Account" })
+            : (
+              <div className="space-y-2">
+                <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Account
+                </p>
+                <div className="rounded-xl border border-border/70 bg-white/95 p-3 shadow-md">
+                  <Button
+                    variant="ocean"
+                    className="w-full justify-center gap-2 rounded-full py-3 text-base font-semibold"
+                    asChild
+                  >
+                    <Link to="/auth" onClick={handleNavigate(onSignIn)}>
+                      Sign In
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            )}
         </div>
       </div>
     </div>,

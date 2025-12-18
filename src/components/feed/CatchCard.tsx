@@ -1,4 +1,4 @@
-import React, { memo } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -8,6 +8,7 @@ import { shouldShowExactLocation } from "@/lib/visibility";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 type CustomFields = {
   species?: string;
@@ -73,18 +74,64 @@ const formatWeight = (weight: number | null, unit: string | null) => {
   return `${weight}${unit === 'kg' ? 'kg' : 'lb'}`;
 };
 
-const calculateAverageRating = (ratings: { rating: number }[]) => {
-  if (ratings.length === 0) return "0";
-  const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
-  return (sum / ratings.length).toFixed(1);
-};
-
 export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
   const navigate = useNavigate();
+  const [ratingSummary, setRatingSummary] = useState<{ average_rating: number | null; rating_count: number } | null>(null);
+  const [ratingSummaryAccessError, setRatingSummaryAccessError] = useState(false);
+  const [ratingSummaryError, setRatingSummaryError] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const loadSummary = async () => {
+      const { data, error } = await supabase.rpc("get_catch_rating_summary", { p_catch_id: catchItem.id });
+      if (error) {
+        const isAccessError =
+          error.code === "P0001" ||
+          (typeof error.message === "string" && error.message.includes("Catch is not accessible"));
+        if (isAccessError) {
+          setRatingSummaryAccessError(true);
+        } else {
+          setRatingSummaryError(true);
+        }
+        return;
+      }
+      if (!active) return;
+
+      const summary = (data as { average_rating: number | null; rating_count: number }[] | null)?.[0] ?? null;
+
+      // If the function returned no rows (blocked/unauthorized), treat as access denied without toasting.
+      if (!summary) {
+        setRatingSummaryAccessError(true);
+        setRatingSummaryError(false);
+        setRatingSummary(null);
+        return;
+      }
+
+      setRatingSummaryAccessError(false);
+      setRatingSummaryError(false);
+      setRatingSummary(summary);
+    };
+    void loadSummary();
+    return () => {
+      active = false;
+    };
+  }, [catchItem.id]);
 
   const ratingsCount = catchItem.ratings.length;
   const commentsCount = catchItem.comments.length;
   const reactionsCount = catchItem.reactions?.length ?? 0;
+  const summaryCount =
+    ratingSummary && !ratingSummaryAccessError && !ratingSummaryError
+      ? ratingSummary.rating_count
+      : ratingsCount;
+  const summaryAvg =
+    ratingSummary &&
+    !ratingSummaryAccessError &&
+    !ratingSummaryError &&
+    ratingSummary.rating_count > 0 &&
+    ratingSummary.average_rating !== null
+      ? Number(ratingSummary.average_rating).toFixed(1)
+      : null;
 
   return (
     <Card
@@ -149,16 +196,18 @@ export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
               : "Undisclosed venue"}
           </p>
         ) : null}
-        <div className="flex items-center gap-5 w-full pt-1">
-          <div className="flex items-center gap-1.5">
-            <Star className="w-4 h-4 text-amber-500 fill-amber-400/90" />
-            <span className="text-sm font-semibold text-slate-900">
-              {calculateAverageRating(catchItem.ratings)}
-            </span>
-            <span className="text-xs text-slate-500">
-              ({ratingsCount})
-            </span>
-          </div>
+          <div className="flex items-center gap-5 w-full pt-1">
+          {!ratingSummaryAccessError && (
+            <div className="flex items-center gap-1.5">
+              <Star className="w-4 h-4 text-amber-500 fill-amber-400/90" />
+              <span className="text-sm font-semibold text-slate-900">
+                {ratingSummaryError ? "–" : summaryAvg ?? "–"}
+              </span>
+              <span className="text-xs text-slate-500">
+                ({summaryCount})
+              </span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             <MessageCircle className={cn("w-4 h-4", commentsCount === 0 ? "text-slate-300" : "text-slate-500")} />
             <span className={cn("text-sm", commentsCount === 0 ? "text-slate-400" : "text-slate-600")}>

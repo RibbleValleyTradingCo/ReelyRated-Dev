@@ -258,6 +258,7 @@ const Profile = () => {
         "id, user_id, location, hide_exact_spot, visibility, title, image_url, weight, weight_unit, species, created_at, ratings (rating), venues:venue_id (id, slug, name)"
       )
       .eq("user_id", profileId)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false });
 
     if (!error && data) {

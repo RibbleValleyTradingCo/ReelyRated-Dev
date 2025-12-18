@@ -1,0 +1,38 @@
+# Developer Workflow
+
+This doc describes how to safely develop ReelyRated, especially around **Supabase migrations** and the **`main` branch**.
+
+Audience: current you + any future collaborators.
+
+---
+
+## 1. Mental model
+
+- **Git branches** = versions of the **codebase**.
+  - `main` → production code.
+  - `feature/*` → temporary branches for new work.
+- **Supabase database** = the **data + schema**.
+  - Right now we treat the **main Supabase DB** as the source of truth.
+  - The old `phase-1` DB is considered historical and should not be used anymore.
+
+The key idea:
+
+> Code in `main` must always be compatible with the schema in the **main DB**.  
+> We use **migrations** to evolve the DB in a controlled, additive way.
+
+---
+
+## 2. Branching model (Git)
+
+**Default rule:**  
+Do all work on short-lived feature branches, then merge to `main`.
+
+Typical flow:
+
+```bash
+# Update local main
+git checkout main
+git pull origin main
+
+# Start a new feature branch
+git checkout -b feature/short-description

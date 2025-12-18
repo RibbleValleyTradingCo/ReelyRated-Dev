@@ -404,29 +404,36 @@ export const CatchComments = memo(
         if (error) {
           const moderation = mapModerationError(error);
           if (moderation.type === "suspended") {
-            const untilText = moderation.until ? ` until ${new Date(moderation.until).toLocaleString()}` : "";
+            const untilText =
+              "until" in moderation && moderation.until ? ` until ${new Date(moderation.until).toLocaleString()}` : "";
             toast.error(`You’re currently suspended${untilText} and can’t post comments right now.`);
           } else if (moderation.type === "banned") {
             toast.error("Your account is banned and you can’t post comments.");
-          } else if (isRateLimitError(error)) {
-            toast.error(getRateLimitMessage(error));
-          } else if (error.message?.includes("Catch is not accessible")) {
-            toast.error("You don't have access to comment on this catch");
-          } else if (error.message?.includes("Parent comment")) {
-            toast.error("Unable to reply to that comment");
-            if (parentCommentId) {
-              setReplyErrors((prev) => ({ ...prev, [parentCommentId]: "Unable to reply to that comment" }));
-            }
           } else {
-            toast.error("Failed to post comment");
-            if (parentCommentId === null) {
-              setTopLevelError("Failed to post comment");
+            const errorMessage =
+              typeof (error as { message?: unknown }).message === "string"
+                ? ((error as { message: string }).message as string)
+                : "";
+            if (isRateLimitError(error)) {
+              toast.error(getRateLimitMessage(error));
+            } else if (errorMessage.includes("Catch is not accessible")) {
+              toast.error("You don't have access to comment on this catch");
+            } else if (errorMessage.includes("Parent comment")) {
+              toast.error("Unable to reply to that comment");
+              if (parentCommentId) {
+                setReplyErrors((prev) => ({ ...prev, [parentCommentId]: "Unable to reply to that comment" }));
+              }
             } else {
-              setReplyErrors((prev) => ({ ...prev, [parentCommentId]: "Failed to post reply" }));
+              toast.error("Failed to post comment");
+              if (parentCommentId === null) {
+                setTopLevelError("Failed to post comment");
+              } else {
+                setReplyErrors((prev) => ({ ...prev, [parentCommentId]: "Failed to post reply" }));
+              }
             }
           }
           setIsPosting(false);
-          return moderation.type ? false : false;
+          return false;
         }
 
         const nowIso = new Date().toISOString();

@@ -41,7 +41,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
-import { calculateAverageRating, formatWeight, formatSpecies, formatEnum, formatSlugLabel } from "@/lib/catch-formatting";
+import { formatWeight, formatSpecies, formatEnum, formatSlugLabel } from "@/lib/catch-formatting";
 import { CatchComments } from "@/components/CatchComments";
 import { useCatchData } from "@/hooks/useCatchData";
 import type { CatchData, Rating } from "@/hooks/useCatchData";
@@ -51,6 +51,7 @@ import { getProfilePath } from "@/lib/profile";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { canViewCatch, shouldShowExactLocation } from "@/lib/visibility";
 import type { Database } from "@/integrations/supabase/types";
+import { updateCatchFields } from "@/lib/supabase-queries";
 import html2canvas from "html2canvas";
 import ShareCard from "@/components/ShareCard";
 import ReportButton from "@/components/ReportButton";
@@ -70,6 +71,10 @@ const CatchDetail = () => {
   const [shareCopied, setShareCopied] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
+  const [editDescription, setEditDescription] = useState<string>("");
+  const [editTagsInput, setEditTagsInput] = useState<string>("");
   const [downloadLoading, setDownloadLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
@@ -91,6 +96,10 @@ const CatchDetail = () => {
     setIsFollowing,
     fetchReactions,
     fetchRatings,
+    fetchCatchData,
+    ratingSummary,
+    ratingSummaryAccessError,
+    ratingSummaryError,
   } = useCatchData({
     catchId,
     userId: user?.id,
@@ -190,7 +199,6 @@ const CatchDetail = () => {
   const customSpecies = customFields.species;
   const customMethod = customFields.method;
   const gpsData = catchData.conditions?.gps;
-  const showGpsMap = !catchData.hide_exact_spot && gpsData;
   const profile = catchData.profiles ?? {
     username: "Unknown angler",
     avatar_url: null,
@@ -213,10 +221,13 @@ const CatchDetail = () => {
     catchData.user_id,
     user?.id
   );
+  const showGpsMap = canShowExactLocation && gpsData;
   const locationLabel = canShowExactLocation
     ? catchData.location_label ?? undefined
     : undefined;
-  const displayLocationLabel = locationLabel ?? (catchData.hide_exact_spot ? "Undisclosed venue" : catchData.location_label ?? undefined);
+  const displayLocationLabel =
+    locationLabel ??
+    (!canShowExactLocation ? "Undisclosed venue" : catchData.location_label ?? undefined);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
@@ -427,8 +438,34 @@ const CatchDetail = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-primary">{calculateAverageRating(ratings)}</div>
-                    <p className="text-sm text-muted-foreground mt-1">{ratings.length} ratings</p>
+                    {ratingSummaryError ? (
+                      <>
+                        <div className="text-4xl font-bold text-primary">–</div>
+                        <p className="text-sm text-muted-foreground mt-1">Ratings unavailable</p>
+                      </>
+                    ) : ratingSummaryAccessError ? (
+                      <>
+                        <div className="text-4xl font-bold text-primary">–</div>
+                        <p className="text-sm text-muted-foreground mt-1">You can’t view ratings for this catch</p>
+                      </>
+                    ) : ratingSummary && ratingSummary.rating_count > 0 && ratingSummary.average_rating !== null ? (
+                      <>
+                        <div className="text-4xl font-bold text-primary">{Number(ratingSummary.average_rating).toFixed(1)}</div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {ratingSummary.rating_count} rating{ratingSummary.rating_count === 1 ? "" : "s"}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-4xl font-bold text-primary">–</div>
+                        <p className="text-sm text-muted-foreground mt-1">No ratings yet</p>
+                      </>
+                    )}
+                    {ratingSummary?.your_rating ? (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Your rating: {ratingSummary.your_rating}/10
+                      </p>
+                    ) : null}
                   </div>
 
                   {user && !hasRated && !isOwner && (
@@ -473,7 +510,7 @@ const CatchDetail = () => {
                     </div>
                   </div>
                 )}
-                {catchData.peg_or_swim && !catchData.hide_exact_spot && (
+                {catchData.peg_or_swim && canShowExactLocation && (
                   <div className="flex items-start gap-2">
                     <Layers className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
                     <div>
@@ -482,7 +519,7 @@ const CatchDetail = () => {
                     </div>
                   </div>
                 )}
-                {catchData.hide_exact_spot && catchData.peg_or_swim && (
+                {!canShowExactLocation && catchData.peg_or_swim && (
                   <div className="flex items-start gap-2">
                     <EyeOff className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
                     <div className="text-muted-foreground text-xs">
@@ -629,8 +666,30 @@ const CatchDetail = () => {
           </div>
         </div>
       </div>
-      {user && user.id === ownerId && (
-        <div className="container mx-auto px-4 pb-12 max-w-5xl">
+      {user && user.id === ownerId && !isAdmin && (
+        <div className="container mx-auto px-4 pb-12 max-w-5xl space-y-6">
+          <div className="rounded-xl border border-blue-200/60 bg-blue-50 p-6 text-sm text-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="font-semibold text-slate-900">Need to update this catch?</p>
+                <p className="text-slate-700">
+                  You can edit the description and tags. Other fields remain unchanged.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                disabled={editLoading}
+                onClick={() => {
+                  setEditDescription(catchData.description ?? "");
+                  setEditTagsInput((catchData.tags ?? []).join(", "));
+                  setEditDialogOpen(true);
+                }}
+              >
+                Edit catch
+              </Button>
+            </div>
+          </div>
+
           <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -670,6 +729,71 @@ const CatchDetail = () => {
               </AlertDialog>
             </div>
           </div>
+          <AlertDialog open={editDialogOpen} onOpenChange={(open) => !editLoading && setEditDialogOpen(open)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Edit catch</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Update the description and tags for this catch. Changes will be visible on your catch detail, feed, and profile list.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="space-y-4 py-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground" htmlFor="edit-description">
+                    Description
+                  </label>
+                  <textarea
+                    id="edit-description"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    rows={4}
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground" htmlFor="edit-tags">
+                    Tags (comma-separated)
+                  </label>
+                  <input
+                    id="edit-tags"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    value={editTagsInput}
+                    onChange={(e) => setEditTagsInput(e.target.value)}
+                    placeholder="carp, night, float"
+                  />
+                </div>
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={editLoading}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  disabled={editLoading}
+                  onClick={async (event) => {
+                    event.preventDefault();
+                    setEditLoading(true);
+                    const nextTags = editTagsInput
+                      .split(",")
+                      .map((tag) => tag.trim())
+                      .filter((tag) => tag.length > 0);
+                    try {
+                      await updateCatchFields(catchData.id, {
+                        description: editDescription.trim() === "" ? null : editDescription,
+                        tags: nextTags.length > 0 ? nextTags : null,
+                      });
+                      await fetchCatchData();
+                      setEditDialogOpen(false);
+                    } catch (error) {
+                      toast.error("Failed to update catch");
+                      logger.error("Failed to update catch", error, { catchId: catchData.id });
+                    } finally {
+                      setEditLoading(false);
+                    }
+                  }}
+                >
+                  {editLoading ? "Saving…" : "Save changes"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       )}
     </div>

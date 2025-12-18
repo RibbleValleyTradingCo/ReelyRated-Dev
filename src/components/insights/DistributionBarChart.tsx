@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { ResponsiveBar } from "@nivo/bar";
-import type { Theme } from "@nivo/core";
+import type { PartialTheme } from "@nivo/theming";
 import { cn } from "@/lib/utils";
 
 interface BarChartData {
@@ -10,7 +10,7 @@ interface BarChartData {
 
 interface DistributionBarChartProps {
   data: BarChartData[];
-  theme: Theme;
+  theme: PartialTheme;
   color: string;
   gradientId: string;
   layout?: "horizontal" | "vertical";

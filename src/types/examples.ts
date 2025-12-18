@@ -7,7 +7,7 @@
  * NOT MEANT TO BE IMPORTED - just reference/documentation
  */
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import type {
   Database,
   CatchRow,

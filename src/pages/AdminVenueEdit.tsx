@@ -166,8 +166,14 @@ const AdminVenueEdit = () => {
         toast.error("Failed to load venue owners");
         setOwners([]);
       } else {
+        type OwnerRow = {
+          user_id: string;
+          role: string | null;
+          profiles: { username: string | null } | null;
+        };
+        const rows = (data ?? []) as unknown as OwnerRow[];
         setOwners(
-          (data ?? []).map((row: any) => ({
+          rows.map((row) => ({
             user_id: row.user_id,
             username: row.profiles?.username ?? null,
             role: row.role ?? "owner",
@@ -266,8 +272,14 @@ const AdminVenueEdit = () => {
         .from("venue_owners")
         .select("user_id, role, profiles:user_id (username)")
         .eq("venue_id", venue.id);
+      type OwnerRow = {
+        user_id: string;
+        role: string | null;
+        profiles: { username: string | null } | null;
+      };
+      const rows = (data ?? []) as unknown as OwnerRow[];
       setOwners(
-        (data ?? []).map((row: any) => ({
+        rows.map((row) => ({
           user_id: row.user_id,
           username: row.profiles?.username ?? null,
           role: row.role ?? "owner",

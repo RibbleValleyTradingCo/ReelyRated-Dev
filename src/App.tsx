@@ -1,11 +1,12 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/components/AuthProvider";
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { supabase } from "./integrations/supabase/client";
 
 // Eager load: Critical pages (landing and auth)
 import Index from "./pages/Index";
@@ -32,6 +33,78 @@ const SearchPage = lazy(() => import("./pages/Search"));
 const Insights = lazy(() => import("./pages/Insights"));
 const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+
+const RequireAuth = ({ children }: { children: JSX.Element }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <PageLoader />;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace state={{ from: location }} />;
+  }
+
+  return children;
+};
+
+const DeletedAccountGate = ({ children }: { children: JSX.Element }) => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [status, setStatus] = useState<"checking" | "ok" | "redirecting">("ok");
+
+  useEffect(() => {
+    let active = true;
+    const checkDeletedProfile = async () => {
+      if (location.pathname === "/account-deleted") {
+        setStatus("ok");
+        return;
+      }
+      if (loading) {
+        setStatus("checking");
+        return;
+      }
+      if (!user) {
+        setStatus("ok");
+        return;
+      }
+
+      setStatus("checking");
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("is_deleted")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!active) return;
+      if (error) {
+        console.error("Failed to check profile deletion status", error);
+        setStatus("ok");
+        return;
+      }
+      if (data?.is_deleted) {
+        setStatus("redirecting");
+        await supabase.auth.signOut();
+        navigate("/account-deleted", { replace: true });
+      } else {
+        setStatus("ok");
+      }
+    };
+
+    void checkDeletedProfile();
+
+    return () => {
+      active = false;
+    };
+  }, [user, loading, navigate, location.pathname]);
+
+  if (status === "checking" || status === "redirecting") {
+    return <PageLoader />;
+  }
+
+  return children;
+};
 
 // Loading fallback component
 const PageLoader = () => (
@@ -64,31 +137,137 @@ const App = () => (
         <AuthProvider>
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Routes>
+              <DeletedAccountGate>
+                <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/feed" element={<Feed />} />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route path="/add-catch" element={<AddCatch />} />
-                <Route path="/catch/:id" element={<CatchDetail />} />
-                <Route path="/profile/:slug" element={<Profile />} />
-                <Route path="/settings/profile" element={<ProfileSettings />} />
-                <Route path="/sessions" element={<Sessions />} />
-                <Route path="/admin/reports" element={<AdminReports />} />
-                <Route path="/admin/audit-log" element={<AdminAuditLog />} />
-                <Route path="/admin/users/:userId/moderation" element={<AdminUserModeration />} />
-                <Route path="/admin/users/:userId/moderation" element={<AdminUserModeration />} />
-                <Route path="/admin/venues" element={<AdminVenuesList />} />
-                <Route path="/admin/venues/:slug" element={<AdminVenueEdit />} />
-                <Route path="/search" element={<SearchPage />} />
-                <Route path="/insights" element={<Insights />} />
                 <Route path="/venues" element={<VenuesIndex />} />
                 <Route path="/venues/:slug" element={<VenueDetail />} />
-                <Route path="/my/venues" element={<MyVenues />} />
-                <Route path="/my/venues/:slug" element={<MyVenueEdit />} />
+                <Route
+                  path="/feed"
+                  element={
+                    <RequireAuth>
+                      <Feed />
+                    </RequireAuth>
+                  }
+                />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route
+                  path="/add-catch"
+                  element={
+                    <RequireAuth>
+                      <AddCatch />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/catch/:id"
+                  element={
+                    <RequireAuth>
+                      <CatchDetail />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/profile/:slug"
+                  element={
+                    <RequireAuth>
+                      <Profile />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/settings/profile"
+                  element={
+                    <RequireAuth>
+                      <ProfileSettings />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/sessions"
+                  element={
+                    <RequireAuth>
+                      <Sessions />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin/reports"
+                  element={
+                    <RequireAuth>
+                      <AdminReports />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin/audit-log"
+                  element={
+                    <RequireAuth>
+                      <AdminAuditLog />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin/users/:userId/moderation"
+                  element={
+                    <RequireAuth>
+                      <AdminUserModeration />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin/venues"
+                  element={
+                    <RequireAuth>
+                      <AdminVenuesList />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/admin/venues/:slug"
+                  element={
+                    <RequireAuth>
+                      <AdminVenueEdit />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/search"
+                  element={
+                    <RequireAuth>
+                      <SearchPage />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/insights"
+                  element={
+                    <RequireAuth>
+                      <Insights />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/my/venues"
+                  element={
+                    <RequireAuth>
+                      <MyVenues />
+                    </RequireAuth>
+                  }
+                />
+                <Route
+                  path="/my/venues/:slug"
+                  element={
+                    <RequireAuth>
+                      <MyVenueEdit />
+                    </RequireAuth>
+                  }
+                />
                 <Route path="/account-deleted" element={<AccountDeleted />} />
                 <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </DeletedAccountGate>
             </Suspense>
           </ErrorBoundary>
         </AuthProvider>

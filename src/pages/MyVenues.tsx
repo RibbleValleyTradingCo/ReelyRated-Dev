@@ -42,8 +42,19 @@ const MyVenues = () => {
         toast.error("Unable to load your venues");
         setVenues([]);
       } else {
+        type OwnerVenueRow = {
+          venues: {
+            id: string;
+            slug: string;
+            name: string;
+            location: string | null;
+            short_tagline: string | null;
+            price_from: string | null;
+          };
+        };
+        const rows = (data ?? []) as unknown as OwnerVenueRow[];
         setVenues(
-          (data ?? []).map((row: any) => ({
+          rows.map((row) => ({
             id: row.venues.id,
             slug: row.venues.slug,
             name: row.venues.name,

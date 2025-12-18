@@ -478,6 +478,7 @@ const Insights = () => {
                       title="Time of day performance"
                       description="Track when your catches most often happen."
                       isEmpty={false}
+                      emptyMessage="No time-of-day data yet."
                       footer={showTimeOfDayChart ? timeOfDaySummary : undefined}
                     >
                       {showTimeOfDayChart ? (

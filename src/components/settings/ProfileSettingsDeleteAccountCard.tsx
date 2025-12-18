@@ -38,13 +38,14 @@ const ProfileSettingsDeleteAccountCard = ({
       <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
         <CardTitle className="text-lg">Delete your account</CardTitle>
         <p className="text-sm text-slate-600">
-          This will log you out and begin the deletion process. Your profile will be anonymised and your catches/comments
-          hidden from normal surfaces, while moderation history may be retained for safety. This can’t be undone from the UI.
+          This will immediately delete/close your account. Your profile will be anonymised and your catches/comments
+          hidden from normal surfaces, while some moderation history may be retained for safety. This can’t be undone from
+          the UI.
         </p>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 px-5 pb-5 md:flex-row md:items-center md:justify-between md:px-8 md:pb-8">
         <p className="text-sm text-slate-600 md:max-w-lg">
-          You can optionally share why you&apos;re leaving before confirming. Deletion is permanent for this account.
+          You can optionally share why you&apos;re leaving before confirming. Deletion/closure is permanent for this account.
         </p>
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogTrigger asChild>

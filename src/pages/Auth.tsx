@@ -63,15 +63,33 @@ const Auth = () => {
   }, [resetParam]);
 
   const handleSignIn = async (data: SignInFormData) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: signInData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
 
     if (error) {
       toast.error(error.message);
+      return;
+    }
+
+    const authUser = signInData?.user;
+    if (!authUser) {
+      toast.error("Something went wrong signing you in. Please try again.");
+      return;
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("is_deleted")
+      .eq("id", authUser.id)
+      .maybeSingle();
+
+    signInForm.reset();
+    if (!profileError && profile?.is_deleted) {
+      toast.info("This account has been deleted. You can’t reuse this account or email address.");
+      // DeletedAccountGate will handle sign-out + redirect.
     } else {
-      signInForm.reset();
       toast.success("Welcome back!");
       navigate("/");
     }

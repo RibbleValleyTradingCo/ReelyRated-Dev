@@ -40,7 +40,7 @@ export const createNotification = async ({ userId, actorId = null, type, payload
     const { data, error } = await supabase.rpc("create_notification", {
       p_user_id: userId,
       p_actor_id: actorId,
-      p_type: type,
+      p_type: type as Database["public"]["Enums"]["notification_type"],
       p_message: payload.message,
       p_catch_id: payload.catchId ?? null,
       p_comment_id: payload.commentId ?? null,
@@ -82,9 +82,10 @@ export const fetchNotifications = async (userId: string, limit = 50) => {
 export const markNotificationAsRead = async (notificationId: string, userId: string) => {
   const { data, error } = await supabase
     .from("notifications")
-    .update({ is_read: true })
+    .update({ is_read: true, read_at: new Date().toISOString() })
     .eq("id", notificationId)
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .is("read_at", null);
 
   if (error) {
     logger.error("Failed to mark notification as read", error, { notificationId, userId });
@@ -95,9 +96,9 @@ export const markNotificationAsRead = async (notificationId: string, userId: str
 export const markAllNotificationsAsRead = async (userId: string) => {
   const { data, error } = await supabase
     .from("notifications")
-    .update({ is_read: true })
+    .update({ is_read: true, read_at: new Date().toISOString() })
     .eq("user_id", userId)
-    .eq("is_read", false);
+    .is("read_at", null);
 
   if (error) {
     logger.error("Failed to mark all notifications as read", error, { userId });
@@ -139,7 +140,7 @@ const loadAdminUserIds = async () => {
   return cachedAdminIds;
 };
 
-export const notifyAdmins = async (data: NotificationInsert["data"]) => {
+export const notifyAdmins = async (payload: NotificationInsert["extra_data"]) => {
   const adminIds = await loadAdminUserIds();
 
   if (adminIds.length === 0) {
@@ -153,8 +154,8 @@ export const notifyAdmins = async (data: NotificationInsert["data"]) => {
         userId: adminId,
         type: "admin_report",
         payload: {
-          message: data?.message ?? "A new report has been submitted.",
-          extraData: data ?? undefined,
+          message: (payload as { message?: string } | null | undefined)?.message ?? "A new report has been submitted.",
+          extraData: (payload ?? undefined) as Record<string, unknown> | undefined,
         },
       })
     )

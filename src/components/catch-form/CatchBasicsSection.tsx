@@ -1,12 +1,29 @@
-import React from "react";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Upload, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { UK_FRESHWATER_SPECIES } from "@/lib/freshwater-data";
+import { ChevronsUpDown, Upload } from "lucide-react";
+import React from "react";
 
 const toTitleCase = (value: string) =>
   value
@@ -35,7 +52,9 @@ interface CatchBasicsSectionProps {
     length: string;
     lengthUnit: string;
   };
-  onFormDataChange: (updates: Partial<CatchBasicsSectionProps["formData"]>) => void;
+  onFormDataChange: (
+    updates: Partial<CatchBasicsSectionProps["formData"]>
+  ) => void;
 }
 
 export const CatchBasicsSection = ({
@@ -54,7 +73,8 @@ export const CatchBasicsSection = ({
   const hasExactSpeciesMatch =
     trimmedSpeciesSearch.length > 0 &&
     UK_FRESHWATER_SPECIES.some(
-      (species) => species.label.toLowerCase() === trimmedSpeciesSearch.toLowerCase(),
+      (species) =>
+        species.label.toLowerCase() === trimmedSpeciesSearch.toLowerCase()
     );
 
   return (
@@ -65,11 +85,17 @@ export const CatchBasicsSection = ({
         <Label htmlFor="image">Main Photo *</Label>
         <div className="border-2 border-dashed rounded-lg p-6 text-center">
           {imagePreview ? (
-            <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+            <img
+              src={imagePreview}
+              alt="Preview"
+              className="max-h-48 mx-auto rounded"
+            />
           ) : (
             <div className="space-y-2">
               <Upload className="w-10 h-10 mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Upload your catch photo</p>
+              <p className="text-sm text-muted-foreground">
+                Upload your catch photo
+              </p>
             </div>
           )}
           <Input
@@ -97,7 +123,9 @@ export const CatchBasicsSection = ({
       </div>
 
       <div className="space-y-2">
-        <Label id={speciesLabelId} htmlFor="species">Species *</Label>
+        <Label id={speciesLabelId} htmlFor="species">
+          Species *
+        </Label>
         <Popover
           open={speciesPopoverOpen}
           onOpenChange={(isOpen) => {
@@ -119,7 +147,9 @@ export const CatchBasicsSection = ({
               data-testid="species-combobox"
             >
               {(() => {
-                const selectedSpecies = UK_FRESHWATER_SPECIES.find((item) => item.value === formData.species);
+                const selectedSpecies = UK_FRESHWATER_SPECIES.find(
+                  (item) => item.value === formData.species
+                );
                 if (selectedSpecies) return selectedSpecies.label;
                 if (formData.customSpecies) return formData.customSpecies;
                 return "Select species";
@@ -172,7 +202,9 @@ export const CatchBasicsSection = ({
                       Clear selection
                     </CommandItem>
                   )}
-                  {UK_FRESHWATER_SPECIES.filter((species) => species.value !== "other").map((species) => (
+                  {UK_FRESHWATER_SPECIES.filter(
+                    (species) => species.value !== ("other" as string)
+                  ).map((species) => (
                     <CommandItem
                       key={species.value}
                       value={species.label.toLowerCase()}
@@ -209,7 +241,10 @@ export const CatchBasicsSection = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="weightUnit">Unit</Label>
-          <Select value={formData.weightUnit} onValueChange={(value) => onFormDataChange({ weightUnit: value })}>
+          <Select
+            value={formData.weightUnit}
+            onValueChange={(value) => onFormDataChange({ weightUnit: value })}
+          >
             <SelectTrigger id="weightUnit">
               <SelectValue />
             </SelectTrigger>
@@ -235,7 +270,10 @@ export const CatchBasicsSection = ({
         </div>
         <div className="space-y-2">
           <Label htmlFor="lengthUnit">Unit</Label>
-          <Select value={formData.lengthUnit} onValueChange={(value) => onFormDataChange({ lengthUnit: value })}>
+          <Select
+            value={formData.lengthUnit}
+            onValueChange={(value) => onFormDataChange({ lengthUnit: value })}
+          >
             <SelectTrigger id="lengthUnit">
               <SelectValue />
             </SelectTrigger>

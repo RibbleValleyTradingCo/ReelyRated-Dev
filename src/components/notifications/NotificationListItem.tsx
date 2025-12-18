@@ -1,6 +1,6 @@
-import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import type { Database } from "@/integrations/supabase/types";
+import type { NotificationRow } from "@/lib/notifications-utils";
+import { formatNotificationTimeShort } from "@/lib/notifications-utils";
 import { cn } from "@/lib/utils";
 import {
   Star,
@@ -9,9 +9,8 @@ import {
   ShieldCheck,
   Bell,
   Sparkles,
+  Heart,
 } from "lucide-react";
-
-type NotificationRow = Database["public"]["Tables"]["notifications"]["Row"];
 
 // User-facing labels and copy for moderation notifications (kept here to avoid exposing raw enums)
 
@@ -114,12 +113,14 @@ export const NotificationListItem = ({
 }: NotificationListItemProps) => {
   const extraData = (notification.extra_data ?? {}) as Record<string, unknown>;
   const adminDetail = formatAdminDetails(notification, extraData);
-  const timeAgo = formatDistanceToNow(new Date(notification.created_at), {
-    addSuffix: true,
-  });
+  const timeAgo = formatNotificationTimeShort(notification.created_at);
   const actorUsername =
     typeof extraData.actor_username === "string" && extraData.actor_username.trim().length > 0
       ? extraData.actor_username
+      : null;
+  const catchSummary =
+    typeof extraData.catch_title === "string" && extraData.catch_title.trim().length > 0
+      ? extraData.catch_title
       : null;
   const severity = typeof extraData.severity === "string" ? extraData.severity : null;
   const severityLabel = mapSeverityLabel(severity);
@@ -131,12 +132,18 @@ export const NotificationListItem = ({
       ? extraData.reason
       : null;
   const typeIcon = (() => {
-    if (notification.type === "new_rating") return <Star className="h-4 w-4" />;
-    if (notification.type === "new_comment" || notification.type === "comment_reply" || notification.type === "mention") return <MessageCircle className="h-4 w-4" />;
-    if (notification.type === "new_follower") return <UserPlus className="h-4 w-4" />;
-    if (notification.type === "admin_warning" || notification.type === "admin_moderation") return <ShieldCheck className="h-4 w-4" />;
-    if (notification.type === "admin_report") return <Bell className="h-4 w-4" />;
-    return <Sparkles className="h-4 w-4" />;
+    if (notification.type === "new_rating") return <Star className="h-4 w-4 text-amber-400" />;
+    if (
+      notification.type === "new_comment" ||
+      notification.type === "comment_reply" ||
+      notification.type === "mention"
+    )
+      return <MessageCircle className="h-4 w-4 text-sky-500" />;
+    if (notification.type === "new_reaction") return <Heart className="h-4 w-4 text-red-500" />;
+    if (notification.type === "new_follower") return <UserPlus className="h-4 w-4 text-teal-400" />;
+    if (notification.type === "admin_warning" || notification.type === "admin_moderation") return <ShieldCheck className="h-4 w-4 text-amber-500" />;
+    if (notification.type === "admin_report") return <Bell className="h-4 w-4 text-amber-500" />;
+    return <Sparkles className="h-4 w-4 text-sky-400" />;
   })();
 
   let message: string;
@@ -153,14 +160,17 @@ export const NotificationListItem = ({
   } else if (notification.type === "admin_moderation" && moderationAction === "clear_moderation") {
     message = reason ? `You can post again. Reason: ${reason}` : "You can post again.";
   } else {
+    const fallbackMessage =
+      notification.type === "mention"
+        ? `${actorUsername ? `@${actorUsername} ` : "Someone "}mentioned you in a comment.`
+        : notification.type === "comment_reply"
+          ? `${actorUsername ? `@${actorUsername} ` : "Someone "}replied to your comment.`
+          : "You have a new notification.";
+
     message =
       typeof notification.message === "string" && notification.message.trim().length > 0
         ? notification.message
-        : notification.type === "mention"
-          ? `${actorUsername ? `@${actorUsername} ` : "Someone "}mentioned you in a comment.`
-          : notification.type === "comment_reply"
-            ? `${actorUsername ? `@${actorUsername} ` : "Someone "}replied to your comment.`
-            : "You have a new notification.";
+        : fallbackMessage;
   }
 
   const moderatedUserId = notification.user_id ?? null;
@@ -174,7 +184,7 @@ export const NotificationListItem = ({
   return (
     <div
       className={cn(
-        "rounded-lg border border-border/40 bg-card/70 p-3 transition hover:bg-muted/60 hover:shadow-sm cursor-pointer",
+        "group flex cursor-pointer flex-col gap-2 rounded-lg border border-border/40 bg-card/70 p-3 transition hover:bg-muted/60 hover:shadow-sm",
         !notification.is_read && "border-primary/40 bg-primary/5"
       )}
       role="button"
@@ -187,75 +197,72 @@ export const NotificationListItem = ({
         }
       }}
     >
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          {typeIcon}
-        </div>
-        <div className="flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className={cn("text-xs uppercase tracking-wide", !notification.is_read ? "text-foreground" : "text-muted-foreground")}>
-                {title}
-              </p>
-              <p className="mt-1 text-sm text-foreground line-clamp-2">
-                {actorUsername ? (
-                  <span className="font-semibold text-foreground">@{actorUsername}</span>
-                ) : null}
-                {actorUsername ? " · " : null}
-                {severityLabel && notification.type === "admin_warning" ? (
-                  <span className="font-semibold text-foreground">{severityLabel}: </span>
-                ) : null}
-                {message}
-              </p>
-              {adminDetail ? (
-                <p className="text-xs text-muted-foreground mt-1">{adminDetail}</p>
-              ) : null}
-            </div>
-            <p className="text-[11px] text-muted-foreground whitespace-nowrap ml-2">{timeAgo}</p>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            {typeIcon}
           </div>
-          {showModerationLink ? (
-            <button
-              type="button"
-              className="mt-1 text-xs text-primary hover:underline"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (moderatedUserId) {
-                  onModerationView?.(moderatedUserId);
-                }
-              }}
-            >
-              View moderation
-            </button>
+          <p className={cn("text-xs uppercase tracking-wide font-semibold", !notification.is_read ? "text-foreground" : "text-muted-foreground")}>
+            {title}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[11px] text-muted-foreground whitespace-nowrap">{timeAgo}</span>
+          {!notification.is_read ? (
+            <span className="inline-block h-2 w-2 rounded-full bg-primary" aria-hidden />
           ) : null}
         </div>
-        <div className="flex flex-col items-end gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary px-2"
+      </div>
+      <div className="space-y-1 mt-2">
+        {notification.type === "mention" && actorUsername ? (
+          <p className="text-sm font-semibold text-foreground">
+            @{actorUsername} mentioned you in a comment
+          </p>
+        ) : null}
+        {adminDetail ? (
+          <p className="text-[11px] text-muted-foreground">{adminDetail}</p>
+        ) : null}
+        {showModerationLink ? (
+          <button
+            type="button"
+            className="text-[11px] text-primary hover:underline text-left"
             onClick={(e) => {
               e.stopPropagation();
-              onView(notification);
+              if (moderatedUserId) {
+                onModerationView?.(moderatedUserId);
+              }
             }}
           >
-            View
-          </Button>
-          {notification.is_read ? (
-            <span className="text-xs text-muted-foreground">Read</span>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="px-2 text-xs text-muted-foreground"
-              onClick={(e) => {
-                e.stopPropagation();
-                onMarkRead(notification);
-              }}
-            >
-              Mark read
-            </Button>
-          )}
-        </div>
+            View moderation
+          </button>
+        ) : null}
+        <p className="text-sm text-foreground line-clamp-2">
+          {notification.type === "mention" && actorUsername
+            ? null
+            : severityLabel && notification.type === "admin_warning"
+              ? (<span className="font-semibold text-foreground">{severityLabel}: </span>)
+              : null}
+          {message}
+        </p>
+        {catchSummary ? (
+          <p className="text-xs text-muted-foreground line-clamp-1">on “{catchSummary}”</p>
+        ) : null}
+      </div>
+      <div className="flex items-center justify-end text-[11px] text-muted-foreground">
+        {notification.is_read ? (
+          <span className="whitespace-nowrap text-[10px] text-muted-foreground/80">Read</span>
+        ) : (
+          <button
+            type="button"
+            className="text-[11px] text-primary hover:underline"
+            onClick={(e) => {
+              e.stopPropagation();
+              onMarkRead(notification);
+            }}
+          >
+            Mark read
+          </button>
+        )}
       </div>
     </div>
   );

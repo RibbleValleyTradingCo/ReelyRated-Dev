@@ -1,6 +1,5 @@
 import { useCallback, RefObject, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { createNotification } from "@/lib/notifications";
 import html2canvas from "html2canvas";
@@ -8,6 +7,21 @@ import { formatSpecies, formatWeight, formatSlugLabel } from "@/lib/catch-format
 import type { CatchData } from "./useCatchData";
 import { logger } from "@/lib/logger";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
+import { deleteCatch } from "@/lib/supabase-queries";
+import { supabase } from "@/integrations/supabase/client";
+
+const extractPgError = (
+  error: unknown,
+): { code?: string; message?: string } => {
+  if (error && typeof error === "object") {
+    const maybe = error as { code?: string; message?: string };
+    return {
+      code: maybe.code,
+      message: maybe.message,
+    };
+  }
+  return {};
+};
 
 interface UseCatchInteractionsParams {
   catchId: string | undefined;
@@ -66,23 +80,17 @@ export const useCatchInteractions = ({
     }
 
     setDeleteLoading(true);
-    const { error } = await supabase
-      .from("catches")
-      .delete()
-      .eq("id", catchData.id)
-      .eq("user_id", userId);
-
-    if (error) {
+    try {
+      await deleteCatch(catchData.id, userId);
+      toast.success("Catch removed");
+      setDeleteDialogOpen(false);
+      setDeleteLoading(false);
+      navigate("/feed");
+    } catch (error) {
       toast.error("Failed to delete catch");
       logger.error("Failed to delete catch", error, { catchId: catchData.id, userId });
       setDeleteLoading(false);
-      return;
     }
-
-    toast.success("Catch removed");
-    setDeleteDialogOpen(false);
-    setDeleteLoading(false);
-    navigate("/feed");
   }, [catchData, navigate, userId, setDeleteLoading, setDeleteDialogOpen]);
 
   const handleToggleFollow = async () => {
@@ -176,17 +184,24 @@ export const useCatchInteractions = ({
       });
 
       if (error) {
+        const { code, message } = extractPgError(error);
+
         if (isRateLimitError(error)) {
           toast.error(getRateLimitMessage(error));
           setReactionLoading(false);
           return;
         }
 
-        if (error.code === "23505") {
+        if (code === "23505") {
           setUserHasReacted(true);
         } else {
           toast.error("Couldn't add reaction");
-          logger.error("Couldn't add reaction", error, { catchId: catchData.id, userId });
+          logger.error("Couldn't add reaction", error, {
+            catchId: catchData.id,
+            userId,
+            code,
+            message,
+          });
           setReactionLoading(false);
           return;
         }
@@ -295,17 +310,19 @@ export const useCatchInteractions = ({
     });
 
     if (error) {
+      const { message } = extractPgError(error);
+
       if (isRateLimitError(error)) {
         toast.error(getRateLimitMessage(error));
-      } else if (error.message?.includes("You cannot rate your own catch")) {
+      } else if (message?.includes("You cannot rate your own catch")) {
         toast.error("You can't rate your own catch");
-      } else if (error.message?.includes("Ratings are disabled")) {
+      } else if (message?.includes("Ratings are disabled")) {
         toast.error("Ratings are disabled for this catch");
-      } else if (error.message?.includes("Catch is not accessible")) {
+      } else if (message?.includes("Catch is not accessible")) {
         toast.error("You don't have access to rate this catch");
-      } else if (error.message?.includes("Rating must be between 1 and 10")) {
+      } else if (message?.includes("Rating must be between 1 and 10")) {
         toast.error("Rating must be between 1 and 10");
-      } else if (error.message?.startsWith("RATE_LIMITED")) {
+      } else if (message?.startsWith("RATE_LIMITED")) {
         toast.error("You're doing that too quickly. Please try again later.");
       } else {
         toast.error("Failed to add rating");
@@ -314,21 +331,6 @@ export const useCatchInteractions = ({
       toast.success("Rating added!");
       setHasRated(true);
       fetchRatings();
-      if (catchData && catchData.user_id !== userId) {
-        const actorName = username ?? userEmail ?? "Someone";
-        void createNotification({
-          userId: catchData.user_id,
-          actorId: userId,
-          type: "new_rating",
-          payload: {
-            message: `${actorName} rated your catch "${catchData.title}" ${userRating}/10.`,
-            catchId: catchData.id,
-            extraData: {
-              rating: userRating,
-            },
-          },
-        });
-      }
     }
     setRatingLoading(false);
   };

@@ -42,7 +42,11 @@ export const UK_FRESHWATER_SPECIES = [
   { value: "zander", label: "Zander" },
 ] as const;
 
-const speciesLabelMap = new Map(UK_FRESHWATER_SPECIES.map((species) => [species.value, species.label]));
+export type SpeciesId = (typeof UK_FRESHWATER_SPECIES)[number]["value"];
+
+const speciesLabelMap = new Map<SpeciesId, string>(
+  UK_FRESHWATER_SPECIES.map((species) => [species.value, species.label]),
+);
 
 const toTitleCase = (value: string) =>
   value
@@ -52,7 +56,8 @@ const toTitleCase = (value: string) =>
 
 export const getFreshwaterSpeciesLabel = (value: string | null | undefined) => {
   if (!value) return "";
-  return speciesLabelMap.get(value) ?? value
+  const label = speciesLabelMap.get(value as SpeciesId);
+  return label ?? value
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");

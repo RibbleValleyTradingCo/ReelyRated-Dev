@@ -37,6 +37,7 @@ type Venue = {
   top_species: string[] | null;
   avg_rating: number | null;
   rating_count: number | null;
+  is_published?: boolean | null;
 };
 
 type VenuePhoto = {
@@ -95,9 +96,9 @@ type VenueEvent = {
 const normalizeCatchRow = (row: CatchRow): CatchRow => ({
   ...row,
   profiles: row.profiles ?? { username: "Unknown", avatar_path: null, avatar_url: null },
-  ratings: (row.ratings as any) ?? [],
-  comments: (row.comments as any) ?? [],
-  reactions: (row.reactions as any) ?? [],
+  ratings: (row.ratings ?? []) as CatchRow["ratings"],
+  comments: (row.comments ?? []) as CatchRow["comments"],
+  reactions: (row.reactions ?? []) as CatchRow["reactions"],
   venues: row.venues ?? null,
 });
 
@@ -515,6 +516,11 @@ const VenueDetail = () => {
                       / <span className="text-sky-300">{venue.name}</span>
                     </p>
                     <h1 className="text-3xl font-bold leading-tight md:text-4xl">{venue.name}</h1>
+                    {venue.is_published === false && (isOwner || isAdmin) ? (
+                      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                        Unpublished – only visible to you and admins
+                      </span>
+                    ) : null}
                     <div className="flex flex-wrap items-center gap-2 text-sm text-slate-100">
                       {venue.location ? (
                         <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
@@ -555,8 +561,8 @@ const VenueDetail = () => {
                           <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
                         </Button>
                       ) : (
-                        <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
-                          <Link to={`/my/venues/${venue.slug}`}>Manage venue</Link>
+                        <Button variant="outline" size="sm" className="text-xs font-semibold" disabled title="Owner tools coming soon">
+                          Manage venue
                         </Button>
                       )}
                     </div>
@@ -594,7 +600,9 @@ const VenueDetail = () => {
               ) : null}
               {user ? (
                 <Button asChild variant="default" size="sm" className="px-4 text-sm font-semibold">
-                  <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
+                  {!isAdmin && (
+                    <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
+                  )}
                 </Button>
               ) : null}
               </div>
@@ -736,7 +744,9 @@ const VenueDetail = () => {
                     </Button>
                   ) : (
                     <Button asChild className="w-full">
-                      <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
+                      {!isAdmin && (
+                        <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
+                      )}
                     </Button>
                   )}
                 </div>
@@ -1036,7 +1046,7 @@ const VenueDetail = () => {
               <CardContent className="space-y-2 p-5 text-sm text-slate-600">
                 <p>No catches have been logged at this venue yet.</p>
                 <p>Be the first to add one from your catch log.</p>
-                {user ? (
+                {user && !isAdmin ? (
                   <Button asChild className="rounded-full">
                     <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch at this venue</Link>
                   </Button>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Layers, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
+import { isAdminUser } from "@/lib/admin";
 
 interface SessionRow {
   id: string;
@@ -23,6 +24,7 @@ export const Sessions = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<SessionRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -49,6 +51,14 @@ export const Sessions = () => {
 
     if (user) {
       void fetchSessions();
+      void (async () => {
+        try {
+          const adminStatus = await isAdminUser(user.id);
+          setIsAdmin(adminStatus);
+        } catch {
+          setIsAdmin(false);
+        }
+      })();
     }
   }, [user]);
 
@@ -65,11 +75,12 @@ export const Sessions = () => {
           </div>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={() => navigate("/feed")}>Back to feed</Button>
-            <Button onClick={() => navigate("/add-catch")}
-              className="flex items-center gap-2">
-              <PlusCircle className="h-4 w-4" />
-              Log a catch
-            </Button>
+            {!isAdmin && (
+              <Button onClick={() => navigate("/add-catch")} className="flex items-center gap-2">
+                <PlusCircle className="h-4 w-4" />
+                Log a catch
+              </Button>
+            )}
           </div>
         </div>
 

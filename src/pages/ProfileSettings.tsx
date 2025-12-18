@@ -361,7 +361,25 @@ const ProfileSettings = () => {
       if (error) {
         throw error;
       }
-      setBlockedProfiles(data ?? []);
+      type BlockedProfileRow = {
+        blocked_id: string;
+        profiles: {
+          id: string;
+          username: string;
+          full_name: string | null;
+          avatar_path: string | null;
+          avatar_url: string | null;
+          bio: string | null;
+          is_deleted: boolean;
+        } | null;
+      };
+      const rows = (data ?? []) as unknown as BlockedProfileRow[];
+      setBlockedProfiles(
+        rows.map((row) => ({
+          blocked_id: row.blocked_id,
+          profiles: row.profiles,
+        }))
+      );
     } catch (error) {
       console.error("Failed to load blocked anglers", error);
       setBlockedError("Unable to load blocked anglers right now.");

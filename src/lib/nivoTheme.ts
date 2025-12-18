@@ -1,6 +1,4 @@
-import type { Theme } from "@nivo/core";
-
-export const createNivoTheme = (borderColor: string): Theme => ({
+export const createNivoTheme = (borderColor: string) => ({
   textColor: "var(--muted-foreground)",
   fontSize: 12,
   axis: {

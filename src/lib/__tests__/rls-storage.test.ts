@@ -12,13 +12,27 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import {
   mockAuthenticatedUser,
   mockUnauthenticatedUser,
   mockUsers,
   resetAuthMocks,
 } from '@/test/auth-utils';
+
+const STORAGE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.VITE_SUPABASE_URL ||
+  'http://127.0.0.1:54321';
+const STORAGE_ANON_KEY =
+  process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'test-anon-key';
+
+const storageClient = createClient(STORAGE_URL, STORAGE_ANON_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 describe('RLS: Storage - Path Traversal Prevention', () => {
   const validPath = `${mockUsers.regularUser.id}/avatar.jpg`;
@@ -44,14 +58,13 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
 
       const mockFile = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'upload').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'upload').mockResolvedValue({
         data: { path: validPath },
         error: null,
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(validPath, mockFile);
+      const { data, error } = await avatarsBucket.upload(validPath, mockFile);
 
       expect(error).toBeNull();
       expect(data).toBeTruthy();
@@ -64,7 +77,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
       const mockFile = new File(['test'], 'avatar.jpg', { type: 'image/jpeg' });
       const otherUserPath = `${mockUsers.anotherUser.id}/avatar.jpg`;
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'upload').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'upload').mockResolvedValue({
         data: null,
         error: {
           name: 'StorageApiError',
@@ -72,9 +86,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
         },
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .upload(otherUserPath, mockFile);
+      const { data, error } = await avatarsBucket.upload(otherUserPath, mockFile);
 
       expect(data).toBeNull();
       expect(error).toBeTruthy();
@@ -87,7 +99,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
 
         const mockFile = new File(['malicious'], 'evil.jpg', { type: 'image/jpeg' });
 
-        const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'upload').mockResolvedValue({
+        const avatarsBucket = storageClient.storage.from('avatars');
+        vi.spyOn(avatarsBucket, 'upload').mockResolvedValue({
           data: null,
           error: {
             name: 'StorageApiError',
@@ -95,9 +108,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
           },
         });
 
-        const { data, error } = await supabase.storage
-          .from('avatars')
-          .upload(maliciousPath, mockFile);
+        const { data, error } = await avatarsBucket.upload(maliciousPath, mockFile);
 
         expect(data).toBeNull();
         expect(error).toBeTruthy();
@@ -109,14 +120,13 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
     it('should allow download from own folder', async () => {
       mockAuthenticatedUser(mockUsers.regularUser);
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'download').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'download').mockResolvedValue({
         data: new Blob(['test']),
         error: null,
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .download(validPath);
+      const { data, error } = await avatarsBucket.download(validPath);
 
       expect(error).toBeNull();
       expect(data).toBeTruthy();
@@ -127,7 +137,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
 
       const otherUserPath = `${mockUsers.anotherUser.id}/avatar.jpg`;
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'download').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'download').mockResolvedValue({
         data: null,
         error: {
           name: 'StorageApiError',
@@ -135,9 +146,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
         },
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .download(otherUserPath);
+      const { data, error } = await avatarsBucket.download(otherUserPath);
 
       expect(data).toBeNull();
       expect(error).toBeTruthy();
@@ -147,7 +156,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
       it(`should block download via path traversal: "${maliciousPath}"`, async () => {
         mockAuthenticatedUser(mockUsers.regularUser);
 
-        const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'download').mockResolvedValue({
+        const avatarsBucket = storageClient.storage.from('avatars');
+        vi.spyOn(avatarsBucket, 'download').mockResolvedValue({
           data: null,
           error: {
             name: 'StorageApiError',
@@ -155,9 +165,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
           },
         });
 
-        const { data, error } = await supabase.storage
-          .from('avatars')
-          .download(maliciousPath);
+        const { data, error } = await avatarsBucket.download(maliciousPath);
 
         expect(data).toBeNull();
         expect(error).toBeTruthy();
@@ -169,14 +177,13 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
     it('should allow delete from own folder', async () => {
       mockAuthenticatedUser(mockUsers.regularUser);
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'remove').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'remove').mockResolvedValue({
         data: [{ name: validPath }],
         error: null,
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .remove([validPath]);
+      const { data, error } = await avatarsBucket.remove([validPath]);
 
       expect(error).toBeNull();
       expect(data).toBeTruthy();
@@ -187,7 +194,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
 
       const otherUserPath = `${mockUsers.anotherUser.id}/avatar.jpg`;
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'remove').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'remove').mockResolvedValue({
         data: null,
         error: {
           name: 'StorageApiError',
@@ -195,9 +203,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
         },
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .remove([otherUserPath]);
+      const { data, error } = await avatarsBucket.remove([otherUserPath]);
 
       expect(data).toBeNull();
       expect(error).toBeTruthy();
@@ -206,7 +212,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
     it('should deny delete when not authenticated', async () => {
       mockUnauthenticatedUser();
 
-      const storageSpy = vi.spyOn(supabase.storage.from('avatars'), 'remove').mockResolvedValue({
+      const avatarsBucket = storageClient.storage.from('avatars');
+      vi.spyOn(avatarsBucket, 'remove').mockResolvedValue({
         data: null,
         error: {
           name: 'StorageApiError',
@@ -214,9 +221,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
         },
       });
 
-      const { data, error } = await supabase.storage
-        .from('avatars')
-        .remove([validPath]);
+      const { data, error } = await avatarsBucket.remove([validPath]);
 
       expect(data).toBeNull();
       expect(error).toBeTruthy();
@@ -228,7 +233,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
       mockAuthenticatedUser(mockUsers.regularUser);
 
       // getPublicUrl always returns a URL, but access is controlled by RLS
-      const { data } = supabase.storage
+      const { data } = storageClient.storage
         .from('avatars')
         .getPublicUrl(validPath);
 
@@ -241,7 +246,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
 
       const maliciousPath = '../../../etc/passwd';
 
-      const { data } = supabase.storage
+      const { data } = storageClient.storage
         .from('avatars')
         .getPublicUrl(maliciousPath);
 
@@ -258,14 +263,13 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
       const mockFile = new File(['test'], 'catch.jpg', { type: 'image/jpeg' });
       const catchPath = `${mockUsers.regularUser.id}-${Date.now()}.jpg`;
 
-      const storageSpy = vi.spyOn(supabase.storage.from('catches'), 'upload').mockResolvedValue({
+      const catchesBucket = storageClient.storage.from('catches');
+      vi.spyOn(catchesBucket, 'upload').mockResolvedValue({
         data: { path: catchPath },
         error: null,
       });
 
-      const { data, error } = await supabase.storage
-        .from('catches')
-        .upload(catchPath, mockFile);
+      const { data, error } = await catchesBucket.upload(catchPath, mockFile);
 
       expect(error).toBeNull();
       expect(data).toBeTruthy();
@@ -277,7 +281,8 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
       const mockFile = new File(['test'], 'catch.jpg', { type: 'image/jpeg' });
       const invalidPath = 'catch.jpg'; // Missing user ID prefix
 
-      const storageSpy = vi.spyOn(supabase.storage.from('catches'), 'upload').mockResolvedValue({
+      const catchesBucket = storageClient.storage.from('catches');
+      vi.spyOn(catchesBucket, 'upload').mockResolvedValue({
         data: null,
         error: {
           name: 'StorageApiError',
@@ -285,9 +290,7 @@ describe('RLS: Storage - Path Traversal Prevention', () => {
         },
       });
 
-      const { data, error } = await supabase.storage
-        .from('catches')
-        .upload(invalidPath, mockFile);
+      const { data, error } = await catchesBucket.upload(invalidPath, mockFile);
 
       expect(data).toBeNull();
       expect(error).toBeTruthy();

@@ -72,9 +72,9 @@ const formatActionLabel = (action: string) => {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
-const actionOptions = [{ label: "All actions", value: "all" as const }].concat(
-  Object.entries(actionLabels).map(([value, label]) => ({ label, value }))
-);
+type ActionOption = { label: string; value: string };
+
+const actionOptions: ActionOption[] = [{ label: "All actions", value: "all" }, ...Object.entries(actionLabels).map(([value, label]) => ({ label, value }))];
 
 const AdminAuditLog = () => {
   const { user } = useAuth();
@@ -83,7 +83,7 @@ const AdminAuditLog = () => {
 
   const [logRows, setLogRows] = useState<LogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [actionFilter, setActionFilter] = useState<(typeof actionOptions)[number]["value"]>("all");
+  const [actionFilter, setActionFilter] = useState<ActionOption["value"]>("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [isExporting, setIsExporting] = useState(false);
@@ -106,16 +106,19 @@ const AdminAuditLog = () => {
 
     const since = range ? new Date(Date.now() - range * 24 * 60 * 60 * 1000).toISOString() : null;
 
-    const { data, error } = await supabase.rpc("admin_list_moderation_log", {
-      p_user_id: null,
-      p_action: actionFilter === "all" ? null : actionFilter,
-      p_search: searchTerm.trim() === "" ? null : searchTerm.trim(),
-      p_from: since,
-      p_to: null,
-      p_sort_direction: sortDirection,
-      p_limit: pageSize,
-      p_offset: (page - 1) * pageSize,
-    });
+    const { data, error } = await supabase.rpc(
+      "admin_list_moderation_log" as never,
+      {
+        p_user_id: null,
+        p_action: actionFilter === "all" ? null : actionFilter,
+        p_search: searchTerm.trim() === "" ? null : searchTerm.trim(),
+        p_from: since,
+        p_to: null,
+        p_sort_direction: sortDirection,
+        p_limit: pageSize,
+        p_offset: (page - 1) * pageSize,
+      } as never
+    );
 
     if (error) {
       toast.error("Unable to load moderation log");
@@ -123,7 +126,7 @@ const AdminAuditLog = () => {
       return;
     }
 
-    const rows = (data ?? []) as ModerationLogFetchRow[];
+    const rows = (data ?? []) as unknown as ModerationLogFetchRow[];
     const normalized = rows.map((row) => {
       const metadata = row.metadata ?? null;
       const reason =
@@ -151,7 +154,7 @@ const AdminAuditLog = () => {
 
     setLogRows(normalized);
     setIsLoading(false);
-  }, [user, isAdmin, dateRange, page, pageSize, sortDirection]);
+  }, [user, isAdmin, dateRange, page, pageSize, sortDirection, actionFilter, searchTerm]);
 
   useEffect(() => {
     if (isAdmin) {
