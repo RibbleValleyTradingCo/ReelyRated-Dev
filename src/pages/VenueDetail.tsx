@@ -403,34 +403,38 @@ const VenueDetail = () => {
     );
   };
 
+  const PageShell = ({ children }: { children: React.ReactNode }) => (
+    <div className="bg-gradient-to-b from-background to-muted">
+      <main className="section-container space-y-8 pb-16 pt-8 md:pt-10 lg:pb-20">{children}</main>
+    </div>
+  );
+
   if (venueLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="section-container flex items-center justify-center py-16 text-slate-500">
+      <PageShell>
+        <div className="flex items-center justify-center py-16 text-slate-500">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Loading venue…
         </div>
-      </div>
+      </PageShell>
     );
   }
 
   if (!venue) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="section-container py-12">
-          <Card className="border border-slate-200 bg-white shadow-sm">
-            <CardHeader>
-              <CardTitle>Venue not found</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-slate-600">This venue doesn&apos;t exist or isn&apos;t published.</p>
-              <Button asChild variant="outline">
-                <Link to="/venues">Back to venues</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <PageShell>
+        <Card className="border border-slate-200 bg-white shadow-sm">
+          <CardHeader>
+            <CardTitle>Venue not found</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate-600">This venue doesn&apos;t exist or isn&apos;t published.</p>
+            <Button asChild variant="outline">
+              <Link to="/venues">Back to venues</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </PageShell>
     );
   }
 
@@ -496,10 +500,10 @@ const VenueDetail = () => {
   ) : (
     <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-200/80">No ratings yet</span>
   );
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <main className="section-container space-y-5 pb-12 pt-8 md:pt-10">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
+    <PageShell>
+      <div className="relative z-0 grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
           <div className="space-y-3">
             <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white shadow-lg">
               <div className="flex flex-col gap-5 p-6 md:p-7">
@@ -672,7 +676,7 @@ const VenueDetail = () => {
             </section>
           </div>
           <div className="space-y-3 md:space-y-4">
-            <Card className="flex h-full flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
+            <Card className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
               {featuredCatch?.image_url ? (
                 <img
                   src={featuredCatch.image_url}
@@ -690,7 +694,7 @@ const VenueDetail = () => {
                   No venue record logged yet
                 </div>
               )}
-              <CardContent className="flex flex-1 flex-col space-y-2 p-4">
+              <CardContent className="flex flex-col space-y-2 p-4">
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
                   <Fish className="h-3.5 w-3.5" />
                   Venue record
@@ -733,7 +737,7 @@ const VenueDetail = () => {
                 ) : (
                   <p className="text-sm text-slate-600">Be the first to set a venue record here.</p>
                 )}
-                <div className="mt-auto">
+                <div className="pt-2">
                   {featuredCatch ? (
                     <Button asChild className="w-full">
                       <Link to={`/catch/${featuredCatch.id}`}>View catch</Link>
@@ -1031,7 +1035,7 @@ const VenueDetail = () => {
           </div>
         </div>
 
-        <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="relative z-10 mt-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:mt-6">
           <div className="space-y-1">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Community catches</p>
             <h2 className="text-xl font-semibold text-slate-900">What anglers are logging here</h2>
@@ -1172,8 +1176,7 @@ const VenueDetail = () => {
             </div>
           )}
         </section>
-      </main>
-    </div>
+    </PageShell>
   );
 };
 
