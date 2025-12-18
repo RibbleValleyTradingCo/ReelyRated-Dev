@@ -1,7 +1,6 @@
 import { useAuth } from "@/components/AuthProvider";
 import { HeroLeaderboardSpotlight } from "@/components/HeroLeaderboardSpotlight";
 import { LeaderboardSection } from "@/components/LeaderboardSection";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { PulsingDot } from "@/components/PulsingDot";
 import { supabase } from "@/integrations/supabase/client";
@@ -591,7 +590,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
       <main className="relative isolate pt-20 md:pt-24 lg:pt-28">
         <div className="absolute inset-x-0 -top-40 -z-10 flex justify-center blur-3xl">
           <div className="h-64 w-2/3 rounded-full bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/30 opacity-60" />

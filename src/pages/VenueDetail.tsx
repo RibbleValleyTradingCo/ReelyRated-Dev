@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -407,7 +406,6 @@ const VenueDetail = () => {
   if (venueLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="section-container flex items-center justify-center py-16 text-slate-500">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Loading venue…
@@ -419,7 +417,6 @@ const VenueDetail = () => {
   if (!venue) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="section-container py-12">
           <Card className="border border-slate-200 bg-white shadow-sm">
             <CardHeader>
@@ -501,7 +498,6 @@ const VenueDetail = () => {
   );
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <main className="section-container space-y-5 pb-12 pt-8 md:pt-10">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
           <div className="space-y-3">

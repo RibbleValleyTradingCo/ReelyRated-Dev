@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useId } from "react";
 import { useNavigate } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
@@ -373,7 +372,6 @@ const Insights = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
-      <Navbar />
       <main className="container mx-auto max-w-5xl px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Your angling insights</h1>

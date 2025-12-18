@@ -3,7 +3,6 @@ import { Fish, MapPin, Target, MessageSquare, SunMedium, Images, Tag } from "luc
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
@@ -751,7 +750,6 @@ const AddCatch = () => {
   if (loading || !adminChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="container mx-auto px-4 py-8">Loading...</div>
       </div>
     );
@@ -760,7 +758,6 @@ const AddCatch = () => {
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="container mx-auto px-4 py-12">
           <Card className="max-w-2xl">
             <CardHeader>
@@ -785,7 +782,6 @@ const AddCatch = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <div className="container mx-auto max-w-3xl px-4 py-8 space-y-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-bold text-gray-900">Log a new catch</h1>

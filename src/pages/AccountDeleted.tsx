@@ -1,12 +1,10 @@
 import { Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const AccountDeleted = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <div className="container mx-auto max-w-2xl px-4 py-12">
         <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="space-y-2 text-center">

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuthUser } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -189,7 +188,6 @@ const CatchDetail = () => {
   if (isLoading || !catchData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="container mx-auto px-4 py-8">Loading...</div>
       </div>
     );
@@ -231,7 +229,6 @@ const CatchDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="pointer-events-none fixed -top-[2000px] left-0 opacity-0" ref={shareCardRef}>
           <ShareCard

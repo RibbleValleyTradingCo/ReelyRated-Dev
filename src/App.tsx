@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { supabase } from "./integrations/supabase/client";
+import Layout from "@/components/Layout";
+import RouteSkeleton from "@/components/RouteSkeleton";
 
 // Eager load: Critical pages (landing and auth)
 import Index from "./pages/Index";
@@ -136,139 +138,139 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <ErrorBoundary>
-            <Suspense fallback={<PageLoader />}>
-              <DeletedAccountGate>
-                <Routes>
-                <Route path="/" element={<Index />} />
+            <DeletedAccountGate>
+              <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/venues" element={<VenuesIndex />} />
-                <Route path="/venues/:slug" element={<VenueDetail />} />
-                <Route
-                  path="/feed"
-                  element={
-                    <RequireAuth>
-                      <Feed />
-                    </RequireAuth>
-                  }
-                />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route
-                  path="/add-catch"
-                  element={
-                    <RequireAuth>
-                      <AddCatch />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/catch/:id"
-                  element={
-                    <RequireAuth>
-                      <CatchDetail />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/profile/:slug"
-                  element={
-                    <RequireAuth>
-                      <Profile />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/settings/profile"
-                  element={
-                    <RequireAuth>
-                      <ProfileSettings />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/sessions"
-                  element={
-                    <RequireAuth>
-                      <Sessions />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/admin/reports"
-                  element={
-                    <RequireAuth>
-                      <AdminReports />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/admin/audit-log"
-                  element={
-                    <RequireAuth>
-                      <AdminAuditLog />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/admin/users/:userId/moderation"
-                  element={
-                    <RequireAuth>
-                      <AdminUserModeration />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/admin/venues"
-                  element={
-                    <RequireAuth>
-                      <AdminVenuesList />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/admin/venues/:slug"
-                  element={
-                    <RequireAuth>
-                      <AdminVenueEdit />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/search"
-                  element={
-                    <RequireAuth>
-                      <SearchPage />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/insights"
-                  element={
-                    <RequireAuth>
-                      <Insights />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/my/venues"
-                  element={
-                    <RequireAuth>
-                      <MyVenues />
-                    </RequireAuth>
-                  }
-                />
-                <Route
-                  path="/my/venues/:slug"
-                  element={
-                    <RequireAuth>
-                      <MyVenueEdit />
-                    </RequireAuth>
-                  }
-                />
                 <Route path="/account-deleted" element={<AccountDeleted />} />
-                <Route path="*" element={<NotFound />} />
-                </Routes>
-              </DeletedAccountGate>
-            </Suspense>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/venues" element={<VenuesIndex />} />
+                  <Route path="/venues/:slug" element={<VenueDetail />} />
+                  <Route
+                    path="/feed"
+                    element={
+                      <RequireAuth>
+                        <Feed />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route path="/leaderboard" element={<LeaderboardPage />} />
+                  <Route
+                    path="/add-catch"
+                    element={
+                      <RequireAuth>
+                        <AddCatch />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/catch/:id"
+                    element={
+                      <RequireAuth>
+                        <CatchDetail />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/profile/:slug"
+                    element={
+                      <RequireAuth>
+                        <Profile />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/settings/profile"
+                    element={
+                      <RequireAuth>
+                        <ProfileSettings />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/sessions"
+                    element={
+                      <RequireAuth>
+                        <Sessions />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/reports"
+                    element={
+                      <RequireAuth>
+                        <AdminReports />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/audit-log"
+                    element={
+                      <RequireAuth>
+                        <AdminAuditLog />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/users/:userId/moderation"
+                    element={
+                      <RequireAuth>
+                        <AdminUserModeration />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/venues"
+                    element={
+                      <RequireAuth>
+                        <AdminVenuesList />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/admin/venues/:slug"
+                    element={
+                      <RequireAuth>
+                        <AdminVenueEdit />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/search"
+                    element={
+                      <RequireAuth>
+                        <SearchPage />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/insights"
+                    element={
+                      <RequireAuth>
+                        <Insights />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/my/venues"
+                    element={
+                      <RequireAuth>
+                        <MyVenues />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route
+                    path="/my/venues/:slug"
+                    element={
+                      <RequireAuth>
+                        <MyVenueEdit />
+                      </RequireAuth>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </DeletedAccountGate>
           </ErrorBoundary>
         </AuthProvider>
       </BrowserRouter>

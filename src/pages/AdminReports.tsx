@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 
-import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/components/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getProfilePath } from "@/lib/profile";
@@ -810,7 +809,6 @@ const AdminReports = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>

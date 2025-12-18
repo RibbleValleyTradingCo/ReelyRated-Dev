@@ -1,6 +1,5 @@
 import heroFish from "@/assets/hero-fish.jpg";
 import "@/components/Leaderboard.css";
-import { Navbar } from "@/components/Navbar";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
 import { getProfilePath } from "@/lib/profile";
@@ -94,7 +93,6 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
       <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-12 md:px-6 lg:px-8">
         <header className="space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">

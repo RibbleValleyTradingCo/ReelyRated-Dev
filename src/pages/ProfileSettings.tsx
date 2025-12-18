@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ProfileSettingsAvatarCard from "@/components/settings/ProfileSettingsAvatarCard";
@@ -440,7 +439,6 @@ const ProfileSettings = () => {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Navbar />
         <div className="container mx-auto flex items-center justify-center px-4 py-16 text-slate-500">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Loading profile settings…
@@ -460,7 +458,6 @@ const ProfileSettings = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
       <div className="mx-auto w-full max-w-3xl px-4 py-8 md:py-12">
         <div className="space-y-8">
           <div className="space-y-2">

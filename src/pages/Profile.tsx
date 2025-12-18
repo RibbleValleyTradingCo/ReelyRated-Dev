@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Star, Trophy, Fish, BarChart3, Loader2, AlertTriangle } from "lucide-react";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
@@ -494,7 +493,6 @@ const Profile = () => {
   if (isLoading || blockStatusLoading || !profile) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Navbar />
         <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-16 text-slate-500">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Loading profile…
@@ -583,7 +581,6 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Navbar />
       <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
         <div className="space-y-8">
           {isDeletedBanner ? (

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/components/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -439,7 +438,6 @@ const AdminUserModeration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <div className="container mx-auto max-w-5xl px-4 py-8 space-y-6">
         <div className="flex items-center justify-between gap-3">
           <div>

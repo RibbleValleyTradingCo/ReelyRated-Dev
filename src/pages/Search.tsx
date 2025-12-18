@@ -1,6 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState, type ReactNode } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -164,7 +163,6 @@ const SearchPage = () => {
 
   return (
     <>
-      <Navbar />
       <main className="container mx-auto px-4 py-8">
         <header className="mb-8 space-y-4">
           <div>

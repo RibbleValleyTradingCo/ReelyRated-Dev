@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -415,7 +414,6 @@ const AdminVenueEdit = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="section-container flex items-center justify-center py-16 text-slate-500">
           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
           Loading venue…
@@ -427,7 +425,6 @@ const AdminVenueEdit = () => {
   if (!venue) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
         <div className="section-container py-12">
           <Card className="border border-slate-200 bg-white shadow-sm">
             <CardHeader>
@@ -447,7 +444,6 @@ const AdminVenueEdit = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <main className="section-container space-y-6 py-8 md:py-10">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">

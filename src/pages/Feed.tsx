@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { LoadingState } from "@/components/ui/LoadingState";
@@ -392,7 +391,6 @@ const Feed = () => {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted" data-testid="feed-root">
-        <Navbar />
         <LoadingState message="Loading your feed..." fullscreen />
       </div>
     );
@@ -400,7 +398,6 @@ const Feed = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted" data-testid="feed-root">
-      <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div
           className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6 mb-6"
