@@ -4,8 +4,8 @@ import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingState } from "@/components/ui/LoadingState";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { FeedCardSkeleton } from "@/components/skeletons/FeedCardSkeleton";
 import { toast } from "sonner";
 import { canViewCatch } from "@/lib/visibility";
 import { useSearchParams } from "react-router-dom";
@@ -388,13 +388,7 @@ const Feed = () => {
     setIsFetchingMore(false);
   }, [hasMore, isFetchingMore, nextCursor, sessionFilter, user, venueFilter, venueSlug, venueFilterError]);
 
-  if (loading || isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted" data-testid="feed-root">
-        <LoadingState message="Loading your feed..." fullscreen />
-      </div>
-    );
-  }
+  const isBusy = loading || isLoading;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted" data-testid="feed-root">
@@ -456,13 +450,21 @@ const Feed = () => {
           userDisabled={!user}
         />
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-7">
-          {filteredCatches.map((catchItem) => (
-            <CatchCard key={catchItem.id} catchItem={catchItem} userId={user?.id} />
-          ))}
-        </div>
+        {isBusy ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-7">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <FeedCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-7">
+            {filteredCatches.map((catchItem) => (
+              <CatchCard key={catchItem.id} catchItem={catchItem} userId={user?.id} />
+            ))}
+          </div>
+        )}
 
-        {!sessionFilter && hasMore && (
+        {!isBusy && !sessionFilter && hasMore && (
           <div className="mt-10 flex justify-center">
             <Button
               variant="outline"

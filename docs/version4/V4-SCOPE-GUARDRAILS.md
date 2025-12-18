@@ -24,3 +24,5 @@ Updated: 2025-12-17
 - [ ] Desktop regression check on key pages (Landing, Venues, Feed, Catch, Profile).
 - [ ] Screenshots for visual changes (mobile + desktop) added to `docs/version4/visual-baseline/` when applicable.
 - [ ] TODOs noted in docs when info unknown (no guesses).
+- [ ] No changes to route definitions/guards (except visual fallback UI).
+- [ ] Run `docs/version4/UI-SMOKE-RUNBOOK.md` before merge.

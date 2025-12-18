@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
+import { CatchDetailSkeleton } from "@/components/skeletons/CatchDetailSkeleton";
 import { toast } from "sonner";
 import {
   Calendar,
@@ -188,7 +189,8 @@ const CatchDetail = () => {
   if (isLoading || !catchData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="container mx-auto px-4 py-8">Loading...</div>
+        <Navbar />
+        <CatchDetailSkeleton />
       </div>
     );
   }
