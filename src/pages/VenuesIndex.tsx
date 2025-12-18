@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, MapPin, Image as ImageIcon, Search, Flame, Star } from "lucide-react";
 import { getPublicAssetUrl } from "@/lib/storage";
 import { FeedSelect } from "@/components/feed/FeedSelect";
+import PageSpinner from "@/components/loading/PageSpinner";
 
 type Venue = {
   id: string;
@@ -340,10 +341,7 @@ const VenuesIndex = () => {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-16 text-slate-500">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Loading venues…
-          </div>
+          <PageSpinner label="Loading venues…" />
         ) : venues.length === 0 ? (
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white/80 p-8 text-center text-slate-600 shadow-sm">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 text-slate-500 shadow-inner">

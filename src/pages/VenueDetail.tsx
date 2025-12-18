@@ -10,6 +10,8 @@ import { isAdminUser } from "@/lib/admin";
 import { useAuth } from "@/components/AuthProvider";
 import { getPublicAssetUrl } from "@/lib/storage";
 import { toast } from "sonner";
+import PageSpinner from "@/components/loading/PageSpinner";
+import VenueDetailSkeleton from "@/components/skeletons/VenueDetailSkeleton";
 
 type Venue = {
   id: string;
@@ -411,12 +413,9 @@ const VenueDetail = () => {
 
   if (venueLoading) {
     return (
-      <PageShell>
-        <div className="flex items-center justify-center py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading venue…
-        </div>
-      </PageShell>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageSpinner label="Loading venue…" />
+      </div>
     );
   }
 

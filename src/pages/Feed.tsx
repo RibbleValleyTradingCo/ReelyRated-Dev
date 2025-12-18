@@ -1,19 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
+import { useAuthLoading, useAuthUser } from "@/components/AuthProvider";
+import { CatchCard } from "@/components/feed/CatchCard";
+import { FeedFilters } from "@/components/feed/FeedFilters";
+import { FeedCardSkeleton } from "@/components/skeletons/FeedCardSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { FeedCardSkeleton } from "@/components/skeletons/FeedCardSkeleton";
-import { toast } from "sonner";
-import { canViewCatch } from "@/lib/visibility";
-import { useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { FeedFilters } from "@/components/feed/FeedFilters";
-import { CatchCard } from "@/components/feed/CatchCard";
-import { logger } from "@/lib/logger";
 import { isAdminUser } from "@/lib/admin";
+import { logger } from "@/lib/logger";
+import { canViewCatch } from "@/lib/visibility";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -90,7 +89,11 @@ const Feed = () => {
   const [nextCursor, setNextCursor] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
   const sessionFilter = searchParams.get("session");
-  const [venueFilter, setVenueFilter] = useState<{ id: string; name: string; slug: string } | null>(null);
+  const [venueFilter, setVenueFilter] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+  } | null>(null);
   const [venueFilterError, setVenueFilterError] = useState(false);
 
   useEffect(() => {
@@ -162,14 +165,16 @@ const Feed = () => {
       setNextCursor(0);
       const baseQuery = supabase
         .from("catches")
-        .select(`
+        .select(
+          `
           *,
           profiles:user_id (username, avatar_path, avatar_url),
           venues:venue_id (id, slug, name),
           ratings (rating),
           comments:catch_comments (id),
           reactions:catch_reactions (user_id)
-        `)
+        `
+        )
         .is("deleted_at", null)
         .is("comments.deleted_at", null)
         .order("created_at", { ascending: false });
@@ -223,13 +228,15 @@ const Feed = () => {
     }
 
     const loadFollowing = async () => {
-      const { data, error} = await supabase
+      const { data, error } = await supabase
         .from("profile_follows")
         .select("following_id")
         .eq("follower_id", user.id);
 
       if (error) {
-        logger.error("Failed to load followed anglers", error, { userId: user.id });
+        logger.error("Failed to load followed anglers", error, {
+          userId: user.id,
+        });
         setFollowingIds([]);
         return;
       }
@@ -284,18 +291,24 @@ const Feed = () => {
     );
 
     if (sessionFilter) {
-      filtered = filtered.filter((catchItem) => catchItem.session_id === sessionFilter);
+      filtered = filtered.filter(
+        (catchItem) => catchItem.session_id === sessionFilter
+      );
     }
 
     if (venueFilter?.id) {
-      filtered = filtered.filter((catchItem) => catchItem.venues?.id === venueFilter.id);
+      filtered = filtered.filter(
+        (catchItem) => catchItem.venues?.id === venueFilter.id
+      );
     }
 
     if (feedScope === "following") {
       if (followingIds.length === 0) {
         filtered = [];
       } else {
-        filtered = filtered.filter((catchItem) => followingIds.includes(catchItem.user_id));
+        filtered = filtered.filter((catchItem) =>
+          followingIds.includes(catchItem.user_id)
+        );
       }
     }
 
@@ -308,7 +321,9 @@ const Feed = () => {
           if (!customSpeciesFilter) {
             return true;
           }
-          const customValue = (catchItem.conditions?.customFields?.species ?? "").toLowerCase();
+          const customValue = (
+            catchItem.conditions?.customFields?.species ?? ""
+          ).toLowerCase();
           return customValue.startsWith(customSpeciesFilter.toLowerCase());
         }
         return catchItem.species === speciesFilter;
@@ -316,7 +331,10 @@ const Feed = () => {
     }
 
     if (sortBy === "newest") {
-      filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      filtered.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
     } else if (sortBy === "highest_rated") {
       filtered.sort((a, b) => {
         const avgA = calculateAverageRating(a.ratings);
@@ -328,7 +346,17 @@ const Feed = () => {
     }
 
     setFilteredCatches(filtered);
-  }, [catches, feedScope, followingIds, speciesFilter, customSpeciesFilter, sortBy, user?.id, sessionFilter, venueFilter]);
+  }, [
+    catches,
+    feedScope,
+    followingIds,
+    speciesFilter,
+    customSpeciesFilter,
+    sortBy,
+    user?.id,
+    sessionFilter,
+    venueFilter,
+  ]);
 
   useEffect(() => {
     filterAndSortCatches();
@@ -356,14 +384,16 @@ const Feed = () => {
     setIsFetchingMore(true);
     const supabaseQuery = supabase
       .from("catches")
-      .select(`
+      .select(
+        `
           *,
           profiles:user_id (username, avatar_path, avatar_url),
           ratings (rating),
           comments:catch_comments (id),
           reactions:catch_reactions (user_id),
           venues:venue_id (id, slug, name)
-        `)
+        `
+      )
       .is("deleted_at", null)
       .is("comments.deleted_at", null)
       .order("created_at", { ascending: false })
@@ -377,7 +407,9 @@ const Feed = () => {
 
     if (error) {
       toast.error("Unable to load more catches");
-      logger.error("Failed to load additional catches", error, { userId: user?.id });
+      logger.error("Failed to load additional catches", error, {
+        userId: user?.id,
+      });
     } else {
       const newRows = (data as Catch[]) ?? [];
       setCatches((prev) => [...prev, ...newRows]);
@@ -386,21 +418,36 @@ const Feed = () => {
     }
 
     setIsFetchingMore(false);
-  }, [hasMore, isFetchingMore, nextCursor, sessionFilter, user, venueFilter, venueSlug, venueFilterError]);
+  }, [
+    hasMore,
+    isFetchingMore,
+    nextCursor,
+    sessionFilter,
+    user,
+    venueFilter,
+    venueSlug,
+    venueFilterError,
+  ]);
 
   const isBusy = loading || isLoading;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted" data-testid="feed-root">
+    <div
+      className="min-h-screen bg-gradient-to-b from-background to-muted"
+      data-testid="feed-root"
+    >
       <div className="container mx-auto px-4 py-8">
         <div
           className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6 mb-6"
           style={{ scrollMarginTop: "var(--nav-height)" }}
         >
           <div className="space-y-2 text-left">
-            <h1 className="text-4xl font-bold text-gray-900">Community Catches</h1>
+            <h1 className="text-4xl font-bold text-gray-900">
+              Community Catches
+            </h1>
             <p className="text-base text-gray-600 max-w-2xl">
-              See what anglers across the community are catching right now. Filter by venue, species or rating.
+              See what anglers across the community are catching right now.
+              Filter by venue, species or rating.
             </p>
           </div>
           {!isAdmin && (
@@ -421,7 +468,9 @@ const Feed = () => {
           <Card className="mb-6 border-primary/30 bg-primary/5">
             <CardContent className="flex flex-wrap items-center justify-between gap-3 py-4">
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Venue filter</p>
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">
+                  Venue filter
+                </p>
                 <h2 className="text-lg font-semibold text-slate-900">
                   Catches from {venueFilter?.name ?? venueSlug}
                 </h2>
@@ -431,7 +480,12 @@ const Feed = () => {
                     : "You're viewing catches logged at this venue."}
                 </p>
               </div>
-              <Button variant="ghost" size="sm" className="rounded-full" onClick={clearVenueFilter}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-full"
+                onClick={clearVenueFilter}
+              >
                 Clear filter
               </Button>
             </CardContent>
@@ -459,7 +513,11 @@ const Feed = () => {
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 sm:gap-7">
             {filteredCatches.map((catchItem) => (
-              <CatchCard key={catchItem.id} catchItem={catchItem} userId={user?.id} />
+              <CatchCard
+                key={catchItem.id}
+                catchItem={catchItem}
+                userId={user?.id}
+              />
             ))}
           </div>
         )}
@@ -483,10 +541,10 @@ const Feed = () => {
               catches.length === 0
                 ? "No catches yet. Be the first to share!"
                 : sessionFilter
-                  ? "No catches logged for this session yet."
-                  : feedScope === "following"
-                    ? "No catches from anglers you follow yet. Explore the full feed or follow more people."
-                    : "No catches match your filters"
+                ? "No catches logged for this session yet."
+                : feedScope === "following"
+                ? "No catches from anglers you follow yet. Explore the full feed or follow more people."
+                : "No catches match your filters"
             }
             actionLabel={isAdmin ? undefined : "Log Your First Catch"}
             onActionClick={isAdmin ? undefined : () => navigate("/add-catch")}

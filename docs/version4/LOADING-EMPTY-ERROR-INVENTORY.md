@@ -1,118 +1,97 @@
 **Loading / Empty / Error Inventory (v4)**  
 Updated: 2025-12-17
 
-### Page-level
+### Page-level (current plan)
 - **Landing `/` (Index.tsx)**  
-  - Loading: stats cards show “—” / “Fetching live stats…” (count-up gated); no spinner.  
-  - Empty/Error: N/A (static content).  
-  - Skeleton: Hero + feature cards + stats tiles.
-
-- **Venues index `/venues` (VenuesIndex.tsx)**  
-  - Loading: Loader2 + “Loading venues…” at page top; load-more button shows spinner.  
-  - Empty: “No venues” block.  
-  - Error: Console/log only.  
-  - Skeleton: VenueCardSkeleton grid, filter bar skeleton, load-more placeholder.
-
-- **Venue detail `/venues/:slug` (VenueDetail.tsx)**  
-  - Loading: Centered Loader2.  
-  - Empty: Not-found card.  
-  - Errors: Toast/log.  
-  - Skeleton: Hero + actions row + photos grid + record card + sidebar stats + catches/events list; no overlap.
+  - Loading: stats cards use placeholders (“—”); no spinner.  
+  - Empty/Error: N/A (static).
 
 - **Feed `/feed` (Feed.tsx)**  
-  - Loading: `LoadingState` spinner fullscreen-ish; “Loading your feed…”.  
+  - Loading: skeleton grid (FeedCardSkeleton) in content area; header/filters stay real.  
   - Empty: Empty feed text.  
-  - Error: Toast/log.  
-  - Skeleton: FeedCardSkeleton list + filter bar.
+  - Error: Toast/log.
+
+- **Venues index `/venues` (VenuesIndex.tsx)**  
+  - Loading: PageSpinner in content area.  
+  - Empty: “No venues” block.  
+  - Error: Console/log only.
+
+- **Venue detail `/venues/:slug` (VenueDetail.tsx)**  
+  - Loading: PageSpinner in content area.  
+  - Empty: Not-found card.  
+  - Errors: Toast/log.
 
 - **Catch detail `/catch/:id` (CatchDetail.tsx)**  
-  - Loading: “Loading...” text page placeholder.  
+  - Loading: PageSpinner in content area.  
   - Empty: N/A.  
-  - Error: Toast/log; inaccessible triggers redirect/toast.  
-  - Skeleton: CatchDetailSkeleton (hero + sidebar + comments list).
+  - Error: Toast/log; inaccessible triggers redirect/toast.
 
 - **Add catch `/add-catch` (AddCatch.tsx)**  
-  - Loading: “Loading...” page placeholder while checking auth/admin; section-level spinners for methods/baits/water types/sessions.  
-  - Empty/Error: Toast/log.  
-  - Skeleton: Form blocks, select placeholders, gallery upload stub.
+  - Loading: PageSpinner while checking auth/admin; subfetch spinners remain.  
+  - Empty/Error: Toast/log.
 
 - **Profile `/profile/:slug` (Profile.tsx)**  
-  - Loading: Loader2 + “Loading profile…”; block status loading gates view; follow/block buttons show “Updating…/Working…”.  
+  - Loading: PageSpinner; follow/block buttons may show sub-state.  
   - Empty: Sections empty as data dictates.  
-  - Error: Toast/log; blocked-view stubs.  
-  - Skeleton: ProfileHeader + stats grid + list skeleton.
+  - Error: Toast/log; blocked-view stubs.
 
 - **Profile settings `/settings/profile` (ProfileSettings.tsx)**  
-  - Loading: Loader2 + “Loading profile settings…”; section spinners for blocked list, password, data export/delete.  
+  - Loading: PageSpinner; button-level spinners remain.  
   - Empty: Blocked list empty text.  
-  - Error: Toast/log.  
-  - Skeleton: Form sections, list skeleton for blocked users.
+  - Error: Toast/log.
 
 - **Sessions `/sessions` (Sessions.tsx)**  
-  - Loading: “Loading sessions…” text.  
+  - Loading: PageSpinner.  
   - Empty: Empty list text.  
-  - Error: Toast/log.  
-  - Skeleton: Table/list skeleton.
+  - Error: Toast/log.
 
 - **Search `/search` (Search.tsx)**  
-  - Loading: Loader2 in submit button.  
+  - Loading: Button-level spinner only.  
   - Empty: No results text.  
-  - Error: Toast/log.  
-  - Skeleton: Result list skeleton + filter bar.
+  - Error: Toast/log.
 
 - **Insights `/insights` (Insights.tsx)**  
-  - Loading: Loader2 spinner.  
-  - Empty/Error: Toast/log.  
-  - Skeleton: Cards/charts grid.
+  - Loading: PageSpinner.  
+  - Empty/Error: Toast/log.
 
 - **My venues `/my/venues` (MyVenues.tsx)**  
-  - Loading: Loader2 + “Loading your venues…”.  
+  - Loading: PageSpinner.  
   - Empty: Empty list text.  
-  - Error: Toast/log.  
-  - Skeleton: List/grid skeleton.
+  - Error: Toast/log.
 
 - **My venue edit `/my/venues/:slug` (MyVenueEdit.tsx)**  
-  - Loading: Loader2 + “Loading venue…”; spinners for events CRUD.  
-  - Empty/Error: Toast/log.  
-  - Skeleton: Form blocks + events list skeleton.
+  - Loading: PageSpinner; subfetch spinners remain.  
+  - Empty/Error: Toast/log.
 
 - **Admin reports `/admin/reports` (AdminReports.tsx)**  
-  - Loading: spinner/text while checking admin; “Loading reports…” and “Loading moderation context…”.  
+  - Loading: PageSpinner for admin check/load.  
   - Empty: Empty queue text.  
-  - Error: Toast/log.  
-  - Skeleton: Admin list/table + detail pane skeleton.
+  - Error: Toast/log.
 
 - **Admin audit log `/admin/audit-log` (AdminAuditLog.tsx)**  
-  - Loading: spinner while checking admin + “Loading moderation log…”.  
+  - Loading: PageSpinner for admin check/load.  
   - Empty: Empty log text.  
-  - Error: Toast/log.  
-  - Skeleton: Admin list/table.
+  - Error: Toast/log.
 
 - **Admin user moderation `/admin/users/:userId/moderation` (AdminUserModeration.tsx)**  
-  - Loading: spinner while checking admin; section “Loading…” texts; action buttons disabled.  
+  - Loading: PageSpinner for admin check/load; actions show sub-state.  
   - Empty: Empty tables.  
-  - Error: Toast/log.  
-  - Skeleton: Admin list/detail + warning dialog skeleton.
+  - Error: Toast/log.
 
 - **Admin venues list/edit `/admin/venues`, `/admin/venues/:slug` (AdminVenuesList/AdminVenueEdit.tsx)**  
-  - Loading: Loader2 + “Loading venue(s)…”; owners/events spinners.  
-  - Empty/Error: Toast/log.  
-  - Skeleton: Admin list/form + events list skeleton.
+  - Loading: PageSpinner; owners/events may show sub-state.  
+  - Empty/Error: Toast/log.
 
 - **Auth `/auth` (Auth.tsx)**  
-  - Loading: `LoadingState` while auth loads; buttons show “Opening Google…” when pending.  
-  - Empty/Error: Auth errors toast/log.  
-  - Skeleton: Auth form skeleton (optional).
+  - Loading: `LoadingState` while auth loads; button-level spinners for Google.  
+  - Empty/Error: Auth errors toast/log.
 
 ### Section-level patterns
-- Comments: “Loading comments…” text in `CatchComments.tsx`; delete state text. → Skeleton: comments list.
-- Notifications bell: Loader2 for loading/mark/clear. → Skeleton: notification list.
-- Leaderboard (component): inline loading state; cards/table. → Skeleton: leaderboard rows.
-- Catch form sub-sections (tactics/location): “Loading …” texts in selects. → Skeleton: select rows.
-- Avatar uploads/FishUploader: Loader2 while uploading/rating. → Skeleton: image/input placeholders.
+- Comments: “Loading comments…” text in `CatchComments.tsx`; delete state text.  
+- Notifications bell: Button-level spinners for loading/mark/clear.  
+- Leaderboard (component): Inline loading state; cards/table.  
+- Catch form sub-sections (tactics/location): “Loading …” texts in selects.  
+- Avatar uploads/FishUploader: Button-level spinners while uploading/rating.
 
-### Rollout order (priority)
-1) Index (landing)  
-2) Feed + Catch detail  
-3) Venues index + Venue detail  
-4) Profile + Sessions + Admin suites (reports/moderation/audit/venues)
+### Note
+- Page-level loading now uses PageSpinner (content-only) except `/feed`, which keeps its skeleton grid.
