@@ -1,5 +1,4 @@
-import { useState, useEffect, type ReactNode } from "react";
-import { Fish, MapPin, Target, MessageSquare, SunMedium, Images, Tag } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,9 +17,16 @@ import { MediaSection } from "@/components/catch-form/MediaSection";
 import { PrivacySection } from "@/components/catch-form/PrivacySection";
 import { logger } from "@/lib/logger";
 import { mapModerationError } from "@/lib/moderation-errors";
-import { cn } from "@/lib/utils";
 import { UK_FISHERIES } from "@/lib/freshwater-data";
 import { isAdminUser } from "@/lib/admin";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
+import { Camera, MapPin, NotebookPen, FileText, CloudSun, Images, Tag as TagIcon } from "lucide-react";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -50,86 +56,6 @@ type VenueRow = {
 
 type CatchInsert = Database["public"]["Tables"]["catches"]["Insert"] & {
   venue_id?: string | null;
-};
-type SectionBlockProps = {
-  title: string;
-  helper?: string;
-  contentHelper?: string;
-  children: ReactNode;
-  collapsible?: boolean;
-  defaultOpen?: boolean;
-  icon?: typeof Fish;
-  muted?: boolean;
-};
-
-const SectionBlock = ({
-  title,
-  helper,
-  contentHelper,
-  children,
-  collapsible = false,
-  defaultOpen = true,
-  icon: Icon,
-  muted = false,
-}: SectionBlockProps) => {
-  const [open, setOpen] = useState(defaultOpen);
-  const label = title;
-
-  return (
-    <div
-      className={cn(
-        "rounded-xl p-3 sm:p-4 md:p-5 transition-shadow",
-        collapsible ? "border border-dashed border-border/60 bg-muted/40" : "border border-border/60",
-        muted ? "bg-muted/40" : "bg-white/80",
-        "hover:shadow-sm"
-      )}
-    >
-      <button
-        type="button"
-        className={cn(
-          "flex w-full items-start justify-between text-left",
-          collapsible ? "cursor-pointer" : "cursor-default"
-        )}
-        onClick={() => (collapsible ? setOpen((prev) => !prev) : undefined)}
-        aria-expanded={open}
-      >
-        <div className="flex items-start gap-2 sm:gap-3">
-          {Icon ? (
-            <span className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary sm:h-9 sm:w-9">
-              <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-            </span>
-          ) : null}
-          <div className="space-y-1">
-            <p className="text-base font-semibold text-foreground sm:text-lg">{label}</p>
-            {helper ? <p className="text-xs leading-snug text-muted-foreground sm:text-sm">{helper}</p> : null}
-          </div>
-        </div>
-        {collapsible ? (
-          <span
-            className="ml-3 inline-flex h-7 w-7 items-center justify-center rounded-full border border-dashed border-border/60 bg-muted text-muted-foreground transition-transform"
-            aria-hidden="true"
-          >
-            <svg
-              className={cn("h-4 w-4 transition-transform", open ? "rotate-180" : "")}
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        ) : null}
-      </button>
-      <div className={cn("mt-3 space-y-3 sm:space-y-4", collapsible ? (open ? "block" : "hidden") : "block")}>
-        {contentHelper && (!collapsible || open) ? (
-          <p className="text-sm text-muted-foreground">{contentHelper}</p>
-        ) : null}
-        <div className={collapsible ? "space-y-3 sm:space-y-4 border-l-2 border-primary/30 pl-3 sm:pl-4" : "space-y-3 sm:space-y-4"}>
-          {children}
-        </div>
-      </div>
-    </div>
-  );
 };
 
 const AddCatch = () => {
@@ -750,7 +676,9 @@ const AddCatch = () => {
   if (loading || !adminChecked) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="container mx-auto px-4 py-8">Loading...</div>
+        <PageContainer className="py-8">
+          <Text>Loading...</Text>
+        </PageContainer>
       </div>
     );
   }
@@ -758,219 +686,290 @@ const AddCatch = () => {
   if (isAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="container mx-auto px-4 py-12">
-          <Card className="max-w-2xl">
-            <CardHeader>
-              <CardTitle>Admins can’t create catches</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Admin accounts are moderation-only. Please switch to an angler account to log catches.
-              </p>
-            </CardHeader>
-            <CardContent className="flex flex-wrap gap-3">
-              <Button variant="ocean" onClick={() => navigate("/feed")}>
-                Go to feed
-              </Button>
-              <Button variant="outline" onClick={() => navigate("/admin/reports")}>
-                Open admin tools
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <PageContainer className="py-12">
+          <Section>
+            <Card className="max-w-2xl">
+              <CardHeader>
+                <Heading as="h2" size="md" className="text-foreground">
+                  Admins can’t create catches
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Admin accounts are moderation-only. Please switch to an angler account to log catches.
+                </Text>
+              </CardHeader>
+              <CardContent className="flex flex-wrap gap-3">
+                <Button variant="ocean" onClick={() => navigate("/feed")}>
+                  Go to feed
+                </Button>
+                <Button variant="outline" onClick={() => navigate("/admin/reports")}>
+                  Open admin tools
+                </Button>
+              </CardContent>
+            </Card>
+          </Section>
+        </PageContainer>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto max-w-3xl px-4 py-8 space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900">Log a new catch</h1>
-          <p className="text-base text-gray-600">
-            Capture the details that actually help you catch more next time.
-          </p>
+      <PageContainer className="py-8">
+        <div className="space-y-6">
+          <Section>
+            <SectionHeader
+              title="Log a new catch"
+              subtitle="Capture the details that actually help you catch more next time."
+            />
+          </Section>
+
+          <Section>
+            <Card>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-8" data-testid="add-catch-form">
+                  <Section className="space-y-4">
+                    <div className="space-y-3 pt-1">
+                      <div className="rounded-xl border border-border/60 bg-white/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.border-2]:p-2.5 [&_.border-2]:py-3 [&_label[for='title']]:text-sm [&_label[for='title']]:text-muted-foreground">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Camera className="h-4 w-4" />
+                          <Eyebrow className="mb-0">Catch basics</Eyebrow>
+                        </div>
+                        <CatchBasicsSection
+                          imagePreview={imagePreview}
+                          imageFile={imageFile}
+                          onImageChange={handleImageChange}
+                          formData={{
+                            title: formData.title,
+                            species: formData.species,
+                            customSpecies: formData.customSpecies,
+                            weight: formData.weight,
+                            weightUnit: formData.weightUnit,
+                            length: formData.length,
+                            lengthUnit: formData.lengthUnit,
+                          }}
+                          onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
+                        />
+                      </div>
+
+                      <div className="rounded-xl border border-border/60 bg-white/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.flex.flex-wrap.items-center.gap-2]:gap-1.5">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="h-4 w-4" />
+                          <Eyebrow className="mb-0">Location & session</Eyebrow>
+                        </div>
+                        <LocationSection
+                          formData={{
+                            location: formData.location,
+                            customLocationLabel: formData.customLocationLabel,
+                            pegOrSwim: formData.pegOrSwim,
+                            caughtAt: formData.caughtAt,
+                            timeOfDay: formData.timeOfDay,
+                            waterType: formData.waterType,
+                          }}
+                          onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
+                          useGpsLocation={useGpsLocation}
+                          setUseGpsLocation={setUseGpsLocation}
+                          gpsCoordinates={gpsCoordinates}
+                          setGpsCoordinates={setGpsCoordinates}
+                          gpsAccuracy={gpsAccuracy}
+                          setGpsAccuracy={setGpsAccuracy}
+                          isLocating={isLocating}
+                          setIsLocating={setIsLocating}
+                          locationError={locationError}
+                          setLocationError={setLocationError}
+                          onHandleUseGps={handleUseGps}
+                          waterTypeOptions={waterTypeOptions}
+                          isLoadingWaterTypes={isLoadingWaterTypes}
+                          sessions={sessions}
+                          isLoadingSessions={isLoadingSessions}
+                          selectedSessionId={selectedSessionId}
+                          setSelectedSessionId={setSelectedSessionId}
+                          isCreatingSession={isCreatingSession}
+                          setIsCreatingSession={setIsCreatingSession}
+                          newSession={newSession}
+                          setNewSession={setNewSession}
+                        />
+                      </div>
+                    </div>
+                  </Section>
+
+                  <Section>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground sm:text-sm">
+                      <span className="h-px flex-1 bg-border" />
+                      <span>More details (optional)</span>
+                      <span className="h-px flex-1 bg-border" />
+                    </div>
+                  </Section>
+
+                  <Section className="space-y-4">
+                    <Accordion type="multiple" className="space-y-2">
+                      <AccordionItem value="tactics">
+                        <AccordionTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <div className="flex items-start gap-2 text-left">
+                            <NotebookPen className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              <Heading as="h4" size="sm" className="text-foreground">
+                                Tactics & notes
+                              </Heading>
+                              <Text variant="muted" className="text-sm">
+                                Method, bait, kit, and notes.
+                              </Text>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
+                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                            <TacticsSection
+                              formData={{
+                                baitUsed: formData.baitUsed,
+                                method: formData.method,
+                                customMethod: formData.customMethod,
+                                equipmentUsed: formData.equipmentUsed,
+                              }}
+                              onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
+                              baitOptions={baitOptions}
+                              isLoadingBaits={isLoadingBaits}
+                              methodOptions={methodOptions}
+                              isLoadingMethods={isLoadingMethods}
+                            />
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      <AccordionItem value="story">
+                        <AccordionTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <div className="flex items-start gap-2 text-left">
+                            <FileText className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              <Heading as="h4" size="sm" className="text-foreground">
+                                Your story
+                              </Heading>
+                              <Text variant="muted" className="text-sm">
+                                Tell the story behind this catch.
+                              </Text>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
+                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                            <StorySection
+                              description={formData.description}
+                              onDescriptionChange={(description) => setFormData({ ...formData, description })}
+                            />
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      <AccordionItem value="conditions">
+                        <AccordionTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <div className="flex items-start gap-2 text-left">
+                            <CloudSun className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              <Heading as="h4" size="sm" className="text-foreground">
+                                Conditions
+                              </Heading>
+                              <Text variant="muted" className="text-sm">
+                                Weather and water details.
+                              </Text>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
+                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                            <ConditionsSection
+                              formData={{
+                                weather: formData.weather,
+                                airTemp: formData.airTemp,
+                                waterClarity: formData.waterClarity,
+                                windDirection: formData.windDirection,
+                              }}
+                              onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
+                              showConditions={showConditions}
+                              setShowConditions={setShowConditions}
+                            />
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      <AccordionItem value="media">
+                        <AccordionTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <div className="flex items-start gap-2 text-left">
+                            <Images className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              <Heading as="h4" size="sm" className="text-foreground">
+                                Media
+                              </Heading>
+                              <Text variant="muted" className="text-sm">
+                                Extra photos or a video link.
+                              </Text>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
+                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                            <MediaSection
+                              galleryFiles={galleryFiles}
+                              galleryPreviews={galleryPreviews}
+                              onGalleryChange={handleGalleryChange}
+                              onRemoveGalleryImage={removeGalleryImage}
+                              videoUrl={formData.videoUrl}
+                              onVideoUrlChange={(videoUrl) => setFormData({ ...formData, videoUrl })}
+                            />
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+
+                      <AccordionItem value="privacy">
+                        <AccordionTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-3 text-left transition hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+                          <div className="flex items-start gap-2 text-left">
+                            <TagIcon className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                            <div className="space-y-1">
+                              <Heading as="h4" size="sm" className="text-foreground">
+                                Tags & privacy
+                              </Heading>
+                              <Text variant="muted" className="text-sm">
+                                Visibility, tags, and ratings.
+                              </Text>
+                            </div>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
+                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                            <PrivacySection
+                              formData={{
+                                tags: formData.tags,
+                                visibility: formData.visibility,
+                                hideExactSpot: formData.hideExactSpot,
+                                allowRatings: formData.allowRatings,
+                              }}
+                              onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
+                            />
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </Section>
+
+                  <Section>
+                    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-border/60 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-4">
+                      <Text variant="muted" className="text-xs leading-snug sm:text-sm">
+                        You can log up to 10 catches per hour. We’ll save this to your logbook and update your rankings.
+                      </Text>
+                      <Button
+                        type="submit"
+                        className="w-full sm:w-auto"
+                        size="lg"
+                        disabled={isSubmitting || !imageFile}
+                      >
+                        {isSubmitting ? "Publishing catch..." : "Log this catch"}
+                      </Button>
+                    </div>
+                  </Section>
+                </form>
+              </CardContent>
+            </Card>
+          </Section>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">Catch details</CardTitle>
-            <p className="text-sm text-muted-foreground">
-              The more detail you add, the better your logbook and rankings will be.
-            </p>
-            <p className="text-sm text-muted-foreground">Fields marked * are required.</p>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8" data-testid="add-catch-form">
-              <SectionBlock
-                title="Catch basics"
-                helper="Species, title, weight and length. Main photo appears in the feed and on the leaderboard."
-                icon={Fish}
-                muted
-              >
-                <CatchBasicsSection
-                  imagePreview={imagePreview}
-                  imageFile={imageFile}
-                  onImageChange={handleImageChange}
-                  formData={{
-                    title: formData.title,
-                    species: formData.species,
-                    customSpecies: formData.customSpecies,
-                    weight: formData.weight,
-                    weightUnit: formData.weightUnit,
-                    length: formData.length,
-                    lengthUnit: formData.lengthUnit,
-                  }}
-                  onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
-                />
-              </SectionBlock>
-
-              <SectionBlock
-                title="Location & session"
-                helper="Where and when you caught this fish."
-                icon={MapPin}
-              >
-                <LocationSection
-                  formData={{
-                    location: formData.location,
-                    customLocationLabel: formData.customLocationLabel,
-                    pegOrSwim: formData.pegOrSwim,
-                    caughtAt: formData.caughtAt,
-                    timeOfDay: formData.timeOfDay,
-                    waterType: formData.waterType,
-                  }}
-                  onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
-                  useGpsLocation={useGpsLocation}
-                  setUseGpsLocation={setUseGpsLocation}
-                  gpsCoordinates={gpsCoordinates}
-                  setGpsCoordinates={setGpsCoordinates}
-                  gpsAccuracy={gpsAccuracy}
-                  setGpsAccuracy={setGpsAccuracy}
-                  isLocating={isLocating}
-                  setIsLocating={setIsLocating}
-                  locationError={locationError}
-                  setLocationError={setLocationError}
-                  onHandleUseGps={handleUseGps}
-                  waterTypeOptions={waterTypeOptions}
-                  isLoadingWaterTypes={isLoadingWaterTypes}
-                  sessions={sessions}
-                  isLoadingSessions={isLoadingSessions}
-                  selectedSessionId={selectedSessionId}
-                  setSelectedSessionId={setSelectedSessionId}
-                  isCreatingSession={isCreatingSession}
-                  setIsCreatingSession={setIsCreatingSession}
-                  newSession={newSession}
-                  setNewSession={setNewSession}
-                />
-              </SectionBlock>
-
-              <SectionBlock
-                title="Tactics & notes"
-                helper="Method, bait, kit and your notes."
-                icon={Target}
-                muted
-              >
-                <TacticsSection
-                  formData={{
-                    baitUsed: formData.baitUsed,
-                    method: formData.method,
-                    customMethod: formData.customMethod,
-                    equipmentUsed: formData.equipmentUsed,
-                  }}
-                  onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
-                  baitOptions={baitOptions}
-                  isLoadingBaits={isLoadingBaits}
-                  methodOptions={methodOptions}
-                  isLoadingMethods={isLoadingMethods}
-                />
-
-              </SectionBlock>
-
-              <SectionBlock
-                title="Your story"
-                helper="Tell the story so others can learn from it."
-                icon={MessageSquare}
-                muted
-              >
-                <StorySection
-                  description={formData.description}
-                  onDescriptionChange={(description) => setFormData({ ...formData, description })}
-                />
-              </SectionBlock>
-
-              <SectionBlock
-                title="Conditions"
-                helper="Optional · Weather and water details."
-                contentHelper="Optional, but helps spot patterns."
-                collapsible
-                defaultOpen={false}
-                icon={SunMedium}
-              >
-                <ConditionsSection
-                  formData={{
-                    weather: formData.weather,
-                    airTemp: formData.airTemp,
-                    waterClarity: formData.waterClarity,
-                    windDirection: formData.windDirection,
-                  }}
-                  onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
-                  showConditions={showConditions}
-                  setShowConditions={setShowConditions}
-                />
-              </SectionBlock>
-
-              <SectionBlock
-                title="Media"
-                helper="Optional · Extra photos or video."
-                contentHelper="Optional, but extra photos or video make your catch stand out."
-                collapsible
-                defaultOpen={false}
-                icon={Images}
-              >
-                <MediaSection
-                  galleryFiles={galleryFiles}
-                  galleryPreviews={galleryPreviews}
-                  onGalleryChange={handleGalleryChange}
-                  onRemoveGalleryImage={removeGalleryImage}
-                  videoUrl={formData.videoUrl}
-                  onVideoUrlChange={(videoUrl) => setFormData({ ...formData, videoUrl })}
-                />
-              </SectionBlock>
-
-              <div className="mt-6 sm:mt-8">
-                <SectionBlock
-                  title="Tags & privacy"
-                  helper="Control how this catch appears to others."
-                  icon={Tag}
-                  muted
-                >
-                  <PrivacySection
-                    formData={{
-                      tags: formData.tags,
-                      visibility: formData.visibility,
-                      hideExactSpot: formData.hideExactSpot,
-                      allowRatings: formData.allowRatings,
-                    }}
-                    onFormDataChange={(updates) => setFormData({ ...formData, ...updates })}
-                  />
-                </SectionBlock>
-              </div>
-
-              <div className="mt-6 flex flex-col gap-3 rounded-xl border border-border/60 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  You can log up to 10 catches per hour. We’ll save this to your logbook and update your rankings.
-                </p>
-                <Button
-                  type="submit"
-                  className="w-full sm:w-auto"
-                  size="lg"
-                  disabled={isSubmitting || !imageFile}
-                >
-                  {isSubmitting ? "Publishing catch..." : "Log this catch"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+      </PageContainer>
     </div>
   );
 };
