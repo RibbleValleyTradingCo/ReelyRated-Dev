@@ -93,7 +93,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    padding-top: 4rem;
+    padding-top: 0;
   }
 
   @media (min-width: 768px) {
@@ -102,13 +102,13 @@ All colors MUST be HSL.
     }
 
     body {
-      padding-top: 4.5rem;
+      padding-top: 0;
     }
   }
 
   html,
   body {
-    scroll-padding-top: var(--nav-height);
+    scroll-padding-top: calc(var(--nav-height) + 1px);
   }
 }
 

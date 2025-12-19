@@ -13,6 +13,7 @@ Mobile-first UI polish for **a UK fishing community app**: log catches, plan ses
   - Loading states still show spinners in places; we want **shimmering layout skeletons** that match the final layout.
   - The landing page can sell the purpose better: _why log catches, why follow anglers, why venues matter_.
   - Mobile-first “on the bank” polish: big touch targets, high outdoor contrast, resilient on poor connections.
+  - Venue page (mobile) continuity bug: /venues/:slug can show a large blank gap mid-page (iPhone-sized viewports) due to nested full-height wrappers; fix this as a v4 prerequisite so the page scroll feels continuous.
 
 ---
 
@@ -141,6 +142,13 @@ We want **shimmer skeletons instead of spinners** wherever possible.
   - **Catches from this venue** (filterable)
   - **Tips** (bait/tactics/pegs) _(community content later)_
 
+**Continuity fix (must-do before deeper redesign)**
+
+- Remove nested `min-h-screen` / `h-screen` wrappers inside VenueDetail; rely on the shared Layout shell for full-height layout.
+- Ensure only the outlet content swaps on load; navbar and any fixed bars must not visually “cut” the page.
+- Add/verify bottom padding (incl. safe-area inset) so fixed nav does not overlap venue CTAs/cards.
+- Acceptance: no large blank gap mid-scroll on iPhone viewports; continuous flow from hero → sections → catches.
+
 **Desktop enhancement**
 
 - Side rail: address/map, ticket links, facilities, quick stats.
@@ -234,15 +242,6 @@ We keep core data free, but premium features should feel like “tools”, not a
   - skeleton/empty/error states
   - contrast + tap target check
   - quick performance sanity (image sizes, lazy loads)
+- Treat “layout continuity” bugs (e.g., mobile VenueDetail blank-gap) as blockers before broader visual refactors, so our new skeletons and section components don’t amplify existing layout issues.
 
 ---
-
-## Milestones
-
-1. **Foundation pass**: shared components + shimmer skeleton suite.
-2. **Landing page restructure**.
-3. **Feed + Catch detail polish**.
-4. **Venues directory + venue page polish**.
-5. **Leaderboard + Sessions polish**.
-6. **Profile/Notifications polish**.
-7. **Owner modules (read-only UI first, then features).**

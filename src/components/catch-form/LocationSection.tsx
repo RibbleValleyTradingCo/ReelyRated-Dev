@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown, Loader2, MapPin } from "lucide-react";
+import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UK_FISHERIES, normalizeVenueName } from "@/lib/freshwater-data";
 
@@ -207,8 +207,8 @@ export const LocationSection = ({
               onHandleUseGps();
             }}
           >
-            {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <MapPin className="mr-2 h-4 w-4" />}
-            {useGpsLocation ? "Clear GPS Pin" : "Use Current GPS"}
+            {isLocating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {useGpsLocation ? "Clear GPS Pin" : "Drop a Google pin"}
           </Button>
           {!useGpsLocation && (
             <span className="text-xs text-muted-foreground">

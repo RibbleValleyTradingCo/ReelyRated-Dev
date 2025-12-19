@@ -6,6 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type OwnedVenue = {
   id: string;
@@ -71,10 +77,12 @@ const MyVenues = () => {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="container mx-auto flex items-center justify-center px-4 py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading your venues…
-        </div>
+        <PageContainer className="flex items-center justify-center px-4 sm:px-6 py-16">
+          <div className="flex items-center gap-2 text-slate-500">
+            <Loader2 className="h-5 w-5 animate-spin" />
+            <Text variant="muted">Loading your venues…</Text>
+          </div>
+        </PageContainer>
       </div>
     );
   }
@@ -85,55 +93,65 @@ const MyVenues = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Owner</p>
-            <h1 className="text-3xl font-bold text-foreground">My venues</h1>
-            <p className="text-sm text-muted-foreground">Manage the venues you own.</p>
-          </div>
-        </div>
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-5xl py-8 md:py-10">
+        <div className="space-y-6 min-w-0">
+          <Section>
+            <SectionHeader
+              eyebrow={<Eyebrow className="text-muted-foreground">Owner</Eyebrow>}
+              title="My venues"
+              subtitle="Manage the venues you own."
+            />
+          </Section>
 
-        {venues.length === 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>No venues yet</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                You don&apos;t currently manage any venues. Ask an admin to assign you as an owner.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {venues.map((venue) => (
-              <Card key={venue.id}>
+          <Section>
+            {venues.length === 0 ? (
+              <Card className="w-full border-border/70">
                 <CardHeader>
-                  <CardTitle className="text-lg">{venue.name}</CardTitle>
+                  <Heading as="h2" size="md" className="text-foreground">
+                    No venues yet
+                  </Heading>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{venue.location ?? "Location not set"}</p>
-                  <p className="text-sm text-foreground">
-                    {venue.short_tagline || "No tagline yet."}
-                  </p>
-                  {venue.price_from ? (
-                    <p className="text-xs text-muted-foreground">From {venue.price_from}</p>
-                  ) : null}
-                  <div className="flex gap-2">
-                    <Button asChild size="sm">
-                      <Link to={`/venues/${venue.slug}`}>View</Link>
-                    </Button>
-                    <Button asChild size="sm" variant="outline">
-                      <Link to={`/my/venues/${venue.slug}`}>Manage</Link>
-                    </Button>
-                  </div>
+                <CardContent>
+                  <Text variant="muted" className="text-sm">
+                    You don&apos;t currently manage any venues. Ask an admin to assign you as an owner.
+                  </Text>
                 </CardContent>
               </Card>
-            ))}
-          </div>
-        )}
-      </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 min-w-0">
+                {venues.map((venue) => (
+                  <Card key={venue.id} className="min-w-0">
+                    <CardHeader>
+                      <CardTitle className="text-lg truncate">{venue.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3 min-w-0">
+                      <Text variant="muted" className="text-sm truncate">
+                        {venue.location ?? "Location not set"}
+                      </Text>
+                      <Text className="text-sm text-foreground line-clamp-2">
+                        {venue.short_tagline || "No tagline yet."}
+                      </Text>
+                      {venue.price_from ? (
+                        <Text variant="muted" className="text-xs">
+                          From {venue.price_from}
+                        </Text>
+                      ) : null}
+                      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2">
+                        <Button asChild size="sm" className="w-full sm:w-auto">
+                          <Link to={`/venues/${venue.slug}`}>View</Link>
+                        </Button>
+                        <Button asChild size="sm" variant="outline" className="w-full sm:w-auto">
+                          <Link to={`/my/venues/${venue.slug}`}>Manage</Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </Section>
+        </div>
+      </PageContainer>
     </div>
   );
 };

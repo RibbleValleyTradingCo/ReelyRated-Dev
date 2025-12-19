@@ -725,7 +725,7 @@ const AddCatch = () => {
 
           <Section>
             <Card>
-              <CardContent>
+              <CardContent className="pt-6">
                 <form onSubmit={handleSubmit} className="space-y-8" data-testid="add-catch-form">
                   <Section className="space-y-4">
                     <div className="space-y-3 pt-1">

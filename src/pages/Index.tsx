@@ -12,6 +12,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
 import { isAdminUser } from "@/lib/admin";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type FeatureHighlight = {
   title: string;
@@ -131,15 +136,17 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
         compact ? "text-left" : "mx-auto max-w-3xl text-center",
       )}
     >
-      <h2
+      <Heading
+        as="h2"
+        size={compact ? "lg" : "xl"}
         className={cn(
-          "text-4xl font-black text-gray-900 md:text-5xl",
+          "text-gray-900",
           compact && "text-3xl md:text-4xl",
         )}
       >
         Built to remember every day on the water
-      </h2>
-      <p
+      </Heading>
+      <Text
         className={cn(
           "text-lg leading-relaxed text-gray-600",
           compact ? "max-w-xl" : "mx-auto max-w-2xl",
@@ -147,7 +154,7 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
       >
         From first cast to last light, ReelyRated keeps every detail so you can repeat the days that
         work and fix the ones that don’t.
-      </p>
+      </Text>
     </div>
 
     <div
@@ -425,12 +432,16 @@ const HeroLeft = ({
 }: HeroLeftProps) => (
   <div className="flex w-full flex-col gap-10 text-left motion-safe:animate-in motion-safe:fade-in-50 motion-safe:duration-500">
     <div className="space-y-6">
-      <h1 className="text-balance text-4xl font-black leading-[1.12] tracking-[-0.045em] text-gray-950 md:text-6xl md:leading-[1.12] lg:text-7xl lg:leading-[1.08]">
+      <Heading
+        as="h1"
+        size="xl"
+        className="text-balance text-4xl font-black leading-[1.12] tracking-[-0.045em] text-gray-950 md:text-6xl md:leading-[1.12] lg:text-7xl lg:leading-[1.08]"
+      >
         {heading}
-      </h1>
-      <p className="max-w-xl text-lg leading-relaxed text-gray-600 md:text-xl motion-safe:animate-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-500 motion-safe:delay-100">
+      </Heading>
+      <Text className="max-w-xl text-lg leading-relaxed text-gray-600 md:text-xl motion-safe:animate-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-500 motion-safe:delay-100">
         {subheading}
-      </p>
+      </Text>
     </div>
     <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap motion-safe:animate-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-500 motion-safe:delay-150">
       <Button
@@ -590,12 +601,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <main className="relative isolate pt-20 md:pt-24 lg:pt-28">
+      <PageContainer className="w-full max-w-none px-0">
+        <main className="relative isolate pt-20 md:pt-24 lg:pt-28">
         <div className="absolute inset-x-0 -top-40 -z-10 flex justify-center blur-3xl">
           <div className="h-64 w-2/3 rounded-full bg-gradient-to-r from-primary/40 via-secondary/40 to-primary/30 opacity-60" />
         </div>
 
-        <section className="pb-6 md:pb-8">
+        <Section className="pb-6 md:pb-8 space-y-0">
           <HomeLayout>
             <div className="grid items-center gap-8 md:gap-12 lg:grid-cols-[minmax(0,1.1fr),minmax(0,0.9fr)]">
               <div className="lg:sticky lg:top-28 lg:self-start">
@@ -613,34 +625,34 @@ const Index = () => {
               </div>
             </div>
           </HomeLayout>
-        </section>
+        </Section>
 
         <div className="mt-10 flex flex-col gap-10 md:mt-12">
-          <div className="section bg-gradient-to-br from-blue-50 via-sky-50/60 to-white border-y border-blue-200/50 py-12 md:py-16">
+          <Section className="section bg-gradient-to-br from-blue-50 via-sky-50/60 to-white border-y border-blue-200/50 py-12 md:py-16 space-y-0">
             <HomeLayout>
               <StatsShowcase stats={stats} isLoading={isLoadingData} dataError={dataError} />
             </HomeLayout>
-          </div>
+          </Section>
 
-          <div className="section bg-white py-12 md:py-16">
+          <Section className="section bg-white py-12 md:py-16 space-y-0">
             <LeaderboardSection limit={6} />
-          </div>
+          </Section>
 
-          <div className="section bg-gray-50/40 py-12 md:py-16">
+          <Section className="section bg-gray-50/40 py-12 md:py-16 space-y-0">
             <HomeLayout>
               <FeatureHighlights isAdmin={isAdmin} />
             </HomeLayout>
-          </div>
+          </Section>
 
-          <div className="section bg-gradient-to-br from-emerald-50 via-teal-50/40 to-cyan-50/30 py-10 md:py-14">
+          <Section className="section bg-gradient-to-br from-emerald-50 via-teal-50/40 to-cyan-50/30 py-10 md:py-14 space-y-0">
             <HomeLayout>
               <div className="mx-auto max-w-4xl space-y-4 text-center">
-                <h2 className="text-4xl font-black text-gray-900 md:text-5xl">
+                <Heading as="h2" size="xl" className="text-gray-900">
                   From first bite to bragging rights in three clean steps
-                </h2>
-                <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
+                </Heading>
+                <Text className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
                   Log your catch on the bank, let the community rate it, and use the data to plan your next session.
-                </p>
+                </Text>
               </div>
               <div className="mt-8">
                 <div className="relative mx-auto max-w-3xl">
@@ -665,18 +677,18 @@ const Index = () => {
                             </div>
                             <div className="flex flex-col gap-2 text-left">
                               <div className="inline-flex items-center gap-2">
-                                <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                                <Eyebrow className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
                                   Step {index + 1}
-                                </span>
+                                </Eyebrow>
                               </div>
-                              <h3 className="text-xl font-semibold text-gray-900 md:text-2xl">
+                              <Heading as="h3" size="md" className="text-gray-900 md:text-2xl">
                                 {step.title}
-                              </h3>
-                              <p className="text-sm text-gray-600">{step.description}</p>
+                              </Heading>
+                              <Text className="text-sm text-gray-600">{step.description}</Text>
                               {step.supporting ? (
-                                <p className="text-xs font-medium uppercase tracking-wide text-primary/80">
+                                <Text className="text-xs font-medium uppercase tracking-wide text-primary/80">
                                   {step.supporting}
-                                </p>
+                                </Text>
                               ) : null}
                             </div>
                           </div>
@@ -687,21 +699,21 @@ const Index = () => {
                 </div>
               </div>
             </HomeLayout>
-          </div>
+          </Section>
 
           {!user && (
-            <div className="section">
+            <Section className="section space-y-0">
               <HomeLayout>
                 <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary to-secondary px-6 py-12 text-primary-foreground shadow-xl md:px-8 md:py-16">
                   <div className="absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-2xl" />
                   <div className="relative mx-auto max-w-3xl space-y-6 text-center">
-                    <h2 className="text-3xl font-bold md:text-4xl">
+                    <Heading as="h2" size="lg">
                       Join the UK's most dedicated fishing leaderboard
-                    </h2>
-                    <p className="text-lg leading-relaxed">
+                    </Heading>
+                    <Text className="text-lg leading-relaxed">
                       Secure your handle, build your story, and rally your crew. Your next personal
                       best deserves more than a camera roll.
-                    </p>
+                    </Text>
                     <div className="flex flex-wrap justify-center gap-4">
                       <Button
                         variant="outline"
@@ -723,7 +735,7 @@ const Index = () => {
                   </div>
                 </div>
               </HomeLayout>
-            </div>
+            </Section>
           )}
         </div>
       </main>
@@ -733,6 +745,7 @@ const Index = () => {
           <p className="text-sm">ReelyRated • Built for UK Anglers</p>
         </HomeLayout>
       </footer>
+      </PageContainer>
     </div>
   );
 };

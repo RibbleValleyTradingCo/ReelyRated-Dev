@@ -8,7 +8,9 @@ import { Loader2, MapPin, Image as ImageIcon, Search, Flame, Star } from "lucide
 import { getPublicAssetUrl } from "@/lib/storage";
 import { FeedSelect } from "@/components/feed/FeedSelect";
 import PageSpinner from "@/components/loading/PageSpinner";
-import { PageContainer, Section, SectionHeader } from "@/components/layout";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
 
 type Venue = {
   id: string;

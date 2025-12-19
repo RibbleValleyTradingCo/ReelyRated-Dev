@@ -1,5 +1,10 @@
 import heroFish from "@/assets/hero-fish.jpg";
 import "@/components/Leaderboard.css";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
 import { getProfilePath } from "@/lib/profile";
@@ -93,108 +98,111 @@ const LeaderboardPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <main className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-12 md:px-6 lg:px-8">
-        <header className="space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
-            <Crown className="h-4 w-4" aria-hidden="true" />
-            Top 100 Leaderboard
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 md:text-4xl">
-            The most complete catches across the community
-          </h1>
-          <p className="max-w-2xl text-base text-slate-600 md:text-lg">
-            Scores blend weight, ratings, evidence, and logbook completeness. Explore the top 100
-            catches and jump into the details behind every standout moment on the water.
-          </p>
-        </header>
+      <PageContainer className="py-10 md:py-12 space-y-6 md:space-y-8">
+        <Section>
+          <SectionHeader
+            eyebrow={
+              <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+                <Crown className="h-4 w-4" aria-hidden="true" />
+                Top 100 Leaderboard
+              </span>
+            }
+            title="The most complete catches across the community"
+            subtitle="Scores blend weight, ratings, evidence, and logbook completeness. Explore the top 100 catches and jump into the details behind every standout moment on the water."
+          />
+        </Section>
 
         {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
-          </div>
+          <Section>
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          </Section>
         ) : null}
 
-        {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">
-            Loading leaderboard…
-          </div>
-        ) : (
-          <div className="leaderboard-table-wrapper leaderboard-table-wrapper--wide">
-            <table className="leaderboard-table text-sm">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Score</th>
-                  <th>Catch</th>
-                  <th>Angler</th>
-                  <th>Species</th>
-                  <th>Weight</th>
-                  <th>Length</th>
-                  <th>Location</th>
-                  <th>Method</th>
-                  <th>Caught</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="leaderboard-row">
-                    <td className="rank-col">
-                      <span className="rank-wrapper">
-                        {row.rank === 1 ? (
-                          <Crown className="rank-crown" aria-hidden="true" />
-                        ) : null}
-                        #{row.rank}
-                      </span>
-                    </td>
-                    <td className="score-col">
-                      <span className="score-chip">{row.score}</span>
-                    </td>
-                    <td className="title-col">
-                      <div className="catch-cell">
-                        <div className="catch-thumb">
-                          <img
-                            src={row.thumbnail}
-                            alt=""
-                            width={48}
-                            height={48}
-                            loading="lazy"
-                          />
-                        </div>
-                        <span>{row.catchTitle}</span>
-                      </div>
-                    </td>
-                    <td className="detail-col">
-                      {row.anglerUsername && row.anglerId ? (
-                        <Link
-                          to={getProfilePath({ username: row.anglerUsername, id: row.anglerId })}
-                          className="leaderboard-link"
-                        >
-                          @{row.anglerUsername}
-                        </Link>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="detail-col">{row.species}</td>
-                    <td className="detail-col">{row.weight}</td>
-                    <td className="detail-col">{row.length}</td>
-                    <td className="detail-col">{row.location}</td>
-                    <td className="detail-col">{row.method}</td>
-                    <td className="detail-col">{row.caughtAt}</td>
+        <Section>
+          {loading ? (
+            <div className="rounded-xl border border-slate-200 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">
+              Loading leaderboard…
+            </div>
+          ) : (
+            <div className="leaderboard-table-wrapper leaderboard-table-wrapper--wide">
+              <table className="leaderboard-table text-sm">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Score</th>
+                    <th>Catch</th>
+                    <th>Angler</th>
+                    <th>Species</th>
+                    <th>Weight</th>
+                    <th>Length</th>
+                    <th>Location</th>
+                    <th>Method</th>
+                    <th>Caught</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {rows.length === 0 ? (
-              <div className="px-6 py-10 text-center text-sm text-slate-500">
-                No public catches have been ranked yet. Share your first catch to kick off the leaderboard.
-              </div>
-            ) : (
-              <p className="leaderboard-scroll-hint">Swipe or scroll sideways to see every stat →</p>
-            )}
-          </div>
-        )}
-      </main>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.id} className="leaderboard-row">
+                      <td className="rank-col">
+                        <span className="rank-wrapper">
+                          {row.rank === 1 ? (
+                            <Crown className="rank-crown" aria-hidden="true" />
+                          ) : null}
+                          #{row.rank}
+                        </span>
+                      </td>
+                      <td className="score-col">
+                        <span className="score-chip">{row.score}</span>
+                      </td>
+                      <td className="title-col">
+                        <div className="catch-cell">
+                          <div className="catch-thumb">
+                            <img
+                              src={row.thumbnail}
+                              alt=""
+                              width={48}
+                              height={48}
+                              loading="lazy"
+                            />
+                          </div>
+                          <span>{row.catchTitle}</span>
+                        </div>
+                      </td>
+                      <td className="detail-col">
+                        {row.anglerUsername && row.anglerId ? (
+                          <Link
+                            to={getProfilePath({ username: row.anglerUsername, id: row.anglerId })}
+                            className="leaderboard-link"
+                          >
+                            @{row.anglerUsername}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="detail-col">{row.species}</td>
+                      <td className="detail-col">{row.weight}</td>
+                      <td className="detail-col">{row.length}</td>
+                      <td className="detail-col">{row.location}</td>
+                      <td className="detail-col">{row.method}</td>
+                      <td className="detail-col">{row.caughtAt}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {rows.length === 0 ? (
+                <Text className="px-6 py-10 text-center text-sm text-slate-500">
+                  No public catches have been ranked yet. Share your first catch to kick off the leaderboard.
+                </Text>
+              ) : (
+                <p className="leaderboard-scroll-hint">Swipe or scroll sideways to see every stat →</p>
+              )}
+            </div>
+          )}
+        </Section>
+      </PageContainer>
     </div>
   );
 };

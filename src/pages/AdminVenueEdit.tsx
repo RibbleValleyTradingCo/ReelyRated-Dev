@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +9,12 @@ import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { isAdminUser } from "@/lib/admin";
 import { toast } from "sonner";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type Venue = {
   id: string;
@@ -414,10 +420,10 @@ const AdminVenueEdit = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="section-container flex items-center justify-center py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading venue…
-        </div>
+        <PageContainer className="flex items-center justify-center px-4 sm:px-6 py-16 overflow-x-hidden">
+          <Loader2 className="mr-2 h-5 w-5 animate-spin text-slate-500" />
+          <Text variant="muted">Loading venue…</Text>
+        </PageContainer>
       </div>
     );
   }
@@ -425,381 +431,426 @@ const AdminVenueEdit = () => {
   if (!venue) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <div className="section-container py-12">
-          <Card className="border border-slate-200 bg-white shadow-sm">
+        <PageContainer className="px-4 sm:px-6 py-12 overflow-x-hidden">
+          <Card className="border border-slate-200 bg-white shadow-sm w-full">
             <CardHeader>
-              <CardTitle>Venue not found</CardTitle>
+              <Heading as="h2" size="md" className="text-foreground">
+                Venue not found
+              </Heading>
             </CardHeader>
             <CardContent className="space-y-3">
-              <p className="text-sm text-slate-600">This venue doesn&apos;t exist or isn&apos;t published.</p>
+              <Text variant="muted" className="text-sm">
+                This venue doesn&apos;t exist or isn&apos;t published.
+              </Text>
               <Button asChild variant="outline">
                 <Link to="/admin/venues">Back to admin venues</Link>
               </Button>
             </CardContent>
           </Card>
-        </div>
+        </PageContainer>
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <main className="section-container space-y-6 py-8 md:py-10">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Shield className="h-3.5 w-3.5" />
-              Admin
-            </div>
-            <h1 className="text-3xl font-bold leading-tight text-slate-900">Edit venue</h1>
-            <p className="text-sm text-slate-600">{venue.name}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button variant="ghost" asChild className="rounded-full">
-              <Link to={`/venues/${venue.slug}`}>View public page</Link>
-            </Button>
-            <Button variant="outline" asChild className="rounded-full">
-              <Link to="/admin/venues">Back to list</Link>
-            </Button>
-          </div>
-        </div>
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-6xl py-8 md:py-10 overflow-x-hidden">
+        <div className="space-y-6 min-w-0">
+          <Section>
+            <SectionHeader
+              eyebrow={
+                <div className="flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-primary" />
+                  <Eyebrow className="text-muted-foreground">Admin</Eyebrow>
+                </div>
+              }
+              title={venue.name || "Edit venue"}
+              subtitle="Manage venue metadata, owners, and events."
+              actions={
+                <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
+                  <Button variant="ghost" asChild className="rounded-full w-full sm:w-auto">
+                    <Link to={`/venues/${venue.slug}`}>View public page</Link>
+                  </Button>
+                  <Button variant="outline" asChild className="rounded-full w-full sm:w-auto">
+                    <Link to="/admin/venues">Back to list</Link>
+                  </Button>
+                </div>
+              }
+            />
+          </Section>
 
-        <Card className="border border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Metadata</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Short tagline</label>
-                <Input
-                  value={form.short_tagline}
-                  onChange={(e) => setForm((prev) => ({ ...prev, short_tagline: e.target.value }))}
-                  placeholder="Big carp day-ticket venue with 3 main lakes"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-semibold text-slate-800">Description</label>
-                <Textarea
-                  value={form.description}
-                  onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-                  rows={4}
-                  placeholder="Brief description of the venue"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Ticket type</label>
-                <Input
-                  value={form.ticket_type}
-                  onChange={(e) => setForm((prev) => ({ ...prev, ticket_type: e.target.value }))}
-                  placeholder="Day ticket, Syndicate, Club water, Coaching venue"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Price from</label>
-                <Input
-                  value={form.price_from}
-                  onChange={(e) => setForm((prev) => ({ ...prev, price_from: e.target.value }))}
-                  placeholder="from £10 / day"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Best for tags (comma separated)</label>
-                <Input
-                  value={form.best_for_tags}
-                  onChange={(e) => setForm((prev) => ({ ...prev, best_for_tags: e.target.value }))}
-                  placeholder="Carp, Match, Families"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Facilities (comma separated)</label>
-                <Input
-                  value={form.facilities}
-                  onChange={(e) => setForm((prev) => ({ ...prev, facilities: e.target.value }))}
-                  placeholder="Toilets, Café, Tackle shop"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Website URL</label>
-                <Input
-                  value={form.website_url}
-                  onChange={(e) => setForm((prev) => ({ ...prev, website_url: e.target.value }))}
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Booking URL</label>
-                <Input
-                  value={form.booking_url}
-                  onChange={(e) => setForm((prev) => ({ ...prev, booking_url: e.target.value }))}
-                  placeholder="https://example.com/book"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-800">Contact phone</label>
-                <Input
-                  value={form.contact_phone}
-                  onChange={(e) => setForm((prev) => ({ ...prev, contact_phone: e.target.value }))}
-                  placeholder="+44 ..."
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-800">Internal notes (RR team only)</label>
-              <Textarea
-                value={form.notes_for_rr_team}
-                onChange={(e) => setForm((prev) => ({ ...prev, notes_for_rr_team: e.target.value }))}
-                placeholder="Internal notes not shown publicly"
-                rows={3}
-              />
-            </div>
-            <div className="flex items-center justify-end gap-3">
-              <Button
-                onClick={handleSave}
-                disabled={saving}
-                className="rounded-full"
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving…
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Owners</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-slate-600">
-              Assign venue owners/managers who can self-manage metadata and events for this venue.
-            </p>
-            <div className="space-y-2">
-              {ownersLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Loading owners…
+          <Section>
+            <Card className="border border-slate-200 bg-white shadow-sm w-full">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="md" className="text-foreground">
+                  Metadata
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Update public details and internal notes for this venue.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2 min-w-0">
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Short tagline</label>
+                    <Input
+                      value={form.short_tagline}
+                      onChange={(e) => setForm((prev) => ({ ...prev, short_tagline: e.target.value }))}
+                      placeholder="Big carp day-ticket venue with 3 main lakes"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Description</label>
+                    <Textarea
+                      value={form.description}
+                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                      rows={4}
+                      placeholder="Brief description of the venue"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Ticket type</label>
+                    <Input
+                      value={form.ticket_type}
+                      onChange={(e) => setForm((prev) => ({ ...prev, ticket_type: e.target.value }))}
+                      placeholder="Day ticket, Syndicate, Club water, Coaching venue"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Price from</label>
+                    <Input
+                      value={form.price_from}
+                      onChange={(e) => setForm((prev) => ({ ...prev, price_from: e.target.value }))}
+                      placeholder="from £10 / day"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Best for tags (comma separated)</label>
+                    <Input
+                      value={form.best_for_tags}
+                      onChange={(e) => setForm((prev) => ({ ...prev, best_for_tags: e.target.value }))}
+                      placeholder="Carp, Match, Families"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Facilities (comma separated)</label>
+                    <Input
+                      value={form.facilities}
+                      onChange={(e) => setForm((prev) => ({ ...prev, facilities: e.target.value }))}
+                      placeholder="Toilets, Café, Tackle shop"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Website URL</label>
+                    <Input
+                      value={form.website_url}
+                      onChange={(e) => setForm((prev) => ({ ...prev, website_url: e.target.value }))}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Booking URL</label>
+                    <Input
+                      value={form.booking_url}
+                      onChange={(e) => setForm((prev) => ({ ...prev, booking_url: e.target.value }))}
+                      placeholder="https://example.com/book"
+                    />
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="text-sm font-semibold text-slate-800">Contact phone</label>
+                    <Input
+                      value={form.contact_phone}
+                      onChange={(e) => setForm((prev) => ({ ...prev, contact_phone: e.target.value }))}
+                      placeholder="+44 ..."
+                    />
+                  </div>
                 </div>
-              ) : owners.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No owners assigned yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {owners.map((owner) => (
-                    <div
-                      key={owner.user_id}
-                      className="flex items-center justify-between rounded border border-border/70 bg-muted/40 px-3 py-2"
-                    >
-                      <div className="text-sm text-foreground">
-                        {owner.username ? `@${owner.username}` : owner.user_id}{" "}
-                        <span className="text-xs text-muted-foreground">({owner.role})</span>
-                      </div>
-                      <Button variant="ghost" size="sm" onClick={() => void handleRemoveOwner(owner.user_id)}>
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Add owner by username or user ID</label>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <Input
-                  value={ownerInput}
-                  onChange={(e) => setOwnerInput(e.target.value)}
-                  placeholder="username or user id"
-                  className="sm:w-72"
-                />
-                <Button onClick={() => void handleAddOwner()} disabled={ownerSaving}>
-                  {ownerSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding…
-                    </>
-                  ) : (
-                    "Add owner"
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Events</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-slate-800">Create / edit event</h3>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Title*</label>
-                  <Input
-                    value={eventForm.title}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Event type</label>
-                  <Input
-                    value={eventForm.event_type}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, event_type: e.target.value }))}
-                    placeholder="Match, open_day, maintenance..."
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Starts at*</label>
-                  <Input
-                    type="datetime-local"
-                    value={eventForm.starts_at}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, starts_at: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Ends at</label>
-                  <Input
-                    type="datetime-local"
-                    value={eventForm.ends_at}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, ends_at: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Ticket info</label>
-                  <Input
-                    value={eventForm.ticket_info}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_info: e.target.value }))}
-                    placeholder="£25, 30 pegs, payout to top 3"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Website URL</label>
-                  <Input
-                    value={eventForm.website_url}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, website_url: e.target.value }))}
-                    placeholder="https://example.com"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-sm font-semibold text-slate-800">Booking URL</label>
-                  <Input
-                    value={eventForm.booking_url}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, booking_url: e.target.value }))}
-                    placeholder="https://example.com/book"
-                  />
-                </div>
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-semibold text-slate-800">Description</label>
+                <div className="space-y-2 min-w-0">
+                  <label className="text-sm font-semibold text-slate-800">Internal notes (RR team only)</label>
                   <Textarea
-                    value={eventForm.description}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
+                    value={form.notes_for_rr_team}
+                    onChange={(e) => setForm((prev) => ({ ...prev, notes_for_rr_team: e.target.value }))}
+                    placeholder="Internal notes not shown publicly"
                     rows={3}
                   />
                 </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    id="is_published"
-                    type="checkbox"
-                    checked={eventForm.is_published}
-                    onChange={(e) => setEventForm((prev) => ({ ...prev, is_published: e.target.checked }))}
-                  />
-                  <label htmlFor="is_published" className="text-sm font-semibold text-slate-800">
-                    Published
-                  </label>
+                <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+                  <Button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="rounded-full w-full sm:w-auto"
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
+                  </Button>
                 </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <Button onClick={handleSaveEvent} disabled={eventSaving} className="rounded-full">
-                  {eventSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving…
-                    </>
-                  ) : (
-                    "Save event"
-                  )}
-                </Button>
-                <Button variant="ghost" onClick={() => handleEditEvent(undefined)} className="rounded-full">
-                  Clear form
-                </Button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
+          </Section>
 
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-slate-800">All events</h3>
-                {eventsLoading ? (
-                  <span className="text-xs text-slate-500">Loading…</span>
-                ) : (
-                  <span className="text-xs text-slate-500">{events.length} event{events.length === 1 ? "" : "s"}</span>
-                )}
-              </div>
-              {eventsLoading ? (
-                <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading events…
-                </div>
-              ) : events.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
-                  No events yet.
-                </div>
-              ) : (
+          <Section>
+            <Card className="border border-slate-200 bg-white shadow-sm w-full">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="md" className="text-foreground">
+                  Owners
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Assign venue owners/managers who can self-manage metadata and events for this venue.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  {events.map((event) => {
-                    const status = classifyEventStatus(event);
-                    const statusStyle =
-                      status === "draft"
-                        ? "bg-amber-100 text-amber-800"
-                        : status === "upcoming"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-slate-100 text-slate-700";
-                    return (
-                      <div
-                        key={event.id}
-                        className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3"
-                      >
-                        <div className="space-y-1">
-                          <p className="text-sm font-semibold text-slate-900">{event.title}</p>
-                          <p className="text-xs text-slate-600">
-                            {new Date(event.starts_at).toLocaleString()} {event.event_type ? `• ${event.event_type}` : ""}
-                          </p>
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusStyle}`}>
-                            {status === "draft" ? "Draft" : status === "upcoming" ? "Upcoming" : "Past"}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-full"
-                            onClick={() => handleEditEvent(event)}
-                          >
-                            Edit
-                          </Button>
+                  {ownersLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Loading owners…
+                    </div>
+                  ) : owners.length === 0 ? (
+                    <Text variant="muted" className="text-sm">
+                      No owners assigned yet.
+                    </Text>
+                  ) : (
+                    <div className="space-y-2">
+                      {owners.map((owner) => (
+                        <div
+                          key={owner.user_id}
+                          className="flex min-w-0 flex-col gap-2 rounded border border-border/70 bg-muted/40 px-3 py-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+                        >
+                          <Text className="text-sm text-foreground truncate">
+                            {owner.username ? `@${owner.username}` : owner.user_id}{" "}
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">({owner.role})</span>
+                          </Text>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="rounded-full text-red-600 hover:text-red-700"
-                            onClick={() => handleDeleteEvent(event.id)}
+                            className="w-full sm:w-auto justify-start"
+                            onClick={() => void handleRemoveOwner(owner.user_id)}
                           >
-                            Delete
+                            Remove
                           </Button>
                         </div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </main>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Add owner by username or user ID</label>
+                  <div className="flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                    <Input
+                      value={ownerInput}
+                      onChange={(e) => setOwnerInput(e.target.value)}
+                      placeholder="username or user id"
+                      className="w-full sm:w-72 sm:max-w-sm"
+                    />
+                    <Button onClick={() => void handleAddOwner()} disabled={ownerSaving} className="w-full sm:w-auto">
+                      {ownerSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Adding…
+                        </>
+                      ) : (
+                        "Add owner"
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+
+          <Section>
+            <Card className="border border-slate-200 bg-white shadow-sm w-full">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="md" className="text-foreground">
+                  Events
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Create new events or edit existing entries for this venue.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Heading as="h3" size="sm" className="text-foreground">
+                    Create / edit event
+                  </Heading>
+                  <div className="grid gap-4 md:grid-cols-2 min-w-0">
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Title*</label>
+                      <Input
+                        value={eventForm.title}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Event type</label>
+                      <Input
+                        value={eventForm.event_type}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, event_type: e.target.value }))}
+                        placeholder="Match, open_day, maintenance..."
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Starts at*</label>
+                      <Input
+                        type="datetime-local"
+                        value={eventForm.starts_at}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, starts_at: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Ends at</label>
+                      <Input
+                        type="datetime-local"
+                        value={eventForm.ends_at}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, ends_at: e.target.value }))}
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Ticket info</label>
+                      <Input
+                        value={eventForm.ticket_info}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_info: e.target.value }))}
+                        placeholder="£25, 30 pegs, payout to top 3"
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Website URL</label>
+                      <Input
+                        value={eventForm.website_url}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, website_url: e.target.value }))}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Booking URL</label>
+                      <Input
+                        value={eventForm.booking_url}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, booking_url: e.target.value }))}
+                        placeholder="https://example.com/book"
+                      />
+                    </div>
+                    <div className="space-y-1 md:col-span-2 min-w-0">
+                      <label className="text-sm font-semibold text-slate-800">Description</label>
+                      <Textarea
+                        value={eventForm.description}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
+                        rows={3}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2 rounded-md bg-muted/40 px-3 py-2 w-full sm:w-auto">
+                      <input
+                        id="is_published"
+                        type="checkbox"
+                        checked={eventForm.is_published}
+                        onChange={(e) => setEventForm((prev) => ({ ...prev, is_published: e.target.checked }))}
+                      />
+                      <label htmlFor="is_published" className="text-sm font-semibold text-slate-800">
+                        Published
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+                    <Button onClick={handleSaveEvent} disabled={eventSaving} className="rounded-full w-full sm:w-auto">
+                      {eventSaving ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving…
+                        </>
+                      ) : (
+                        "Save event"
+                      )}
+                    </Button>
+                    <Button variant="ghost" onClick={() => handleEditEvent(undefined)} className="rounded-full w-full sm:w-auto">
+                      Clear form
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <Heading as="h3" size="sm" className="text-foreground">
+                      All events
+                    </Heading>
+                    {eventsLoading ? (
+                      <Text variant="muted" className="text-xs">
+                        Loading…
+                      </Text>
+                    ) : (
+                      <Text variant="muted" className="text-xs">
+                        {events.length} event{events.length === 1 ? "" : "s"}
+                      </Text>
+                    )}
+                  </div>
+                  {eventsLoading ? (
+                    <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading events…
+                    </div>
+                  ) : events.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
+                      No events yet.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {events.map((event) => {
+                        const status = classifyEventStatus(event);
+                        const statusStyle =
+                          status === "draft"
+                            ? "bg-amber-100 text-amber-800"
+                            : status === "upcoming"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : "bg-slate-100 text-slate-700";
+                        return (
+                          <div
+                            key={event.id}
+                            className="flex min-w-0 flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                          >
+                            <div className="space-y-1 min-w-0">
+                              <Heading as="h4" size="sm" className="text-foreground line-clamp-1">
+                                {event.title}
+                              </Heading>
+                              <Text variant="muted" className="text-xs truncate">
+                                {new Date(event.starts_at).toLocaleString()} {event.event_type ? `• ${event.event_type}` : ""}
+                              </Text>
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusStyle}`}>
+                                {status === "draft" ? "Draft" : status === "upcoming" ? "Upcoming" : "Past"}
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="rounded-full w-full sm:w-auto"
+                                onClick={() => handleEditEvent(event)}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="rounded-full text-red-600 hover:text-red-700 w-full sm:w-auto"
+                                onClick={() => handleDeleteEvent(event.id)}
+                              >
+                                Delete
+                              </Button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+        </div>
+      </PageContainer>
     </div>
   );
 };

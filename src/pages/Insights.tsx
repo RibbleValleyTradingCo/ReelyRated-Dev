@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState, useId } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthUser, useAuthLoading } from "@/components/AuthProvider";
 import type { Database } from "@/integrations/supabase/types";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -31,6 +30,11 @@ import { type AggregatedStats, aggregateStats } from "@/lib/insights-aggregation
 import { useInsightsChartData } from "@/lib/useInsightsChartData";
 import { useInsightsFilters } from "@/lib/useInsightsFilters";
 import { createNivoTheme } from "@/lib/nivoTheme";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 
 type SessionRow = Database["public"]["Tables"]["sessions"]["Row"];
 
@@ -372,234 +376,281 @@ const Insights = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/40">
-      <main className="container mx-auto max-w-5xl px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground md:text-4xl">Your angling insights</h1>
-          <p className="text-muted-foreground">
-            A quick look at how your catches stack up across venues, times of day, and favourite tactics.
-          </p>
-        </div>
-
-        {loading ? (
-          <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
-            <Loader2 className="h-6 w-6 animate-spin" />
-            Crunching the numbers…
-          </div>
-        ) : (
-          <>
-            <FiltersPanel
-              datePreset={datePreset}
-              onDatePresetChange={handleDatePresetChange}
-              selectedSessionId={selectedSessionId}
-              onSessionChange={handleSessionChange}
-              selectedVenue={selectedVenue}
-              onVenueChange={handleVenueChange}
-              customRange={customRange}
-              customRangeOpen={customRangeOpen}
-              onCustomRangeOpenChange={setCustomRangeOpen}
-              onCustomRangeSelect={handleCustomRangeSelect}
-              onClearCustomRange={handleClearCustomRange}
-              customRangeLabel={customRangeLabel}
-              customRangeActive={customRangeActive}
-              latestSessionId={latestSessionId}
-              sessionOptions={sessionOptions}
-              sessionsDisabled={sessionsDisabled}
-              venueOptions={venueOptions}
-              showLastSessionHint={showLastSessionHint}
+      <PageContainer className="py-8 md:py-10">
+        <div className="space-y-10 md:space-y-12">
+          <Section className="space-y-2">
+            <SectionHeader
+              title="Your angling insights"
+              subtitle="A quick look at how your catches stack up across venues, times of day, and favourite tactics."
             />
+          </Section>
 
-            <div className="mb-4 text-sm text-muted-foreground sm:text-base">{headlineSummary}</div>
+          {loading ? (
+            <Section className="space-y-4">
+              <div className="flex h-64 flex-col items-center justify-center gap-2 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <Text variant="muted" className="text-base">
+                  Crunching the numbers…
+                </Text>
+              </div>
+            </Section>
+          ) : (
+            <>
+              <Section className="space-y-5 [&_.grid.gap-4]:gap-5 [&_p.text-xs.text-muted-foreground]:mt-3 [&_p.text-xs.text-muted-foreground]:leading-relaxed">
+                <FiltersPanel
+                  datePreset={datePreset}
+                  onDatePresetChange={handleDatePresetChange}
+                  selectedSessionId={selectedSessionId}
+                  onSessionChange={handleSessionChange}
+                  selectedVenue={selectedVenue}
+                  onVenueChange={handleVenueChange}
+                  customRange={customRange}
+                  customRangeOpen={customRangeOpen}
+                  onCustomRangeOpenChange={setCustomRangeOpen}
+                  onCustomRangeSelect={handleCustomRangeSelect}
+                  onClearCustomRange={handleClearCustomRange}
+                  customRangeLabel={customRangeLabel}
+                  customRangeActive={customRangeActive}
+                  latestSessionId={latestSessionId}
+                  sessionOptions={sessionOptions}
+                  sessionsDisabled={sessionsDisabled}
+                  venueOptions={venueOptions}
+                  showLastSessionHint={showLastSessionHint}
+                />
+              </Section>
 
-            {error ? (
-              <Card className="mb-6 border-destructive/30 bg-destructive/10 text-destructive">
-                <CardContent className="py-6">
-                  <p>{error}</p>
-                </CardContent>
-              </Card>
-            ) : stats.totalCatches === 0 ? (
-              <Card className="mb-6">
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  <p>
-                    {noCatchesOverall
-                      ? "You haven’t logged any catches yet. Record your next session to unlock insights."
-                      : "No catches match these filters yet. Adjust your selections or log a new trip to see data here."}
-                  </p>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
-                <section className="mt-6 space-y-6 lg:space-y-8">
+              <Section>
+                <div className="rounded-xl border border-border/60 bg-white/60 px-4 py-3 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1 h-2 w-2 rounded-full bg-primary/60" />
+                    <Text variant="muted" className="text-sm sm:text-base leading-relaxed">
+                      {headlineSummary}
+                    </Text>
+                  </div>
+                </div>
+              </Section>
+
+              {error ? (
+                <Section className="space-y-4">
+                  <Card className="border-destructive/30 bg-destructive/10 text-destructive">
+                    <CardContent className="py-6">
+                      <Text>{error}</Text>
+                    </CardContent>
+                  </Card>
+                </Section>
+              ) : stats.totalCatches === 0 ? (
+                <Section className="space-y-4">
+                  <Card>
+                    <CardContent className="py-8 text-center">
+                      <Text variant="muted">
+                        {noCatchesOverall
+                          ? "You haven’t logged any catches yet. Record your next session to unlock insights."
+                          : "No catches match these filters yet. Adjust your selections or log a new trip to see data here."}
+                      </Text>
+                    </CardContent>
+                  </Card>
+                </Section>
+              ) : (
+                <>
+                  <Section className="space-y-6 lg:space-y-8">
                   <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-foreground">Highlights</h2>
-                    <p className="text-sm text-muted-foreground">
+                    <Heading as="h2" size="md" className="text-foreground">
+                      Highlights
+                    </Heading>
+                    <Text variant="muted">
                       Key stats across your selected date range. Adjust the filters to explore other periods or venues.
-                    </p>
+                    </Text>
                   </div>
-                  <StatsCards
-                    totalCatches={stats.totalCatches}
-                    pbLabel={stats.pbCatch?.label ?? "—"}
-                    averageWeightLabel={averageWeightLabel}
-                    weightedCatchCount={weightedCatchCount}
-                    sessionsCount={sessionsCount}
-                    averagePerSessionLabel={averagePerSessionLabel}
-                    mostCommonSpecies={mostCommonSpecies}
-                    mostCommonSpeciesCount={mostCommonSpeciesCount}
-                  />
-                </section>
-
-                <section className="mt-10 space-y-6 lg:space-y-8">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-foreground">Catch trends</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Track when your catches happen and spot momentum across your logs.
-                    </p>
+                  <div className="[&>div>div]:min-h-[140px] [&>div>div:last-child]:md:col-span-2">
+                    <StatsCards
+                      totalCatches={stats.totalCatches}
+                      pbLabel={stats.pbCatch?.label ?? "—"}
+                      averageWeightLabel={averageWeightLabel}
+                      weightedCatchCount={weightedCatchCount}
+                      sessionsCount={sessionsCount}
+                      averagePerSessionLabel={averagePerSessionLabel}
+                      mostCommonSpecies={mostCommonSpecies}
+                      mostCommonSpeciesCount={mostCommonSpeciesCount}
+                    />
                   </div>
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <ChartCard
-                      icon={CalendarDays}
-                      title="Catch trend"
-                      description="Monthly totals for the selected range."
-                      isEmpty={monthlyCounts.length === 0}
-                      emptyMessage="Add more catches to reveal the timeline."
-                      footer={peakMonthEntry ? catchTrendSummary : undefined}
-                    >
-                      <TrendLineChart
-                        data={trendLineData}
-                        theme={nivoTheme}
-                        color={primaryColor}
-                        gradientId={trendGradientId}
-                      />
-                    </ChartCard>
+                </Section>
 
-                    <ChartCard
-                      icon={BarChart3}
-                      title="Time of day performance"
-                      description="Track when your catches most often happen."
-                      isEmpty={false}
-                      emptyMessage="No time-of-day data yet."
-                      footer={showTimeOfDayChart ? timeOfDaySummary : undefined}
-                    >
-                      {showTimeOfDayChart ? (
-                        <p className="text-sm text-foreground">
-                          Most fish landed during <span className="font-semibold">{topTimeOfDayBucket?.label?.toLowerCase()} hours</span>.
-                        </p>
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          Not enough data yet. Log a few more catches to unlock this view.
-                        </p>
-                      )}
-                    </ChartCard>
-                  </div>
-                </section>
+                  <Section className="space-y-6 lg:space-y-8 [&_div.space-y-3>p.text-sm.text-muted-foreground]:mt-2 [&_div.space-y-3>p.text-sm.text-muted-foreground]:leading-relaxed">
+                    <div className="space-y-2">
+                      <Heading as="h2" size="md" className="text-foreground">
+                        Catch trends
+                      </Heading>
+                      <Text variant="muted">
+                        Track when your catches happen and spot momentum across your logs.
+                      </Text>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <div className="[&>div]:h-full [&>div]:flex [&>div]:flex-col">
+                        <ChartCard
+                          icon={CalendarDays}
+                          title="Catch trend"
+                          description="Monthly totals for the selected range."
+                          isEmpty={monthlyCounts.length === 0}
+                          emptyMessage="Add more catches to reveal the timeline."
+                          footer={peakMonthEntry ? catchTrendSummary : undefined}
+                        >
+                          <div className="min-h-[220px] md:min-h-[280px]">
+                            <TrendLineChart
+                              data={trendLineData}
+                              theme={nivoTheme}
+                              color={primaryColor}
+                              gradientId={trendGradientId}
+                            />
+                          </div>
+                        </ChartCard>
+                      </div>
 
-                <section className="mt-10 space-y-6 lg:space-y-8">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-foreground">Species & baits</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Focus on the species you’re most successful with and the baits that earn the most strikes. Top 5
-                      entries shown on mobile.
-                    </p>
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <ChartCard
-                      icon={Sparkles}
-                      title="Species mix"
-                      description="Top species landed during this period."
-                      isEmpty={speciesBarData.length === 0}
-                      emptyMessage="No species data available for this view."
-                    >
-                      {speciesBarData.length > 0 ? (
-                        <ol className="space-y-2 text-sm">
-                          {speciesBarData.slice(0, 5).map((item, index) => (
-                            <li key={item.label} className="flex items-center justify-between gap-4">
-                              <span className="font-medium text-foreground">
-                                {index + 1}. {item.label}
-                              </span>
-                              <span className="text-muted-foreground">
-                                {item.catches} catch{item.catches === 1 ? "" : "es"}
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      ) : null}
-                    </ChartCard>
+                      <div className="[&>div]:h-full">
+                        <ChartCard
+                          icon={BarChart3}
+                          title="Time of day performance"
+                          description="Track when your catches most often happen."
+                          isEmpty={false}
+                          emptyMessage="No time-of-day data yet."
+                          footer={showTimeOfDayChart ? timeOfDaySummary : undefined}
+                        >
+                          {showTimeOfDayChart ? (
+                            <Text className="text-sm text-foreground">
+                              Most fish landed during <span className="font-semibold">{topTimeOfDayBucket?.label?.toLowerCase()} hours</span>.
+                            </Text>
+                          ) : (
+                            <Text variant="muted" className="text-sm">
+                              Not enough data yet. Log a few more catches to unlock this view.
+                            </Text>
+                          )}
+                        </ChartCard>
+                      </div>
+                    </div>
+                  </Section>
 
-                    <ChartCard
-                      icon={Anchor}
-                      title="Favourite baits"
-                      description="The lures and baits that seal the deal most often."
-                      isEmpty={baitData.length === 0}
-                      emptyMessage="No bait data logged yet."
-                    >
-                      {baitData.length > 0 ? (
-                        <ol className="space-y-2 text-sm">
-                          {baitData.slice(0, 5).map((item, index) => (
-                            <li key={item.label} className="flex items-center justify-between gap-4">
-                              <span className="font-medium text-foreground">
-                                {index + 1}. {item.label}
-                              </span>
-                              <span className="text-muted-foreground">
-                                {item.catches} catch{item.catches === 1 ? "" : "es"}
-                              </span>
-                            </li>
-                          ))}
-                        </ol>
-                      ) : null}
-                    </ChartCard>
-                  </div>
-                </section>
+                  <Section className="space-y-6 lg:space-y-8 [&_div.space-y-3>p.text-sm.text-muted-foreground]:mt-2 [&_div.space-y-3>p.text-sm.text-muted-foreground]:leading-relaxed">
+                    <div className="space-y-2">
+                      <Heading as="h2" size="md" className="text-foreground">
+                        Species & baits
+                      </Heading>
+                      <Text variant="muted">
+                        Focus on the species you’re most successful with and the baits that earn the most strikes. Top 5
+                        entries shown on mobile.
+                      </Text>
+                    </div>
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                      <div className="[&>div]:h-full">
+                        <ChartCard
+                          icon={Sparkles}
+                          title="Species mix"
+                          description="Top species landed during this period."
+                          isEmpty={speciesBarData.length === 0}
+                          emptyMessage="No species data available for this view."
+                        >
+                          {speciesBarData.length > 0 ? (
+                            <ol className="space-y-2 text-sm">
+                              {speciesBarData.slice(0, 5).map((item, index) => (
+                                <li key={item.label} className="flex items-center justify-between gap-4">
+                                  <span className="font-medium text-foreground">
+                                    {index + 1}. {item.label}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {item.catches} catch{item.catches === 1 ? "" : "es"}
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                          ) : null}
+                        </ChartCard>
+                      </div>
 
-                <section className="mt-10 space-y-6 lg:space-y-8">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-foreground">Techniques & venues</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Compare the methods you rely on most and review venue-level takeaways.
-                    </p>
-                  </div>
+                      <div className="[&>div]:h-full">
+                        <ChartCard
+                          icon={Anchor}
+                          title="Favourite baits"
+                          description="The lures and baits that seal the deal most often."
+                          isEmpty={baitData.length === 0}
+                          emptyMessage="No bait data logged yet."
+                        >
+                          {baitData.length > 0 ? (
+                            <ol className="space-y-2 text-sm">
+                              {baitData.slice(0, 5).map((item, index) => (
+                                <li key={item.label} className="flex items-center justify-between gap-4">
+                                  <span className="font-medium text-foreground">
+                                    {index + 1}. {item.label}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {item.catches} catch{item.catches === 1 ? "" : "es"}
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                          ) : null}
+                        </ChartCard>
+                      </div>
+                    </div>
+                  </Section>
 
-                  <ChartCard
-                    icon={Anchor}
-                    title="Productive methods"
-                    description="Compare which techniques deliver the goods."
-                    isEmpty={methodData.length === 0}
-                    emptyMessage="No method data captured yet."
-                    footer={methodFooter}
-                  >
-                    {methodData.length > 0 ? (
-                      <ol className="space-y-2 text-sm">
-                        {methodData.slice(0, 5).map((item, index) => (
-                          <li key={item.label} className="flex items-center justify-between gap-4">
-                            <span className="font-medium text-foreground">
-                              {index + 1}. {item.label}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {item.catches} catch{item.catches === 1 ? "" : "es"}
-                            </span>
-                          </li>
-                        ))}
-                      </ol>
-                    ) : null}
-                  </ChartCard>
+                  <Section className="space-y-6 lg:space-y-8 [&_div.space-y-3>p.text-sm.text-muted-foreground]:mt-2 [&_div.space-y-3>p.text-sm.text-muted-foreground]:leading-relaxed">
+                    <div className="space-y-2">
+                      <Heading as="h2" size="md" className="text-foreground">
+                        Techniques & venues
+                      </Heading>
+                      <Text variant="muted">
+                        Compare the methods you rely on most and review venue-level takeaways.
+                      </Text>
+                    </div>
 
-                  <InfoCards
-                    topTimeOfDay={stats.topTimeOfDay}
-                    topWeather={topWeather}
-                    topClarity={topClarity}
-                    topWind={topWind}
-                    averageAirTempLabel={averageAirTempLabel}
-                    venueLeaderboard={venueLeaderboard}
-                    sessionsCount={sessionsCount}
-                    averagePerSessionLabel={averagePerSessionLabel}
-                    sessionSummaries={sessionSummaries}
-                    topSession={topSession}
-                    topVenueHighlight={topVenueHighlight}
-                  />
-                </section>
-              </>
-            )}
-          </>
-        )}
-      </main>
+                    <div className="space-y-6 lg:space-y-8">
+                      <div className="[&>div]:h-full">
+                        <ChartCard
+                          icon={Anchor}
+                          title="Productive methods"
+                          description="Compare which techniques deliver the goods."
+                          isEmpty={methodData.length === 0}
+                          emptyMessage="No method data captured yet."
+                          footer={methodFooter}
+                        >
+                          {methodData.length > 0 ? (
+                            <ol className="space-y-2 text-sm">
+                              {methodData.slice(0, 5).map((item, index) => (
+                                <li key={item.label} className="flex items-center justify-between gap-4">
+                                  <span className="font-medium text-foreground">
+                                    {index + 1}. {item.label}
+                                  </span>
+                                  <span className="text-muted-foreground">
+                                    {item.catches} catch{item.catches === 1 ? "" : "es"}
+                                  </span>
+                                </li>
+                              ))}
+                            </ol>
+                          ) : null}
+                        </ChartCard>
+                      </div>
+
+                      <div className="[&>div]:mt-0 [&>div>div]:min-h-[260px] [&>div>div]:space-y-4">
+                        <InfoCards
+                          topTimeOfDay={stats.topTimeOfDay}
+                          topWeather={topWeather}
+                          topClarity={topClarity}
+                          topWind={topWind}
+                          averageAirTempLabel={averageAirTempLabel}
+                          venueLeaderboard={venueLeaderboard}
+                          sessionsCount={sessionsCount}
+                          averagePerSessionLabel={averagePerSessionLabel}
+                          sessionSummaries={sessionSummaries}
+                          topSession={topSession}
+                          topVenueHighlight={topVenueHighlight}
+                        />
+                      </div>
+                    </div>
+                  </Section>
+                </>
+              )}
+            </>
+          )}
+        </div>
+      </PageContainer>
     </div>
   );
 };

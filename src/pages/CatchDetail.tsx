@@ -19,6 +19,17 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import PageSpinner from "@/components/loading/PageSpinner";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
   Calendar,
@@ -38,6 +49,7 @@ import {
   Trash2,
   Layers,
   Download,
+  MoreHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
@@ -79,6 +91,7 @@ const CatchDetail = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
+  const reportTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const {
     catchData,
@@ -189,8 +202,9 @@ const CatchDetail = () => {
   if (isLoading || !catchData) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <Navbar />
-        <PageSpinner label="Loading catch…" />
+        <PageContainer className="py-10 md:py-12">
+          <PageSpinner label="Loading catch…" />
+        </PageContainer>
       </div>
     );
   }
@@ -228,10 +242,32 @@ const CatchDetail = () => {
   const displayLocationLabel =
     locationLabel ??
     (!canShowExactLocation ? "Undisclosed venue" : catchData.location_label ?? undefined);
+  const hasSessionDetails =
+    !!displayLocationLabel ||
+    (!!catchData.peg_or_swim && canShowExactLocation) ||
+    (!!catchData.peg_or_swim && !canShowExactLocation) ||
+    !!catchData.length ||
+    !!catchData.water_type_code ||
+    !!catchData.time_of_day ||
+    !!catchData.bait_used ||
+    !!catchData.equipment_used ||
+    showGpsMap;
+  const hasConditionsContent =
+    !!catchData.conditions &&
+    (catchData.conditions.weather ||
+      catchData.conditions.airTemp ||
+      catchData.conditions.waterClarity ||
+      catchData.conditions.windDirection);
+  const hasConditions =
+    !!catchData.conditions &&
+    (catchData.conditions.weather ||
+      catchData.conditions.airTemp ||
+      catchData.conditions.waterClarity ||
+      catchData.conditions.windDirection);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <PageContainer className="max-w-5xl py-8">
         <div className="pointer-events-none fixed -top-[2000px] left-0 opacity-0" ref={shareCardRef}>
           <ShareCard
             photoUrl={catchData.image_url}
@@ -242,8 +278,7 @@ const CatchDetail = () => {
             angler={profile.username}
           />
         </div>
-        {/* Hero Section */}
-        <div className="relative mb-8">
+        <Section className="relative mb-6">
           <img
             src={catchData.image_url}
             alt={catchData.title}
@@ -260,7 +295,9 @@ const CatchDetail = () => {
                     <span className="text-2xl text-white/90">{formatSpecies(catchData.species_slug, customSpecies ?? catchData.custom_species)}</span>
                   </div>
                 )}
-                <h1 className="text-3xl font-bold text-white mb-2">{catchData.title}</h1>
+                <Heading as="h1" size="xl" className="text-white mb-2">
+                  {catchData.title}
+                </Heading>
                 {venue ? (
                   <Link
                     to={`/venues/${venue.slug}`}
@@ -325,60 +362,77 @@ const CatchDetail = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Section>
 
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card/60 px-4 py-3 shadow-sm">
-          <div className="flex items-center gap-3">
-            {isOwner ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Heart className="h-4 w-4 text-muted-foreground" />
-                <span>{reactionCount} like{reactionCount === 1 ? "" : "s"}</span>
-              </div>
-            ) : (
-              <>
-                <Button
-                  size="sm"
-                  variant={userHasReacted ? "ocean" : "outline"}
-                  onClick={handleToggleReaction}
-                  disabled={reactionLoading || !catchData}
-                  className="flex items-center gap-2"
-                >
-                  <Heart className="h-4 w-4" fill={userHasReacted ? "currentColor" : "none"} />
-                  {reactionLoading ? "Saving…" : userHasReacted ? "Liked" : "Like"}
-                </Button>
-                <span className="text-sm text-muted-foreground">{reactionCount} like{reactionCount === 1 ? "" : "s"}</span>
-              </>
-            )}
+        <Section className="mb-6 rounded-xl border border-border bg-card/60 px-4 py-3 shadow-sm space-y-0">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              {isOwner ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Heart className="h-4 w-4 text-muted-foreground" />
+                  <span>{reactionCount} like{reactionCount === 1 ? "" : "s"}</span>
+                </div>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant={userHasReacted ? "ocean" : "outline"}
+                    onClick={handleToggleReaction}
+                    disabled={reactionLoading || !catchData}
+                    className="flex items-center gap-2"
+                  >
+                    <Heart className="h-4 w-4" fill={userHasReacted ? "currentColor" : "none"} />
+                    {reactionLoading ? "Saving…" : userHasReacted ? "Liked" : "Like"}
+                  </Button>
+                  <span className="text-sm text-muted-foreground">{reactionCount} like{reactionCount === 1 ? "" : "s"}</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={() => handleShareWhatsApp(locationLabel)} className="flex items-center gap-2">
+                <Share2 className="h-4 w-4" />
+                Share to WhatsApp
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="outline" className="flex items-center gap-2">
+                    <MoreHorizontal className="h-4 w-4" />
+                    More
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem onClick={handleCopyLink}>
+                    {shareCopied ? "Copied" : "Copy link"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadShareImage} disabled={downloadLoading}>
+                    {downloadLoading ? "Preparing…" : "Download share image"}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      reportTriggerRef.current?.click();
+                    }}
+                  >
+                    Report catch
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => handleShareWhatsApp(locationLabel)} className="flex items-center gap-2">
-              <Share2 className="h-4 w-4" />
-              Share to WhatsApp
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleCopyLink} className="flex items-center gap-2">
-              <Copy className="h-4 w-4" />
-              {shareCopied ? "Copied" : "Copy link"}
-            </Button>
-            <Button
-              size="sm"
-              variant="ocean"
-              onClick={handleDownloadShareImage}
-              disabled={downloadLoading}
-              className="flex items-center gap-2"
-            >
-              <Download className="h-4 w-4" />
-              {downloadLoading ? "Preparing…" : "Download share image"}
-            </Button>
+          <div className="sr-only">
             <ReportButton
               targetType="catch"
               targetId={catchData.id}
               label="Report catch"
-              className="text-destructive hover:text-destructive"
+              triggerRef={reportTriggerRef}
             />
           </div>
-        </div>
+        </Section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Section className="grid grid-cols-1 gap-6 lg:grid-cols-3 items-start space-y-0">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
             {/* Story */}
@@ -500,79 +554,85 @@ const CatchDetail = () => {
                 <CardTitle>Session Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                {displayLocationLabel && (
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">Location</div>
-                      <div className="text-muted-foreground">{displayLocationLabel}</div>
-                    </div>
-                  </div>
-                )}
-                {catchData.peg_or_swim && canShowExactLocation && (
-                  <div className="flex items-start gap-2">
-                    <Layers className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">Peg/Swim</div>
-                      <div className="text-muted-foreground">{catchData.peg_or_swim}</div>
-                    </div>
-                  </div>
-                )}
-                {!canShowExactLocation && catchData.peg_or_swim && (
-                  <div className="flex items-start gap-2">
-                    <EyeOff className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                    <div className="text-muted-foreground text-xs">
-                      Exact peg/swim hidden by angler
-                    </div>
-                  </div>
-                )}
-                {catchData.length && (
-                  <div className="flex items-start gap-2">
-                    <FishIcon className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">Length</div>
-                      <div className="text-muted-foreground">
-                        {catchData.length}{catchData.length_unit}
+                {hasSessionDetails ? (
+                  <>
+                    {displayLocationLabel && (
+                      <div className="flex items-start gap-2">
+                        <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">Location</div>
+                          <div className="text-muted-foreground">{displayLocationLabel}</div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                )}
-                {catchData.water_type_code && (
-                  <div className="flex items-start gap-2">
-                    <Droplets className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">Water Type</div>
-                      <div className="text-muted-foreground">{formatEnum(catchData.water_type_code)}</div>
-                    </div>
-                  </div>
-                )}
-                {catchData.time_of_day && (
-                  <div className="flex items-start gap-2">
-                    <Clock className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
-                    <div>
-                      <div className="font-medium">Time of Day</div>
-                      <div className="text-muted-foreground">{formatEnum(catchData.time_of_day)}</div>
-                    </div>
-                  </div>
-                )}
-                {showGpsMap && gpsData && (
-                  <div className="space-y-2">
-                    <div className="font-medium">GPS Pin</div>
-                    <div className="overflow-hidden rounded-lg border">
-                      <iframe
-                        title="Pinned fishing location"
-                        src={`https://www.google.com/maps?q=${gpsData.lat},${gpsData.lng}&z=15&output=embed`}
-                        width="100%"
-                        height="220"
-                        loading="lazy"
-                        allowFullScreen
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {gpsData.label ?? `Dropped at ${gpsData.lat.toFixed(5)}, ${gpsData.lng.toFixed(5)}`}
-                      {gpsData.accuracy ? ` (±${Math.round(gpsData.accuracy)}m)` : ""}
-                    </p>
-                  </div>
+                    )}
+                    {catchData.peg_or_swim && canShowExactLocation && (
+                      <div className="flex items-start gap-2">
+                        <Layers className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">Peg/Swim</div>
+                          <div className="text-muted-foreground">{catchData.peg_or_swim}</div>
+                        </div>
+                      </div>
+                    )}
+                    {!canShowExactLocation && catchData.peg_or_swim && (
+                      <div className="flex items-start gap-2">
+                        <EyeOff className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                        <div className="text-muted-foreground text-xs">
+                          Exact peg/swim hidden by angler
+                        </div>
+                      </div>
+                    )}
+                    {catchData.length && (
+                      <div className="flex items-start gap-2">
+                        <FishIcon className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">Length</div>
+                          <div className="text-muted-foreground">
+                            {catchData.length}{catchData.length_unit}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {catchData.water_type_code && (
+                      <div className="flex items-start gap-2">
+                        <Droplets className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">Water Type</div>
+                          <div className="text-muted-foreground">{formatEnum(catchData.water_type_code)}</div>
+                        </div>
+                      </div>
+                    )}
+                    {catchData.time_of_day && (
+                      <div className="flex items-start gap-2">
+                        <Clock className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
+                        <div>
+                          <div className="font-medium">Time of Day</div>
+                          <div className="text-muted-foreground">{formatEnum(catchData.time_of_day)}</div>
+                        </div>
+                      </div>
+                    )}
+                    {showGpsMap && gpsData && (
+                      <div className="space-y-2">
+                        <div className="font-medium">GPS Pin</div>
+                        <div className="overflow-hidden rounded-lg border">
+                          <iframe
+                            title="Pinned fishing location"
+                            src={`https://www.google.com/maps?q=${gpsData.lat},${gpsData.lng}&z=15&output=embed`}
+                            width="100%"
+                            height="220"
+                            loading="lazy"
+                            allowFullScreen
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {gpsData.label ?? `Dropped at ${gpsData.lat.toFixed(5)}, ${gpsData.lng.toFixed(5)}`}
+                          {gpsData.accuracy ? ` (±${Math.round(gpsData.accuracy)}m)` : ""}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Text variant="muted">No session details yet.</Text>
                 )}
               </CardContent>
             </Card>
@@ -615,33 +675,39 @@ const CatchDetail = () => {
                   <CardTitle>Conditions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 text-sm">
-                  {catchData.conditions.weather && (
-                    <div className="flex items-center gap-2">
-                      <Wind className="w-4 h-4 text-primary" />
-                      <span className="font-medium">Weather:</span>
-                      <span className="text-muted-foreground">{formatEnum(catchData.conditions.weather)}</span>
-                    </div>
-                  )}
-                  {catchData.conditions.airTemp && (
-                    <div className="flex items-center gap-2">
-                      <Thermometer className="w-4 h-4 text-primary" />
-                      <span className="font-medium">Air Temp:</span>
-                      <span className="text-muted-foreground">{catchData.conditions.airTemp}°C</span>
-                    </div>
-                  )}
-                  {catchData.conditions.waterClarity && (
-                    <div className="flex items-center gap-2">
-                      <Droplets className="w-4 h-4 text-primary" />
-                      <span className="font-medium">Water:</span>
-                      <span className="text-muted-foreground">{formatEnum(catchData.conditions.waterClarity)}</span>
-                    </div>
-                  )}
-                  {catchData.conditions.windDirection && (
-                    <div className="flex items-center gap-2">
-                      <Wind className="w-4 h-4 text-primary" />
-                      <span className="font-medium">Wind:</span>
-                      <span className="text-muted-foreground">{catchData.conditions.windDirection}</span>
-                    </div>
+                  {hasConditionsContent ? (
+                    <>
+                      {catchData.conditions.weather && (
+                        <div className="flex items-center gap-2">
+                          <Wind className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Weather:</span>
+                          <span className="text-muted-foreground">{formatEnum(catchData.conditions.weather)}</span>
+                        </div>
+                      )}
+                      {catchData.conditions.airTemp && (
+                        <div className="flex items-center gap-2">
+                          <Thermometer className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Air Temp:</span>
+                          <span className="text-muted-foreground">{catchData.conditions.airTemp}°C</span>
+                        </div>
+                      )}
+                      {catchData.conditions.waterClarity && (
+                        <div className="flex items-center gap-2">
+                          <Droplets className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Water:</span>
+                          <span className="text-muted-foreground">{formatEnum(catchData.conditions.waterClarity)}</span>
+                        </div>
+                      )}
+                      {catchData.conditions.windDirection && (
+                        <div className="flex items-center gap-2">
+                          <Wind className="w-4 h-4 text-primary" />
+                          <span className="font-medium">Wind:</span>
+                          <span className="text-muted-foreground">{catchData.conditions.windDirection}</span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <Text variant="muted">No conditions recorded.</Text>
                   )}
                 </CardContent>
               </Card>
@@ -663,10 +729,10 @@ const CatchDetail = () => {
               </Card>
             )}
           </div>
-        </div>
-      </div>
+        </Section>
+      </PageContainer>
       {user && user.id === ownerId && !isAdmin && (
-        <div className="container mx-auto px-4 pb-12 max-w-5xl space-y-6">
+        <PageContainer className="max-w-5xl pb-12 space-y-6">
           <div className="rounded-xl border border-blue-200/60 bg-blue-50 p-6 text-sm text-slate-800">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -793,7 +859,7 @@ const CatchDetail = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </div>
+        </PageContainer>
       )}
     </div>
   );

@@ -4,6 +4,11 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 import { Calendar, MapPin, Layers, PlusCircle } from "lucide-react";
 import { format } from "date-fns";
 import { isAdminUser } from "@/lib/admin";
@@ -63,92 +68,98 @@ export const Sessions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground">Fishing Sessions</h1>
-            <p className="text-sm text-muted-foreground">
-              Group your catches by trip to spot patterns across venues and seasons.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/feed")}>Back to feed</Button>
-            {!isAdmin && (
-              <Button onClick={() => navigate("/add-catch")} className="flex items-center gap-2">
-                <PlusCircle className="h-4 w-4" />
-                Log a catch
-              </Button>
-            )}
-          </div>
-        </div>
+      <PageContainer className="py-8 space-y-6 md:space-y-8">
+        <Section>
+          <SectionHeader
+            title="Fishing Sessions"
+            subtitle="Group your catches by trip to spot patterns across venues and seasons."
+            actions={
+              <div className="flex items-center gap-3">
+                <Button variant="outline" onClick={() => navigate("/feed")}>Back to feed</Button>
+                {!isAdmin && (
+                  <Button onClick={() => navigate("/add-catch")} className="flex items-center gap-2">
+                    <PlusCircle className="h-4 w-4" />
+                    Log a catch
+                  </Button>
+                )}
+              </div>
+            }
+          />
+        </Section>
 
         {isLoading ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              Loading sessions…
-            </CardContent>
-          </Card>
+          <Section>
+            <Card>
+              <CardContent className="py-10 text-center text-muted-foreground">
+                Loading sessions…
+              </CardContent>
+            </Card>
+          </Section>
         ) : sessions.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center">
-              <Layers className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
-              <p className="text-muted-foreground">
-                No sessions yet. Log a catch and create a new session to get started.
-              </p>
-            </CardContent>
-          </Card>
+          <Section>
+            <Card>
+              <CardContent className="py-10 text-center">
+                <Layers className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+                <Text variant="muted">
+                  No sessions yet. Log a catch and create a new session to get started.
+                </Text>
+              </CardContent>
+            </Card>
+          </Section>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {sessions.map((session) => {
-              const catchesCount = session.catches?.[0]?.count ?? 0;
-              const formattedDate = session.date
-                ? format(new Date(session.date), "dd MMM yyyy")
-                : "Date unknown";
-              return (
-                <Card key={session.id} className="border-border/60 bg-card/80 shadow-sm">
-                  <CardHeader>
-                    <CardTitle className="text-lg font-semibold text-foreground">
-                      {session.title}
-                    </CardTitle>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" />
-                        {formattedDate}
-                      </span>
-                      {session.venue && (
+          <Section>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {sessions.map((session) => {
+                const catchesCount = session.catches?.[0]?.count ?? 0;
+                const formattedDate = session.date
+                  ? format(new Date(session.date), "dd MMM yyyy")
+                  : "Date unknown";
+                return (
+                  <Card key={session.id} className="border-border/60 bg-card/80 shadow-sm">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-semibold text-foreground">
+                        {session.title}
+                      </CardTitle>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {session.venue}
+                          <Calendar className="h-3.5 w-3.5" />
+                          {formattedDate}
                         </span>
+                        {session.venue && (
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {session.venue}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1">
+                          <Layers className="h-3.5 w-3.5" />
+                          {catchesCount} catch{catchesCount === 1 ? "" : "es"}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {session.notes ? (
+                        <Text className="line-clamp-3 text-muted-foreground">{session.notes}</Text>
+                      ) : (
+                        <Text variant="muted" className="text-xs italic">
+                          No session notes added.
+                        </Text>
                       )}
-                      <span className="inline-flex items-center gap-1">
-                        <Layers className="h-3.5 w-3.5" />
-                        {catchesCount} catch{catchesCount === 1 ? "" : "es"}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {session.notes ? (
-                      <p className="text-sm text-muted-foreground line-clamp-3">{session.notes}</p>
-                    ) : (
-                      <p className="text-xs text-muted-foreground italic">
-                        No session notes added.
-                      </p>
-                    )}
-                    <Button
-                      variant="ghost"
-                      className="text-primary px-0"
-                      onClick={() => navigate(`/feed?session=${session.id}`)}
-                    >
-                      View catches in feed
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                      <Button
+                        variant="ghost"
+                        className="text-primary px-0"
+                        onClick={() => navigate(`/feed?session=${session.id}`)}
+                      >
+                        View catches in feed
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </Section>
         )}
-      </div>
+      </PageContainer>
     </div>
   );
 };

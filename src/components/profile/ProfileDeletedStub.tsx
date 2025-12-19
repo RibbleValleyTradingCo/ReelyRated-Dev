@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -10,7 +9,6 @@ interface ProfileDeletedStubProps {
 const ProfileDeletedStub = ({ isOwnProfile }: ProfileDeletedStubProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <Navbar />
       <main className="section-container py-8 md:py-10">
         <Card className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardContent className="space-y-4 px-6 py-6">

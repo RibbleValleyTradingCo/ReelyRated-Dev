@@ -19,6 +19,10 @@ import ProfileSettingsSafetyBlockingCard, {
 } from "@/components/settings/ProfileSettingsSafetyBlockingCard";
 import ProfileSettingsDangerZoneCard from "@/components/settings/ProfileSettingsDangerZoneCard";
 import ProfileSettingsNav, { SectionId } from "@/components/settings/ProfileSettingsNav";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Text from "@/components/typography/Text";
 import { isAdminUser } from "@/lib/admin";
 import { Loader2 } from "lucide-react";
 import { profileSchema, passwordChangeSchema, type ProfileFormData, type PasswordChangeFormData } from "@/schemas";
@@ -439,10 +443,12 @@ const ProfileSettings = () => {
   if (loading || isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <div className="container mx-auto flex items-center justify-center px-4 py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading profile settings…
-        </div>
+        <PageContainer className="py-10 md:py-12">
+          <div className="flex items-center justify-center text-slate-500">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Loading profile settings…
+          </div>
+        </PageContainer>
       </div>
     );
   }
@@ -458,102 +464,115 @@ const ProfileSettings = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto w-full max-w-3xl px-4 py-8 md:py-12">
-        <div className="space-y-8">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-semibold text-slate-900">Profile settings</h1>
-              {isAdmin && <Badge variant="secondary">Admin</Badge>}
-            </div>
-            <p className="text-sm text-slate-600">Manage your account, avatar and security.</p>
-          </div>
-          <ProfileSettingsNav sections={navSections} onSelect={handleNavSelect} />
+      <PageContainer className="py-8 md:py-12">
+        <div className="space-y-8 md:space-y-10">
+          <Section>
+            <SectionHeader
+              title="Profile settings"
+              subtitle="Manage your account, avatar and security."
+              actions={isAdmin ? <Badge variant="secondary">Admin</Badge> : null}
+            />
+          </Section>
 
-          <div ref={profileSectionRef} id="profile" className="space-y-8">
-            {user && (
-              <ProfileSettingsAvatarCard
-                userId={user.id}
-                username={profileForm.watch("username") || user.user_metadata?.username || user.email || "Angler"}
-                avatarPath={avatarPath}
-                legacyAvatarUrl={legacyAvatarUrl}
-                onAvatarChange={(path) => {
-                  setAvatarPath(path);
-                  if (path) {
-                    setLegacyAvatarUrl(null);
-                  }
+          <Section>
+            <ProfileSettingsNav sections={navSections} onSelect={handleNavSelect} />
+          </Section>
+
+          <Section>
+            <div ref={profileSectionRef} id="profile" className="space-y-8">
+              {user && (
+                <ProfileSettingsAvatarCard
+                  userId={user.id}
+                  username={profileForm.watch("username") || user.user_metadata?.username || user.email || "Angler"}
+                  avatarPath={avatarPath}
+                  legacyAvatarUrl={legacyAvatarUrl}
+                  onAvatarChange={(path) => {
+                    setAvatarPath(path);
+                    if (path) {
+                      setLegacyAvatarUrl(null);
+                    }
+                  }}
+                />
+              )}
+
+              <form className="space-y-8" onSubmit={profileForm.handleSubmit(handleSaveProfile)}>
+                <ProfileSettingsAccountCard profileForm={profileForm} />
+
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
+                  <Text variant="small" className="md:order-1">
+                    Changes take effect immediately after saving.
+                  </Text>
+                  <Button
+                    type="submit"
+                    disabled={profileForm.formState.isSubmitting || (!profileForm.formState.isDirty && avatarPath === initialAvatarPath)}
+                    className="order-2 h-11 w-full bg-sky-600 text-white hover:bg-sky-700 md:w-auto"
+                  >
+                    {profileForm.formState.isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving…
+                      </>
+                    ) : (
+                      "Save changes"
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </Section>
+
+          <Section>
+            <div ref={securitySectionRef} id="security" className="space-y-6">
+              <ProfileSettingsPasswordCard passwordForm={passwordForm} onSubmit={handleUpdatePassword} />
+            </div>
+          </Section>
+
+          <Section>
+            <div ref={dataPrivacySectionRef} id="data-privacy" className="space-y-6">
+              <ProfileSettingsEmailChangeCard
+                initialEmail={initialEmail}
+                emailForm={emailForm}
+                onSubmit={handleEmailChange}
+              />
+              <ProfileSettingsDataExportCard isExporting={isExporting} onDownload={handleDownloadExport} />
+              <ProfileSettingsPrivacyCard
+                isPrivate={isPrivate}
+                isUpdatingPrivacy={isUpdatingPrivacy}
+                onTogglePrivacy={(checked) => {
+                  void handlePrivacyToggle(checked);
                 }}
               />
-            )}
+            </div>
+          </Section>
 
-            <form className="space-y-8" onSubmit={profileForm.handleSubmit(handleSaveProfile)}>
-              <ProfileSettingsAccountCard profileForm={profileForm} />
+          <Section>
+            <div ref={safetyBlockingSectionRef} id="safety-blocking" className="space-y-6">
+              <ProfileSettingsSafetyBlockingCard
+                blockedProfiles={blockedProfiles}
+                blockedLoading={blockedLoading}
+                blockedError={blockedError}
+                onUnblock={(blockedId, username) => {
+                  void handleUnblock(blockedId, username);
+                }}
+              />
+            </div>
+          </Section>
 
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
-                <div className="text-xs text-slate-500 md:order-1">
-                  Changes take effect immediately after saving.
-                </div>
-                <Button
-                  type="submit"
-                  disabled={profileForm.formState.isSubmitting || (!profileForm.formState.isDirty && avatarPath === initialAvatarPath)}
-                  className="order-2 h-11 w-full bg-sky-600 text-white hover:bg-sky-700 md:w-auto"
-                >
-                  {profileForm.formState.isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving…
-                    </>
-                  ) : (
-                    "Save changes"
-                  )}
-                </Button>
-              </div>
-            </form>
-          </div>
-
-          <div ref={securitySectionRef} id="security" className="space-y-6">
-            <ProfileSettingsPasswordCard passwordForm={passwordForm} onSubmit={handleUpdatePassword} />
-          </div>
-
-          <div ref={dataPrivacySectionRef} id="data-privacy" className="space-y-6">
-            <ProfileSettingsEmailChangeCard
-              initialEmail={initialEmail}
-              emailForm={emailForm}
-              onSubmit={handleEmailChange}
-            />
-            <ProfileSettingsDataExportCard isExporting={isExporting} onDownload={handleDownloadExport} />
-            <ProfileSettingsPrivacyCard
-              isPrivate={isPrivate}
-              isUpdatingPrivacy={isUpdatingPrivacy}
-              onTogglePrivacy={(checked) => {
-                void handlePrivacyToggle(checked);
-              }}
-            />
-          </div>
-
-          <div ref={safetyBlockingSectionRef} id="safety-blocking" className="space-y-6">
-            <ProfileSettingsSafetyBlockingCard
-              blockedProfiles={blockedProfiles}
-              blockedLoading={blockedLoading}
-              blockedError={blockedError}
-              onUnblock={(blockedId, username) => {
-                void handleUnblock(blockedId, username);
-              }}
-            />
-          </div>
-
-          <div ref={dangerZoneSectionRef} id="danger-zone" className="space-y-6">
-            <ProfileSettingsDeleteAccountCard
-              isDeleteDialogOpen={isDeleteDialogOpen}
-              setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-              deleteReason={deleteReason}
-              setDeleteReason={setDeleteReason}
-              isDeletingAccount={isDeletingAccount}
-              onDeleteAccount={handleAccountDeletion}
-            />
-            <ProfileSettingsDangerZoneCard onSignOut={handleSignOut} />
-          </div>
+          <Section>
+            <div ref={dangerZoneSectionRef} id="danger-zone" className="space-y-6">
+              <ProfileSettingsDeleteAccountCard
+                isDeleteDialogOpen={isDeleteDialogOpen}
+                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                deleteReason={deleteReason}
+                setDeleteReason={setDeleteReason}
+                isDeletingAccount={isDeletingAccount}
+                onDeleteAccount={handleAccountDeletion}
+              />
+              <ProfileSettingsDangerZoneCard onSignOut={handleSignOut} />
+            </div>
+          </Section>
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 };

@@ -12,6 +12,11 @@ import { getPublicAssetUrl } from "@/lib/storage";
 import { toast } from "sonner";
 import PageSpinner from "@/components/loading/PageSpinner";
 import VenueDetailSkeleton from "@/components/skeletons/VenueDetailSkeleton";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import Eyebrow from "@/components/typography/Eyebrow";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 
 type Venue = {
   id: string;
@@ -405,35 +410,33 @@ const VenueDetail = () => {
     );
   };
 
-  const PageShell = ({ children }: { children: React.ReactNode }) => (
-    <div className="bg-gradient-to-b from-background to-muted">
-      <main className="section-container space-y-8 pb-16 pt-8 md:pt-10 lg:pb-20">{children}</main>
-    </div>
-  );
-
   if (venueLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-        <PageSpinner label="Loading venue…" />
+        <PageContainer className="py-8 md:py-10 lg:py-12">
+          <PageSpinner label="Loading venue…" />
+        </PageContainer>
       </div>
     );
   }
 
   if (!venue) {
     return (
-      <PageShell>
-        <Card className="border border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Venue not found</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-slate-600">This venue doesn&apos;t exist or isn&apos;t published.</p>
-            <Button asChild variant="outline">
-              <Link to="/venues">Back to venues</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </PageShell>
+      <div className="bg-gradient-to-b from-background to-muted">
+        <PageContainer className="space-y-6 pb-16 pt-8 md:pt-10 lg:pb-20">
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle>Venue not found</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Text variant="muted">This venue doesn&apos;t exist or isn&apos;t published.</Text>
+              <Button asChild variant="outline">
+                <Link to="/venues">Back to venues</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </PageContainer>
+      </div>
     );
   }
 
@@ -501,180 +504,189 @@ const VenueDetail = () => {
   );
 
   return (
-    <PageShell>
-      <div className="relative z-0 grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
-          <div className="space-y-3">
-            <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white shadow-lg">
-              <div className="flex flex-col gap-5 p-6 md:p-7">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-3 md:max-w-2xl">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-200">
-                      <Link to="/venues" className="hover:underline">
-                        Venues
-                      </Link>{" "}
-                      / <span className="text-sky-300">{venue.name}</span>
-                    </p>
-                    <h1 className="text-3xl font-bold leading-tight md:text-4xl">{venue.name}</h1>
-                    {venue.is_published === false && (isOwner || isAdmin) ? (
-                      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
-                        Unpublished – only visible to you and admins
-                      </span>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-100">
-                      {venue.location ? (
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
-                          <MapPin className="h-4 w-4 text-slate-200" />
-                          <span>{venue.location}</span>
+    <div className="bg-gradient-to-b from-background to-muted">
+      <PageContainer className="space-y-6 pb-16 pt-8 md:space-y-8 md:pt-10 lg:pb-20">
+        <Section>
+          <div className="relative z-0 grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
+            <div className="space-y-3">
+              <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white shadow-lg">
+                <div className="flex flex-col gap-5 p-6 md:p-7">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-3 md:max-w-2xl">
+                      <Eyebrow className="flex items-center gap-1 text-slate-200">
+                        <Link to="/venues" className="hover:underline">
+                          Venues
+                        </Link>
+                        <span aria-hidden="true">/</span>
+                        <span className="text-sky-300">{venue.name}</span>
+                      </Eyebrow>
+                      <Heading as="h1" size="xl" className="text-white">
+                        {venue.name}
+                      </Heading>
+                      {venue.is_published === false && (isOwner || isAdmin) ? (
+                        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                          Unpublished – only visible to you and admins
                         </span>
                       ) : null}
-                    </div>
-                    <p className="max-w-3xl text-sm text-slate-100/80">{heroTagline}</p>
-                    <div className="flex flex-col gap-2 rounded-xl bg-white/5 p-3 text-xs text-slate-200/80 ring-1 ring-white/10">
-                      <div>{ratingSummary}</div>
-                      {user ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-200/90">Your rating</span>
-                          <div className="flex items-center gap-2">
-                            <StarRating value={userRating} onSelect={handleRatingSelect} disabled={ratingLoading} />
-                            {userRating ? (
-                              <span className="text-[11px] text-slate-200/80">You rated this {userRating} star{userRating === 1 ? "" : "s"}</span>
-                            ) : (
-                              <span className="text-[11px] text-slate-200/80">Tap a star to leave your rating</span>
-                            )}
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-100">
+                        {venue.location ? (
+                          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
+                            <MapPin className="h-4 w-4 text-slate-200" />
+                            <span>{venue.location}</span>
+                          </span>
+                        ) : null}
+                      </div>
+                      <Text className="max-w-3xl text-slate-100/80">{heroTagline}</Text>
+                      <div className="flex flex-col gap-2 rounded-xl bg-white/5 p-3 text-xs text-slate-200/80 ring-1 ring-white/10">
+                        <div>{ratingSummary}</div>
+                        {user ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-200/90">Your rating</span>
+                            <div className="flex items-center gap-2">
+                              <StarRating value={userRating} onSelect={handleRatingSelect} disabled={ratingLoading} />
+                              {userRating ? (
+                                <span className="text-[11px] text-slate-200/80">You rated this {userRating} star{userRating === 1 ? "" : "s"}</span>
+                              ) : (
+                                <span className="text-[11px] text-slate-200/80">Tap a star to leave your rating</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <p className="text-[11px] text-slate-200/80">
-                          <Link to="/auth" className="underline hover:text-white">
-                            Log in
-                          </Link>{" "}
-                          to rate this venue.
-                        </p>
-                      )}
+                        ) : (
+                          <Text className="text-[11px] text-slate-200/80">
+                            <Link to="/auth" className="underline hover:text-white">
+                              Log in
+                            </Link>{" "}
+                            to rate this venue.
+                          </Text>
+                        )}
+                      </div>
                     </div>
+                    {(isAdmin || isOwner) && (
+                      <div className="pt-1">
+                        {isAdmin ? (
+                          <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
+                            <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" className="text-xs font-semibold" disabled title="Owner tools coming soon">
+                            Manage venue
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  {(isAdmin || isOwner) && (
-                    <div className="pt-1">
-                      {isAdmin ? (
-                        <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
-                          <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" className="text-xs font-semibold" disabled title="Owner tools coming soon">
-                          Manage venue
-                        </Button>
+                </div>
+              </div>
+
+              <Section className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button asChild size="sm" variant="outline" className="text-sm font-semibold">
+                    <a href={mapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+                      View on maps
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </Button>
+                  {websiteUrl ? (
+                    <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
+                      <a href={websiteUrl} target="_blank" rel="noreferrer">
+                        Visit website
+                      </a>
+                    </Button>
+                  ) : null}
+                  {bookingUrl ? (
+                    <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
+                      <a href={bookingUrl} target="_blank" rel="noreferrer">
+                        Book now
+                      </a>
+                    </Button>
+                  ) : null}
+                  {contactPhone ? (
+                    <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
+                      <a href={`tel:${contactPhone}`}>Call</a>
+                    </Button>
+                  ) : null}
+                  {user ? (
+                    <Button asChild variant="default" size="sm" className="px-4 text-sm font-semibold">
+                      {!isAdmin && (
+                        <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
                       )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
-              <div className="flex flex-wrap items-center gap-2">
-              <Button asChild size="sm" variant="outline" className="text-sm font-semibold">
-                <a href={mapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
-                  View on maps
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </Button>
-              {websiteUrl ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={websiteUrl} target="_blank" rel="noreferrer">
-                    Visit website
-                  </a>
-                </Button>
-              ) : null}
-              {bookingUrl ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={bookingUrl} target="_blank" rel="noreferrer">
-                    Book now
-                  </a>
-                </Button>
-              ) : null}
-              {contactPhone ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={`tel:${contactPhone}`}>Call</a>
-                </Button>
-              ) : null}
-              {user ? (
-                <Button asChild variant="default" size="sm" className="px-4 text-sm font-semibold">
-                  {!isAdmin && (
-                    <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
-                  )}
-                </Button>
-              ) : null}
-              </div>
-            </div>
-
-            <section className="space-y-2 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">About this venue</p>
-              <h2 className="text-xl font-semibold text-slate-900">About {venue.name}</h2>
-              <p className="max-w-4xl text-sm text-slate-800">{aboutText}</p>
-              {!(venue.description || heroTagline) && (isAdmin || isOwner) ? (
-                <p className="text-xs text-slate-500">Add more information about this venue from the Manage venue page.</p>
-              ) : null}
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-0 shadow-sm">
-              <div className="bg-gradient-to-r from-primary/10 to-slate-50 px-6 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Visiting Us</p>
-                <h2 className="text-lg font-semibold text-slate-900">What this place is like</h2>
-              </div>
-              <div className="grid gap-4 p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start">
-                <div className="space-y-2">
-                  <p className="text-sm text-slate-800">Photos curated by the venue and community.</p>
-                  {heroTagline ? (
-                    <p className="line-clamp-3 text-sm text-slate-600">{heroTagline}</p>
-                  ) : venue.description ? (
-                    <p className="line-clamp-3 text-sm text-slate-600">{venue.description}</p>
-                  ) : null}
-                  {photos.length === 0 && (isAdmin || isOwner) ? (
-                    <p className="text-xs text-slate-500">Admins/owners can add photos from the Manage venue page.</p>
+                    </Button>
                   ) : null}
                 </div>
-                <div>
-                  {photosLoading ? (
-                    <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading photos…
-                    </div>
-                  ) : photos.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
-                      {photos.slice(0, 4).map((photo) => {
-                        const url = getPublicAssetUrl(photo.image_path);
-                        return (
-                          <div key={photo.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            {url ? (
-                              <img src={url} alt={`${venue.name} venue photo`} className="aspect-[3/2] h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex aspect-[3/2] items-center justify-center text-sm text-slate-500">No image</div>
-                            )}
-                            {photo.caption ? (
-                              <div className="px-3 py-2 text-xs text-slate-700">{photo.caption}</div>
-                            ) : null}
+              </Section>
+
+              <Section className="rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
+                <Eyebrow className="text-slate-500">About this venue</Eyebrow>
+                <Heading size="md">About {venue.name}</Heading>
+                <Text className="max-w-4xl text-slate-800">{aboutText}</Text>
+                {!(venue.description || heroTagline) && (isAdmin || isOwner) ? (
+                  <Text variant="small" className="text-slate-500">
+                    Add more information about this venue from the Manage venue page.
+                  </Text>
+                ) : null}
+              </Section>
+
+              <Section className="rounded-2xl border border-slate-200 bg-white p-0 shadow-sm">
+                <div className="bg-gradient-to-r from-primary/10 to-slate-50 px-6 py-3">
+                  <Eyebrow className="text-primary">Visiting Us</Eyebrow>
+                  <Heading size="sm">What this place is like</Heading>
+                </div>
+                <div className="grid gap-4 p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start">
+                  <div className="space-y-2">
+                    <Text className="text-slate-800">Photos curated by the venue and community.</Text>
+                    {heroTagline ? (
+                      <Text className="line-clamp-3 text-slate-600">{heroTagline}</Text>
+                    ) : venue.description ? (
+                      <Text className="line-clamp-3 text-slate-600">{venue.description}</Text>
+                    ) : null}
+                    {photos.length === 0 && (isAdmin || isOwner) ? (
+                      <Text variant="small" className="text-slate-500">
+                        Admins/owners can add photos from the Manage venue page.
+                      </Text>
+                    ) : null}
+                  </div>
+                  <div>
+                    {photosLoading ? (
+                      <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Loading photos…
+                      </div>
+                    ) : photos.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
+                        {photos.slice(0, 4).map((photo) => {
+                          const url = getPublicAssetUrl(photo.image_path);
+                          return (
+                            <div key={photo.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                              {url ? (
+                                <img src={url} alt={`${venue.name} venue photo`} className="aspect-[3/2] h-full w-full object-cover" />
+                              ) : (
+                                <div className="flex aspect-[3/2] items-center justify-center text-sm text-slate-500">No image</div>
+                              )}
+                              {photo.caption ? (
+                                <div className="px-3 py-2 text-xs text-slate-700">{photo.caption}</div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : fallbackCatchPhotos.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-3 overflow-x-auto pb-2 sm:grid-cols-4 sm:overflow-visible">
+                        {fallbackCatchPhotos.map((c) => (
+                          <div key={c.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <img src={c.image_url} alt={c.title} className="aspect-[3/2] h-full w-full object-cover" />
                           </div>
-                        );
-                      })}
-                    </div>
-                  ) : fallbackCatchPhotos.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 overflow-x-auto pb-2 sm:grid-cols-4 sm:overflow-visible">
-                      {fallbackCatchPhotos.map((c) => (
-                        <div key={c.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <img src={c.image_url} alt={c.title} className="aspect-[3/2] h-full w-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-                      No photos yet — log a catch to help show this venue off.
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
+                        No photos yet — log a catch to help show this venue off.
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </section>
-          </div>
-          <div className="space-y-3 md:space-y-4">
+              </Section>
+            </div>
+            <div className="space-y-3 md:space-y-4">
             <Card className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
               {featuredCatch?.image_url ? (
                 <img
@@ -698,11 +710,11 @@ const VenueDetail = () => {
                   <Fish className="h-3.5 w-3.5" />
                   Venue record
                 </div>
-                <p className="text-lg font-bold text-slate-900">
+                <Heading size="sm">
                   {featuredCatch?.weight
                     ? `${featuredCatch.weight}${featuredCatch.weight_unit === "kg" ? "kg" : "lb"} ${humanizeSpecies(featuredCatch.species)}`
                     : "No venue record logged yet"}
-                </p>
+                </Heading>
                 {featuredCatch ? (
                   <div className="mt-1 flex items-center justify-between gap-3">
                     <Link
@@ -734,7 +746,7 @@ const VenueDetail = () => {
                     </span>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-600">Be the first to set a venue record here.</p>
+                  <Text className="text-slate-600">Be the first to set a venue record here.</Text>
                 )}
                 <div className="pt-2">
                   {featuredCatch ? (
@@ -754,17 +766,23 @@ const VenueDetail = () => {
             <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <CardContent className="space-y-4 p-4">
                 <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Venue stats</p>
+                  <Eyebrow className="text-slate-500">Venue stats</Eyebrow>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Catches logged</p>
-                  <p className="text-sm font-bold text-slate-900">{totalCatches}</p>
-                  <p className="text-xs text-slate-600">{totalCatches > 0 ? "Total catches on ReelyRated" : "No catches logged yet"}</p>
+                  <Text variant="small" className="font-semibold uppercase tracking-wide text-slate-500">
+                    Catches logged
+                  </Text>
+                  <Text className="text-sm font-bold text-slate-900">{totalCatches}</Text>
+                  <Text variant="small" className="text-slate-600">
+                    {totalCatches > 0 ? "Total catches on ReelyRated" : "No catches logged yet"}
+                  </Text>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Last 30 days</p>
-                  <p className="text-sm font-bold text-slate-900">{recentWindow}</p>
-                  <div className="text-xs text-slate-600">
+                  <Text variant="small" className="font-semibold uppercase tracking-wide text-slate-500">
+                    Last 30 days
+                  </Text>
+                  <Text className="text-sm font-bold text-slate-900">{recentWindow}</Text>
+                  <Text variant="small" className="text-slate-600">
                     {recentWindow === 0
                       ? "No catches yet"
                       : recentWindow === 1
@@ -777,51 +795,57 @@ const VenueDetail = () => {
                           <span>Hot this month</span>
                         </span>
                       )}
-                  </div>
+                  </Text>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Top species here</p>
+                  <Text variant="small" className="font-semibold uppercase tracking-wide text-slate-500">
+                    Top species here
+                  </Text>
                   {venue.top_species && venue.top_species.length > 0 ? (
                     <div className="space-y-1">
                       {venue.top_species.slice(0, 3).map((species) => (
-                        <p key={species} className="text-sm font-semibold text-slate-900">
+                        <Text key={species} className="text-sm font-semibold text-slate-900">
                           {humanizeSpecies(species)}
-                        </p>
+                        </Text>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-600">No species data yet</p>
+                    <Text variant="small" className="text-slate-600">
+                      No species data yet
+                    </Text>
                   )}
-                  <p className="text-[11px] text-slate-500">Based on catches logged at this venue</p>
+                  <Text variant="small" className="text-slate-500">
+                    Based on catches logged at this venue
+                  </Text>
                 </div>
               </CardContent>
             </Card>
             {(hasPlanContent || isOwner || isAdmin) && (
-              <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+              <Section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Socials &amp; contact</p>
-                  <h2 className="text-xl font-semibold text-slate-900">Plan your visit</h2>
-                  <p className="text-sm text-slate-600">How to book, who to call, and what to expect on-site.</p>
+                  <Eyebrow className="text-slate-500">Socials &amp; contact</Eyebrow>
+                  <Heading size="md">Plan your visit</Heading>
+                  <Text variant="muted">How to book, who to call, and what to expect on-site.</Text>
                 </div>
                 <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
                   <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tickets &amp; pricing</p>
+                    <Eyebrow className="text-slate-500">Tickets &amp; pricing</Eyebrow>
                     {ticketType || displayPriceFrom ? (
-                      <p className="text-base font-semibold text-slate-900">
+                      <Heading size="sm" className="text-slate-900">
                         {ticketType ? `${ticketType}` : ""}
                         {ticketType && displayPriceFrom ? " • " : ""}
                         {displayPriceFrom || ""}
-                      </p>
+                      </Heading>
                     ) : (
-                      <p className="text-sm text-slate-500">Ticket details coming soon.</p>
+                      <Text className="text-slate-500">Ticket details coming soon.</Text>
                     )}
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contact</p>
+                    <Eyebrow className="text-slate-500">Contact</Eyebrow>
                     {contactPhone ? (
-                      <p className="font-semibold text-slate-900">Call: {contactPhone}</p>
+                      <Text className="font-semibold text-slate-900">Call: {contactPhone}</Text>
                     ) : (
-                      <p className="text-sm text-slate-500">Phone number not provided.</p>
+                      <Text className="text-slate-500">Phone number not provided.</Text>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3">
@@ -841,11 +865,13 @@ const VenueDetail = () => {
                     ) : null}
                   </div>
                   {!(ticketType || displayPriceFrom || contactPhone || websiteUrl || bookingUrl) && (isOwner || isAdmin) ? (
-                    <p className="text-xs text-slate-500">Owners can add contact and booking info from Edit / Manage venue.</p>
+                    <Text variant="small" className="text-slate-500">
+                      Owners can add contact and booking info from Edit / Manage venue.
+                    </Text>
                   ) : null}
                   {hasBestFor ? (
                     <div className="space-y-2 rounded-xl border border-slate-100 bg-white p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Best for</p>
+                      <Eyebrow className="text-slate-500">Best for</Eyebrow>
                       <div className="flex flex-wrap gap-2">
                         {bestForTags.slice(0, 12).map((tag) => (
                           <span
@@ -860,7 +886,7 @@ const VenueDetail = () => {
                   ) : null}
                   {hasFacilities || filteredFacilities.length > 0 ? (
                     <div className="space-y-2 rounded-xl border border-slate-100 bg-white p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Facilities</p>
+                      <Eyebrow className="text-slate-500">Facilities</Eyebrow>
                       <div className="flex flex-wrap gap-2">
                         {(filteredFacilities.length > 0 ? filteredFacilities : facilities).slice(0, 12).map((facility) => (
                           <span
@@ -874,16 +900,18 @@ const VenueDetail = () => {
                     </div>
                   ) : null}
                   {!hasBestFor && !hasFacilities && (isOwner || isAdmin) ? (
-                    <p className="text-xs text-slate-500">Owners can add facilities and best-for tags from Edit / Manage venue.</p>
+                    <Text variant="small" className="text-slate-500">
+                      Owners can add facilities and best-for tags from Edit / Manage venue.
+                    </Text>
                   ) : null}
                 </div>
-              </section>
+              </Section>
             )}
-            { (upcomingEvents.length > 0 || pastEvents.length > 0) ? (
-              <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {(upcomingEvents.length > 0 || pastEvents.length > 0) ? (
+              <Section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Events &amp; announcements</p>
-                  <h2 className="text-xl font-semibold text-slate-900">Updates from this venue</h2>
+                  <Eyebrow className="text-slate-500">Events &amp; announcements</Eyebrow>
+                  <Heading size="md">Updates from this venue</Heading>
                 </div>
                 <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 p-1 text-sm font-semibold text-slate-700">
                   <button
@@ -1029,22 +1057,24 @@ const VenueDetail = () => {
                     ) : null}
                   </div>
                 )}
-              </section>
+              </Section>
             ) : null}
           </div>
         </div>
 
-        <section className="relative z-10 mt-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:mt-6">
+        </Section>
+
+        <Section className="relative z-10 mt-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:mt-6">
           <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Community catches</p>
-            <h2 className="text-xl font-semibold text-slate-900">What anglers are logging here</h2>
+            <Eyebrow className="text-slate-500">Community catches</Eyebrow>
+            <Heading size="md">What anglers are logging here</Heading>
           </div>
 
           {totalCatches <= 0 ? (
             <Card className="border border-dashed border-slate-300 bg-white shadow-sm">
               <CardContent className="space-y-2 p-5 text-sm text-slate-600">
-                <p>No catches have been logged at this venue yet.</p>
-                <p>Be the first to add one from your catch log.</p>
+                <Text>No catches have been logged at this venue yet.</Text>
+                <Text>Be the first to add one from your catch log.</Text>
                 {user && !isAdmin ? (
                   <Button asChild className="rounded-full">
                     <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch at this venue</Link>
@@ -1056,8 +1086,8 @@ const VenueDetail = () => {
             <div className="space-y-6">
               <div className="space-y-2">
                 <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Recent catches</p>
-                  <h3 className="text-lg font-semibold text-slate-900">Latest from the community</h3>
+                  <Eyebrow className="text-slate-500">Recent catches</Eyebrow>
+                  <Heading size="sm">Latest from the community</Heading>
                 </div>
                 {renderCatchesGrid(recentCatches)}
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1088,8 +1118,8 @@ const VenueDetail = () => {
                 <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="space-y-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Top catches</p>
-                      <h3 className="text-lg font-semibold text-slate-900">Heaviest catches logged here</h3>
+                      <Eyebrow className="text-slate-500">Top catches</Eyebrow>
+                      <Heading size="sm">Heaviest catches logged here</Heading>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Species</span>
@@ -1171,11 +1201,11 @@ const VenueDetail = () => {
                   )}
                 </div>
               ) : null}
-
             </div>
           )}
-        </section>
-    </PageShell>
+        </Section>
+      </PageContainer>
+    </div>
   );
 };
 

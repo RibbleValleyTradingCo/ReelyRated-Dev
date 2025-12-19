@@ -38,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Check, ChevronDown, Filter } from "lucide-react";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
@@ -799,11 +800,26 @@ const AdminReports = () => {
     setWarnDuration("24");
   };
 
+  const typeLabel = filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1);
+  const statusLabel =
+    statusFilter === "all" ? "All" : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+  const dateLabel =
+    dateRange === "24h"
+      ? "24h"
+      : dateRange === "7d"
+        ? "7 days"
+        : dateRange === "30d"
+          ? "30 days"
+          : "All";
+  const filterSummary = `Type: ${typeLabel} • Status: ${statusLabel} • Date: ${dateLabel}`;
+
   // Show loading spinner while checking admin status
   if (adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageContainer className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </PageContainer>
       </div>
     );
   }
@@ -815,15 +831,15 @@ const AdminReports = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <PageContainer className="py-8">
-        <div className="space-y-6">
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-6xl py-6 md:py-8 overflow-x-hidden">
+        <div className="space-y-6 min-w-0">
           <Section>
             <SectionHeader
               eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
               title="Reports"
               subtitle="Review and act on user reports."
               actions={
-                <Button variant="outline" onClick={() => navigate(-1)}>
+                <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
                   Back
                 </Button>
               }
@@ -831,102 +847,204 @@ const AdminReports = () => {
           </Section>
 
           <Section>
-            <Card className="border-border/70">
-              <CardContent className="space-y-4 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="space-y-1">
-                    <Text variant="small" className="font-semibold uppercase tracking-wide">
-                      Filters
-                    </Text>
-                    <Text variant="small">Narrow down the reports queue.</Text>
-                  </div>
-                  {activeFilterChips.length > 0 && (
-                    <div className="flex flex-wrap items-center gap-2">
-                      {activeFilterChips.map((chip, index) => (
-                        <Button
-                          key={chip.label + index.toString()}
-                          variant="secondary"
-                          size="sm"
-                          className="rounded-full px-3"
-                          onClick={chip.onClear}
-                        >
-                          {chip.label}
-                        </Button>
-                      ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={resetFilters}
-                        className="text-xs"
-                      >
-                        Reset filters
-                      </Button>
+            <div className="sticky top-16 z-20 space-y-3">
+              <Card className="border-border/70 w-full bg-card/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+                <CardContent className="space-y-5 p-4 md:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Filter className="h-4 w-4" />
                     </div>
-                  )}
+                    <div className="space-y-1 min-w-0">
+                      <Text variant="small" className="font-semibold uppercase tracking-wide">
+                        Filters
+                      </Text>
+                      <Text variant="small">Narrow down the reports queue.</Text>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    {activeFilterChips.map((chip, index) => (
+                      <Button
+                        key={chip.label + index.toString()}
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-full px-3 py-2"
+                        onClick={chip.onClear}
+                      >
+                        {chip.label}
+                      </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetFilters}
+                      className="text-xs min-h-[36px]"
+                    >
+                      Reset filters
+                    </Button>
+                  </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2">
-                    <Text variant="small" className="font-medium text-muted-foreground">
-                      Type
-                    </Text>
-                    <div className="flex flex-wrap gap-2">
-                      {(["all", "catch", "comment", "profile"] as const).map((type) => (
-                        <Button
+                <details className="block sm:hidden rounded-lg border border-border/70 bg-muted/30 p-3">
+                  <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-md border border-border/70 bg-white/60 px-3 py-2 text-sm text-muted-foreground">
+                    <span className="truncate">{filterSummary}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  </summary>
+                  <div className="mt-3 space-y-4">
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Type
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["all", "catch", "comment", "profile"] as const).map((type) => (
+                          <Button
                           key={type}
                           variant={filter === type ? "ocean" : "outline"}
                           size="sm"
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
                           onClick={() => {
                             setFilter(type);
                             setPage(1);
                           }}
                         >
-                          {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
-                        </Button>
-                      ))}
+                            {filter === type ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <Text variant="small" className="font-medium text-muted-foreground">
-                      Status
-                    </Text>
-                    <div className="flex flex-wrap gap-2">
-                      {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
-                        <Button
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Status
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
+                          <Button
                           key={status}
                           variant={statusFilter === status ? "ocean" : "outline"}
                           size="sm"
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
                           onClick={() => {
                             setStatusFilter(status);
                             setPage(1);
                           }}
                         >
-                          {status === "all"
-                            ? "All statuses"
-                            : status.charAt(0).toUpperCase() + status.slice(1)}
+                            {statusFilter === status ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {status === "all"
+                                ? "All statuses"
+                                : status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Date
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["24h", "7d", "30d", "all"] as const).map((range) => (
+                          <Button
+                          key={range}
+                          variant={dateRange === range ? "ocean" : "ghost"}
+                          size="sm"
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setDateRange(range);
+                            setPage(1);
+                          }}
+                        >
+                            {dateRange === range ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {range === "24h"
+                                ? "24h"
+                                : range === "7d"
+                                ? "7 days"
+                                : range === "30d"
+                                ? "30 days"
+                                : "All"}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </details>
+
+                <div className="hidden sm:grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <Text variant="small" className="font-medium text-muted-foreground">
+                      Type
+                    </Text>
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["all", "catch", "comment", "profile"] as const).map((type) => (
+                        <Button
+                          key={type}
+                          variant={filter === type ? "ocean" : "outline"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setFilter(type);
+                            setPage(1);
+                          }}
+                        >
+                          {filter === type ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">{type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}</span>
                         </Button>
                       ))}
                     </div>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <Text variant="small" className="font-medium text-muted-foreground">
+                      Status
+                    </Text>
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
+                        <Button
+                          key={status}
+                          variant={statusFilter === status ? "ocean" : "outline"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setPage(1);
+                          }}
+                        >
+                          {statusFilter === status ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">
+                            {status === "all"
+                              ? "All statuses"
+                              : status.charAt(0).toUpperCase() + status.slice(1)}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
                     <Text variant="small" className="font-medium text-muted-foreground">
                       Date
                     </Text>
-                    <div className="flex">
-                      <div className="flex w-full rounded-md border border-border/70 overflow-hidden">
-                        {(["24h", "7d", "30d", "all"] as const).map((range) => (
-                          <Button
-                            key={range}
-                            variant={dateRange === range ? "ocean" : "ghost"}
-                            size="sm"
-                            className="flex-1 rounded-none"
-                            onClick={() => {
-                              setDateRange(range);
-                              setPage(1);
-                            }}
-                          >
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["24h", "7d", "30d", "all"] as const).map((range) => (
+                        <Button
+                          key={range}
+                          variant={dateRange === range ? "ocean" : "ghost"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setDateRange(range);
+                            setPage(1);
+                          }}
+                        >
+                          {dateRange === range ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">
                             {range === "24h"
                               ? "24h"
                               : range === "7d"
@@ -934,34 +1052,33 @@ const AdminReports = () => {
                               : range === "30d"
                               ? "30 days"
                               : "All"}
-                          </Button>
-                        ))}
-                      </div>
+                          </span>
+                        </Button>
+                      ))}
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </Section>
 
           <Section>
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between gap-3">
+            <Card className="w-full">
+              <CardHeader className="sticky top-[calc(4rem+16px)] z-10 bg-card/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-w-0">
                   <Heading as="h2" size="md" className="text-foreground">
                     Reports
                   </Heading>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Text variant="small" className="text-muted-foreground">
-                      Sort
-                    </Text>
-                    <div className="flex rounded-md border border-border/70 overflow-hidden">
+                  <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center min-w-0">
+                    <Text variant="small" className="text-muted-foreground min-w-0">Sort</Text>
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:rounded-md sm:border sm:border-border/70 sm:overflow-hidden">
                       {(["newest", "oldest"] as const).map((order) => (
                         <Button
                           key={order}
                           variant={sortOrder === order ? "ocean" : "ghost"}
                           size="sm"
-                          className="rounded-none"
+                          className="w-full sm:w-auto sm:rounded-none min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
                           onClick={() => {
                             setSortOrder(order);
                             setPage(1);
@@ -974,7 +1091,8 @@ const AdminReports = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <div className="border-t border-border/60" />
+              <CardContent className="space-y-3 pt-4">
                 {isLoading ? (
                   <Text variant="muted" className="text-sm">
                     Loading reports…
@@ -1010,9 +1128,9 @@ const AdminReports = () => {
                       ["catch", "comment"].includes(report.target_type);
 
                     return (
-                      <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex flex-wrap items-center gap-2 text-sm">
+                      <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-3 space-y-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 text-sm min-w-0">
                             <Badge variant="secondary" className="uppercase tracking-wide">
                               {report.target_type}
                             </Badge>
@@ -1021,7 +1139,7 @@ const AdminReports = () => {
                               onValueChange={(value) => handleUpdateStatus(report.id, value as ReportStatus)}
                               disabled={isStatusUpdating}
                             >
-                              <SelectTrigger className="w-[150px] h-8">
+                              <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
                                 <SelectValue placeholder={report.status} />
                               </SelectTrigger>
                               <SelectContent>
@@ -1037,28 +1155,38 @@ const AdminReports = () => {
                               {formatRelative(report.created_at)}
                             </span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 w-full sm:w-auto">
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-primary"
+                              className="text-primary w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
                               onClick={() => void handleViewTarget(report, currentDetails?.parentCatchId)}
                             >
-                              View target
+                              <span className="truncate">View target</span>
                             </Button>
                             {isSelected ? (
-                              <Button variant="ghost" size="sm" onClick={handleCloseDetails}>
-                                Close
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
+                                onClick={handleCloseDetails}
+                              >
+                                <span className="truncate">Close</span>
                               </Button>
                             ) : (
-                              <Button variant="outline" size="sm" onClick={() => void handleSelectReport(report)}>
-                                Moderation actions
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
+                                onClick={() => void handleSelectReport(report)}
+                              >
+                                <span className="truncate">Actions</span>
                               </Button>
                             )}
                           </div>
                         </div>
-                        <Text className="mt-2 text-sm text-foreground whitespace-pre-wrap">{report.reason}</Text>
-                        <Text variant="muted" className="mt-1 text-xs">
+                        <Text className="text-sm text-foreground whitespace-pre-wrap">{report.reason}</Text>
+                        <Text variant="muted" className="text-xs">
                           Reported by {report.reporter?.username ?? report.reporter?.id ?? "Unknown"}
                         </Text>
 
@@ -1071,14 +1199,14 @@ const AdminReports = () => {
                             ) : currentDetails ? (
                               <>
                                 {currentDetails.targetProfile?.id ? (
-                                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                    <Text>
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground min-w-0">
+                                    <Text className="truncate">
                                       Target user: {currentDetails.targetProfile.username ?? currentDetails.targetProfile.id}
                                     </Text>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="text-primary"
+                                      className="text-primary w-full sm:w-auto"
                                       onClick={() =>
                                         navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`, {
                                           state: { from: "reports" },
@@ -1102,17 +1230,19 @@ const AdminReports = () => {
                                   </div>
                                 )}
 
-                                <div className="flex items-center justify-between rounded bg-gray-50 p-3">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded bg-gray-50 p-3 min-w-0">
                                   <Text className="font-medium">Status:</Text>
                                   <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadgeVariants[report.status]}`}>
                                     {report.status.toUpperCase()}
                                   </span>
                                 </div>
 
-                                <div className="rounded bg-slate-50 p-3 text-sm">
-                                  <div className="flex items-center justify-between">
+                                <div className="rounded bg-slate-50 p-3 text-sm space-y-1">
+                                  <div className="flex items-center justify-between gap-3">
                                     <Text>Moderation status</Text>
-                                    <Text className="font-medium capitalize">{currentDetails.moderationStatus}</Text>
+                                    <Text className="font-medium capitalize text-right truncate">
+                                      {currentDetails.moderationStatus}
+                                    </Text>
                                   </div>
                                   {currentDetails.suspensionUntil && (
                                     <Text variant="muted" className="mt-1 text-xs">
@@ -1188,23 +1318,28 @@ const AdminReports = () => {
 
                                 <details className="rounded bg-gray-50 p-3">
                                   <summary className="cursor-pointer font-medium">Moderation history</summary>
-                                  <div className="mt-3 space-y-2 text-sm">
+                                  <div className="mt-3 space-y-3 text-sm">
                                     {currentDetails.modHistory.length === 0 ? (
                                       <Text variant="muted" className="text-xs">
                                         No moderation actions recorded.
                                       </Text>
                                     ) : (
-                                      currentDetails.modHistory.map((entry) => (
-                                        <div key={entry.id} className="border-l-2 border-gray-300 pl-3">
-                                          <Text className="font-medium">
-                                            {entry.admin?.username ?? entry.admin?.id ?? "Unknown admin"} – {entry.action}
-                                          </Text>
-                                          <Text className="text-gray-600">{entry.reason}</Text>
-                                          <Text variant="muted" className="text-xs">
-                                            {formatRelative(entry.created_at)}
-                                          </Text>
-                                        </div>
-                                      ))
+                                      <div className="space-y-3 border-l-2 border-border/60 pl-3">
+                                        {currentDetails.modHistory.map((entry) => (
+                                          <div key={entry.id} className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                              <span className="h-2 w-2 rounded-full bg-border" />
+                                              <Text className="font-medium truncate">
+                                                {entry.admin?.username ?? entry.admin?.id ?? "Unknown admin"} – {entry.action}
+                                              </Text>
+                                            </div>
+                                            <Text className="text-gray-600">{entry.reason}</Text>
+                                            <Text variant="muted" className="text-xs">
+                                              {formatRelative(entry.created_at)}
+                                            </Text>
+                                          </div>
+                                        ))}
+                                      </div>
                                     )}
                                   </div>
                                 </details>
@@ -1225,12 +1360,13 @@ const AdminReports = () => {
                     <Text variant="muted" className="text-xs">
                       {`Showing ${filteredReports.length} report${filteredReports.length === 1 ? "" : "s"}`}
                     </Text>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                         disabled={page === 1 || isLoading}
+                        className="w-full sm:w-auto"
                       >
                         Previous
                       </Button>
@@ -1243,6 +1379,7 @@ const AdminReports = () => {
                           }
                         }}
                         disabled={!canLoadMore || isLoading}
+                        className="w-full sm:w-auto"
                       >
                         Next
                       </Button>

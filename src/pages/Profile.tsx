@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Star, Trophy, Fish, BarChart3, Loader2, AlertTriangle } from "lucide-react";
+import { Star, Trophy, Fish, BarChart3, AlertTriangle } from "lucide-react";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
 import { createNotification } from "@/lib/notifications";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
@@ -21,6 +21,10 @@ import ProfileFollowingStrip from "@/components/profile/ProfileFollowingStrip";
 import ProfileCatchesGrid from "@/components/profile/ProfileCatchesGrid";
 import ProfileDeletedStub from "@/components/profile/ProfileDeletedStub";
 import ProfileBlockedViewerStub from "@/components/profile/ProfileBlockedViewerStub";
+import PageSpinner from "@/components/loading/PageSpinner";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import Text from "@/components/typography/Text";
 
 interface Profile {
   id: string;
@@ -493,10 +497,7 @@ const Profile = () => {
   if (isLoading || blockStatusLoading || !profile) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <div className="mx-auto flex max-w-6xl items-center justify-center px-4 py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading profile…
-        </div>
+        <PageSpinner label="Loading profile…" />
       </div>
     );
   }
@@ -581,112 +582,125 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="mx-auto w-full max-w-6xl px-4 pb-10 sm:px-6 lg:px-8">
+      <PageContainer className="py-8 md:py-10">
         <div className="space-y-8">
-          {isDeletedBanner ? (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
-              This account has been deleted. You&apos;re viewing historical data as an admin.
-            </div>
-          ) : null}
-          {isBlockedByMe && !isDeleted && !isAdminProfileOwner && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4" />
-                <span>You have blocked this angler. Unblock to see their catches again.</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-amber-300 text-amber-800"
-                onClick={handleUnblock}
-                disabled={blockLoading}
-              >
-                {blockLoading ? "Working…" : "Unblock"}
-              </Button>
-            </div>
-          )}
-          <ProfileHero
-            profile={profile}
-            profileAvatarUrl={profileAvatarUrl}
-            displayBio={displayBio}
-            bio={profile.bio}
-            bioExpanded={bioExpanded}
-            onToggleBioExpanded={() => setBioExpanded((prev) => !prev)}
-            isEditing={isEditing}
-            editedBio={editedBio}
-            onChangeEditedBio={setEditedBio}
-            onSaveBio={handleUpdateBio}
-            onCancelEditBio={() => setIsEditing(false)}
-            isOwnProfile={isOwnProfile}
-            isAdminProfile={isAdminProfile}
-            isAdminSelf={isAdminSelf}
-            isAdminPublicView={isAdminPublicView}
-            isAdminViewer={isAdminViewer}
-            isUsingStaffBioFallback={isUsingStaffBioFallback}
-            showStatusPill={showStatusPill}
-            statusPill={statusPill}
-            heroBackgroundClasses={heroBackgroundClasses}
-            heroStatTiles={heroStatTiles}
-            onAddCatch={handleNavigateToAddCatch}
-            onEditProfile={() => setIsEditing(true)}
-            onViewStats={handleNavigateToInsights}
-            onOpenSettings={handleNavigateToSettings}
-            onViewFeed={handleNavigateToFeed}
-            onModeration={profileId ? handleNavigateToModeration : undefined}
-            onReports={handleNavigateToReports}
-            onAuditLog={handleNavigateToAuditLog}
-            onToggleFollow={handleToggleFollow}
-            onBlockToggle={isBlockedByMe ? handleUnblock : handleBlock}
-            isFollowing={isFollowing}
-            followLoading={followLoading}
-            isBlockedByMe={isBlockedByMe}
-            blockLoading={blockLoading}
-          />
-
-          {isAdminPublicView && (
-            <p className="text-xs text-slate-600">
-              Official ReelyRated staff account. Use report options on catches or comments to flag issues; support links live in Settings.
-            </p>
-          )}
-
-          {isAdminSelf ? (
-            <ProfileAdminModerationTools profileId={profileId} />
-          ) : !isAdminProfile ? (
-            <ProfileAnglerStatsSection statsCards={statsCards} />
-          ) : (
-            <ProfileAboutStaffCard onViewFeed={handleNavigateToFeed} />
-          )}
-
-          {isOwnProfile && !isAdminProfile && (
-            <div className="space-y-4">
-              <ProfileNotificationsSection userId={profileId} />
-            </div>
-          )}
-
-          {!isAdminProfile && !isAdminSelf ? (
-            <ProfileFollowingStrip
-              isOwnProfile={isOwnProfile}
-              username={profile.username}
-              followingProfiles={followingProfiles}
-              onNavigateToFeed={handleNavigateToFeed}
-            />
+          {isDeletedBanner || (isBlockedByMe && !isDeleted && !isAdminProfileOwner) ? (
+            <Section className="space-y-4">
+              {isDeletedBanner ? (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+                  This account has been deleted. You&apos;re viewing historical data as an admin.
+                </div>
+              ) : null}
+              {isBlockedByMe && !isDeleted && !isAdminProfileOwner ? (
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>You have blocked this angler. Unblock to see their catches again.</span>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-amber-300 text-amber-800"
+                    onClick={handleUnblock}
+                    disabled={blockLoading}
+                  >
+                    {blockLoading ? "Working…" : "Unblock"}
+                  </Button>
+                </div>
+              ) : null}
+            </Section>
           ) : null}
 
-          {!isAdminProfile && !isAdminSelf ? (
-            <ProfileCatchesGrid
+          <Section className="space-y-4">
+            <ProfileHero
+              profile={profile}
+              profileAvatarUrl={profileAvatarUrl}
+              displayBio={displayBio}
+              bio={profile.bio}
+              bioExpanded={bioExpanded}
+              onToggleBioExpanded={() => setBioExpanded((prev) => !prev)}
+              isEditing={isEditing}
+              editedBio={editedBio}
+              onChangeEditedBio={setEditedBio}
+              onSaveBio={handleUpdateBio}
+              onCancelEditBio={() => setIsEditing(false)}
               isOwnProfile={isOwnProfile}
-              username={profile.username}
-              catches={catches}
-              isPrivateAndBlocked={isPrivateAndBlocked}
-              onLogCatch={handleNavigateToAddCatch}
+              isAdminProfile={isAdminProfile}
+              isAdminSelf={isAdminSelf}
+              isAdminPublicView={isAdminPublicView}
+              isAdminViewer={isAdminViewer}
+              isUsingStaffBioFallback={isUsingStaffBioFallback}
+              showStatusPill={showStatusPill}
+              statusPill={statusPill}
+              heroBackgroundClasses={heroBackgroundClasses}
+              heroStatTiles={heroStatTiles}
+              onAddCatch={handleNavigateToAddCatch}
+              onEditProfile={() => setIsEditing(true)}
+              onViewStats={handleNavigateToInsights}
+              onOpenSettings={handleNavigateToSettings}
               onViewFeed={handleNavigateToFeed}
-              onOpenCatch={handleOpenCatch}
-              formatWeight={formatWeight}
-              formatSpecies={formatSpecies}
+              onModeration={profileId ? handleNavigateToModeration : undefined}
+              onReports={handleNavigateToReports}
+              onAuditLog={handleNavigateToAuditLog}
+              onToggleFollow={handleToggleFollow}
+              onBlockToggle={isBlockedByMe ? handleUnblock : handleBlock}
+              isFollowing={isFollowing}
+              followLoading={followLoading}
+              isBlockedByMe={isBlockedByMe}
+              blockLoading={blockLoading}
             />
+
+            {isAdminPublicView ? (
+              <Text variant="small" className="text-slate-600">
+                Official ReelyRated staff account. Use report options on catches or comments to flag issues; support links live in Settings.
+              </Text>
+            ) : null}
+          </Section>
+
+          <Section>
+            {isAdminSelf ? (
+              <ProfileAdminModerationTools profileId={profileId} />
+            ) : !isAdminProfile ? (
+              <ProfileAnglerStatsSection statsCards={statsCards} />
+            ) : (
+              <ProfileAboutStaffCard onViewFeed={handleNavigateToFeed} />
+            )}
+          </Section>
+
+          {isOwnProfile && !isAdminProfile ? (
+            <Section>
+              <ProfileNotificationsSection userId={profileId} />
+            </Section>
+          ) : null}
+
+          {!isAdminProfile && !isAdminSelf ? (
+            <Section>
+              <ProfileFollowingStrip
+                isOwnProfile={isOwnProfile}
+                username={profile.username}
+                followingProfiles={followingProfiles}
+                onNavigateToFeed={handleNavigateToFeed}
+              />
+            </Section>
+          ) : null}
+
+          {!isAdminProfile && !isAdminSelf ? (
+            <Section>
+              <ProfileCatchesGrid
+                isOwnProfile={isOwnProfile}
+                username={profile.username}
+                catches={catches}
+                isPrivateAndBlocked={isPrivateAndBlocked}
+                onLogCatch={handleNavigateToAddCatch}
+                onViewFeed={handleNavigateToFeed}
+                onOpenCatch={handleOpenCatch}
+                formatWeight={formatWeight}
+                formatSpecies={formatSpecies}
+              />
+            </Section>
           ) : null}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 };
