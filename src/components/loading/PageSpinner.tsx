@@ -8,7 +8,14 @@ interface PageSpinnerProps {
 
 export const PageSpinner = ({ label = "Loading…", className }: PageSpinnerProps) => {
   return (
-    <div className={cn("section-container py-10 md:py-14 flex items-center justify-center text-slate-500", className)}>
+    <div
+      role="status"
+      aria-live="polite"
+      className={cn(
+        "section-container py-10 md:py-14 flex items-center justify-center text-slate-500",
+        className
+      )}
+    >
       <div className="flex items-center gap-3">
         <Loader2 className="h-5 w-5 animate-spin" />
         <span className="text-sm font-medium">{label}</span>
