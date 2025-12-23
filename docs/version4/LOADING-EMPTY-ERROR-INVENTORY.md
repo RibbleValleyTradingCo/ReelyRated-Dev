@@ -10,7 +10,7 @@ Updated: 2025-12-19
 
 - **Feed `/feed` (Feed.tsx)**
 
-  - Loading: PageSpinner in content area (“Loading your feed…”); header/filters remain visible.
+  - Loading: PageSpinner in content area (“Loading your feed…”).
   - Empty: Empty feed text.
   - Error: Toast/log.
 
@@ -57,7 +57,7 @@ Updated: 2025-12-19
 
 - **Search `/search` (Search.tsx)**
 
-  - Loading: InlineSpinner / button-level spinners only (no page-level spinner).
+  - Loading: InlineSpinner / button-level spinners only (no PageSpinner).
   - Empty: No results text.
   - Error: Toast/log.
 
@@ -79,7 +79,7 @@ Updated: 2025-12-19
 
 - **Admin reports `/admin/reports` (AdminReports.tsx)**
 
-  - Loading: PageSpinner for admin check/load (content-only); sticky filter/sort UI remains visible once loaded.
+  - Loading: PageSpinner for admin check/load (content-only). After load, Filters + Sort are sticky; on mobile, filters are collapsible with a summary line.
   - Empty: Empty queue text.
   - Error: Toast/log.
 
@@ -126,4 +126,5 @@ Updated: 2025-12-19
 
 - Page-level loading uses PageSpinner (content-only; navbar remains mounted via Layout).
 - Route-level Suspense fallback (RouteSkeleton) renders PageSpinner.
+- Most pages now use PageContainer/Section/SectionHeader + typography primitives, but loading/empty/error behavior should remain unchanged unless explicitly listed above.
 - Pages outside Layout (e.g. /auth, /account-deleted) do not render the navbar.

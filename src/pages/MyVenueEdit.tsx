@@ -6,9 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import MarkdownEditor from "@/components/inputs/MarkdownEditor";
 import InlineSpinner from "@/components/loading/InlineSpinner";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import OpeningHoursCard from "@/pages/venue-owner-admin/components/OpeningHoursCard";
+import PricingTiersCard from "@/pages/venue-owner-admin/components/PricingTiersCard";
+import RulesCard from "@/pages/my-venues/components/RulesCard";
+import BookingCard from "@/pages/venue-owner-admin/components/BookingCard";
+import VenuePhotosCard from "@/pages/venue-owner-admin/components/VenuePhotosCard";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
@@ -30,6 +36,7 @@ type Venue = {
   website_url: string | null;
   booking_url: string | null;
   contact_phone: string | null;
+  booking_enabled?: boolean | null;
 };
 
 type VenueEvent = {
@@ -396,10 +403,13 @@ const MyVenueEdit = () => {
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2 min-w-0">
-                    <label className="text-sm font-semibold text-foreground">Description</label>
-                    <Textarea
+                    <MarkdownEditor
+                      id="venueDescription"
+                      label="Description"
                       value={form.description}
-                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(value) =>
+                        setForm((prev) => ({ ...prev, description: value }))
+                      }
                       rows={4}
                       placeholder="Brief description of the venue"
                     />
@@ -468,6 +478,32 @@ const MyVenueEdit = () => {
                 </div>
               </CardContent>
             </Card>
+          </Section>
+
+          <Section>
+            <OpeningHoursCard venueId={venue.id} />
+          </Section>
+
+          <Section>
+            <PricingTiersCard venueId={venue.id} />
+          </Section>
+
+          <Section>
+            <RulesCard venueId={venue.id} venueName={venue.name} />
+          </Section>
+
+          <Section>
+            <BookingCard
+              venueId={venue.id}
+              initialEnabled={venue.booking_enabled ?? true}
+              onUpdated={(nextValue) =>
+                setVenue((current) => (current ? { ...current, booking_enabled: nextValue } : current))
+              }
+            />
+          </Section>
+
+          <Section>
+            <VenuePhotosCard venueId={venue.id} />
           </Section>
 
           <Section>

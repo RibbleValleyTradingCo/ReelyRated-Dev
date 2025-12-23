@@ -7,10 +7,30 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
   }
   public: {
     Tables: {
@@ -189,7 +209,7 @@ export type Database = {
           id: string
           image_url: string
           length: number | null
-          length_unit: string | null
+          length_unit: Database["public"]["Enums"]["length_unit"] | null
           location: string | null
           location_label: string | null
           method: string | null
@@ -205,11 +225,11 @@ export type Database = {
           user_id: string
           venue_id: string | null
           video_url: string | null
-          visibility: string
+          visibility: Database["public"]["Enums"]["visibility_type"]
           water_type: string | null
           water_type_code: string | null
           weight: number | null
-          weight_unit: string | null
+          weight_unit: Database["public"]["Enums"]["weight_unit"] | null
         }
         Insert: {
           allow_ratings?: boolean
@@ -226,7 +246,7 @@ export type Database = {
           id?: string
           image_url: string
           length?: number | null
-          length_unit?: string | null
+          length_unit?: Database["public"]["Enums"]["length_unit"] | null
           location?: string | null
           location_label?: string | null
           method?: string | null
@@ -242,11 +262,11 @@ export type Database = {
           user_id: string
           venue_id?: string | null
           video_url?: string | null
-          visibility?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"]
           water_type?: string | null
           water_type_code?: string | null
           weight?: number | null
-          weight_unit?: string | null
+          weight_unit?: Database["public"]["Enums"]["weight_unit"] | null
         }
         Update: {
           allow_ratings?: boolean
@@ -263,7 +283,7 @@ export type Database = {
           id?: string
           image_url?: string
           length?: number | null
-          length_unit?: string | null
+          length_unit?: Database["public"]["Enums"]["length_unit"] | null
           location?: string | null
           location_label?: string | null
           method?: string | null
@@ -279,11 +299,11 @@ export type Database = {
           user_id?: string
           venue_id?: string | null
           video_url?: string | null
-          visibility?: string
+          visibility?: Database["public"]["Enums"]["visibility_type"]
           water_type?: string | null
           water_type_code?: string | null
           weight?: number | null
-          weight_unit?: string | null
+          weight_unit?: Database["public"]["Enums"]["weight_unit"] | null
         }
         Relationships: [
           {
@@ -888,6 +908,53 @@ export type Database = {
           },
         ]
       }
+      venue_opening_hours: {
+        Row: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          label: string | null
+          opens_at: string | null
+          order_index: number
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week: number
+          id?: string
+          is_closed?: boolean
+          label?: string | null
+          opens_at?: string | null
+          order_index?: number
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          closes_at?: string | null
+          created_at?: string
+          day_of_week?: number
+          id?: string
+          is_closed?: boolean
+          label?: string | null
+          opens_at?: string | null
+          order_index?: number
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_opening_hours_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_owners: {
         Row: {
           created_at: string
@@ -966,6 +1033,47 @@ export type Database = {
           },
         ]
       }
+      venue_pricing_tiers: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          price: string
+          unit: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          order_index?: number
+          price: string
+          unit?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          order_index?: number
+          price?: string
+          unit?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_pricing_tiers_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_ratings: {
         Row: {
           created_at: string | null
@@ -1008,9 +1116,39 @@ export type Database = {
           },
         ]
       }
+      venue_rules: {
+        Row: {
+          created_at: string
+          rules_text: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          rules_text?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          rules_text?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_rules_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: true
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           best_for_tags: string[] | null
+          booking_enabled: boolean
           booking_url: string | null
           contact_phone: string | null
           created_at: string
@@ -1030,6 +1168,7 @@ export type Database = {
         }
         Insert: {
           best_for_tags?: string[] | null
+          booking_enabled?: boolean
           booking_url?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1049,6 +1188,7 @@ export type Database = {
         }
         Update: {
           best_for_tags?: string[] | null
+          booking_enabled?: boolean
           booking_url?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -1162,8 +1302,9 @@ export type Database = {
           gallery_photos: string[] | null
           id: string | null
           image_url: string | null
+          is_blocked_from_viewer: boolean | null
           length: number | null
-          length_unit: string | null
+          length_unit: Database["public"]["Enums"]["length_unit"] | null
           location: string | null
           location_label: string | null
           method: string | null
@@ -1179,7 +1320,7 @@ export type Database = {
           video_url: string | null
           water_type_code: string | null
           weight: number | null
-          weight_unit: string | null
+          weight_unit: Database["public"]["Enums"]["weight_unit"] | null
         }
         Relationships: [
           {
@@ -1195,7 +1336,7 @@ export type Database = {
         Row: {
           avg_rating: number | null
           headline_pb_species: string | null
-          headline_pb_unit: string | null
+          headline_pb_unit: Database["public"]["Enums"]["weight_unit"] | null
           headline_pb_weight: number | null
           rating_count: number | null
           recent_catches_30d: number | null
@@ -1238,6 +1379,60 @@ export type Database = {
         }
         Returns: string
       }
+      admin_create_venue_opening_hour: {
+        Args: {
+          p_closes_at: string
+          p_day_of_week: number
+          p_is_closed?: boolean
+          p_label: string
+          p_opens_at: string
+          p_order_index?: number
+          p_venue_id: string
+        }
+        Returns: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          label: string | null
+          opens_at: string | null
+          order_index: number
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_opening_hours"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_create_venue_pricing_tier: {
+        Args: {
+          p_label: string
+          p_order_index?: number
+          p_price: string
+          p_unit: string
+          p_venue_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          price: string
+          unit: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_pricing_tiers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_delete_account: {
         Args: { p_reason?: string; p_target: string }
         Returns: Json
@@ -1252,6 +1447,14 @@ export type Database = {
       }
       admin_delete_venue_event: {
         Args: { p_event_id: string }
+        Returns: undefined
+      }
+      admin_delete_venue_opening_hour: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
+      admin_delete_venue_pricing_tier: {
+        Args: { p_id: string }
         Returns: undefined
       }
       admin_get_venue_events: {
@@ -1344,6 +1547,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_update_venue_booking: {
+        Args: { p_booking_enabled: boolean; p_venue_id: string }
+        Returns: undefined
+      }
       admin_update_venue_event: {
         Args: {
           p_booking_url: string
@@ -1392,6 +1599,77 @@ export type Database = {
             }
             Returns: undefined
           }
+      admin_update_venue_opening_hour: {
+        Args: {
+          p_closes_at: string
+          p_day_of_week: number
+          p_id: string
+          p_is_closed: boolean
+          p_label: string
+          p_opens_at: string
+          p_order_index: number
+          p_venue_id: string
+        }
+        Returns: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          label: string | null
+          opens_at: string | null
+          order_index: number
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_opening_hours"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_venue_pricing_tier: {
+        Args: {
+          p_id: string
+          p_label: string
+          p_order_index: number
+          p_price: string
+          p_unit: string
+          p_venue_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          price: string
+          unit: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_pricing_tiers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      admin_update_venue_rules: {
+        Args: { p_rules_text: string; p_venue_id: string }
+        Returns: {
+          created_at: string
+          rules_text: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_rules"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_warn_user: {
         Args: {
           p_duration_hours?: number
@@ -1471,6 +1749,15 @@ export type Database = {
         Args: { p_following_id: string }
         Returns: string
       }
+      get_catch_rating_summary: {
+        Args: { p_catch_id: string }
+        Returns: {
+          average_rating: number
+          catch_id: string
+          rating_count: number
+          your_rating: number
+        }[]
+      }
       get_follower_count: { Args: { p_profile_id: string }; Returns: number }
       get_my_venue_rating: {
         Args: { p_venue_id: string }
@@ -1487,10 +1774,10 @@ export type Database = {
           p_window_minutes: number
         }
         Returns: {
-          allowed: boolean
-          remaining: number
+          attempts_remaining: number
+          attempts_used: number
+          is_limited: boolean
           reset_at: string
-          used: number
         }[]
       }
       get_venue_by_slug: {
@@ -1498,6 +1785,7 @@ export type Database = {
         Returns: {
           avg_rating: number
           best_for_tags: string[]
+          booking_enabled: boolean
           booking_url: string
           contact_phone: string
           created_at: string
@@ -1730,11 +2018,73 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      owner_create_venue_opening_hour: {
+        Args: {
+          p_closes_at: string
+          p_day_of_week: number
+          p_is_closed?: boolean
+          p_label: string
+          p_opens_at: string
+          p_order_index?: number
+          p_venue_id: string
+        }
+        Returns: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          label: string | null
+          opens_at: string | null
+          order_index: number
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_opening_hours"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      owner_create_venue_pricing_tier: {
+        Args: {
+          p_label: string
+          p_order_index?: number
+          p_price: string
+          p_unit: string
+          p_venue_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          price: string
+          unit: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_pricing_tiers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       owner_delete_venue_event: {
         Args: { p_event_id: string }
         Returns: undefined
       }
+      owner_delete_venue_opening_hour: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       owner_delete_venue_photo: { Args: { p_id: string }; Returns: undefined }
+      owner_delete_venue_pricing_tier: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       owner_get_venue_events: {
         Args: { p_venue_id: string }
         Returns: {
@@ -1757,6 +2107,35 @@ export type Database = {
           to: "venue_events"
           isOneToOne: false
           isSetofReturn: true
+        }
+      }
+      owner_update_venue_booking: {
+        Args: { p_booking_enabled: boolean; p_venue_id: string }
+        Returns: {
+          best_for_tags: string[] | null
+          booking_enabled: boolean
+          booking_url: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          facilities: string[] | null
+          id: string
+          is_published: boolean
+          location: string | null
+          name: string
+          notes_for_rr_team: string | null
+          price_from: string | null
+          short_tagline: string | null
+          slug: string
+          ticket_type: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venues"
+          isOneToOne: true
+          isSetofReturn: false
         }
       }
       owner_update_venue_event: {
@@ -1810,6 +2189,7 @@ export type Database = {
         }
         Returns: {
           best_for_tags: string[] | null
+          booking_enabled: boolean
           booking_url: string | null
           contact_phone: string | null
           created_at: string
@@ -1830,6 +2210,77 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "venues"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      owner_update_venue_opening_hour: {
+        Args: {
+          p_closes_at: string
+          p_day_of_week: number
+          p_id: string
+          p_is_closed: boolean
+          p_label: string
+          p_opens_at: string
+          p_order_index: number
+          p_venue_id: string
+        }
+        Returns: {
+          closes_at: string | null
+          created_at: string
+          day_of_week: number
+          id: string
+          is_closed: boolean
+          label: string | null
+          opens_at: string | null
+          order_index: number
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_opening_hours"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      owner_update_venue_pricing_tier: {
+        Args: {
+          p_id: string
+          p_label: string
+          p_order_index: number
+          p_price: string
+          p_unit: string
+          p_venue_id: string
+        }
+        Returns: {
+          created_at: string
+          id: string
+          label: string
+          order_index: number
+          price: string
+          unit: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_pricing_tiers"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      owner_update_venue_rules: {
+        Args: { p_rules_text: string; p_venue_id: string }
+        Returns: {
+          created_at: string
+          rules_text: string | null
+          updated_at: string
+          venue_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "venue_rules"
           isOneToOne: true
           isSetofReturn: false
         }
@@ -1858,16 +2309,28 @@ export type Database = {
           venue_id: string
         }[]
       }
-      user_rate_limits: {
-        Args: never
-        Returns: {
-          action: string
-          count: number
-          oldest_attempt: string
-        }[]
-      }
+      user_rate_limits:
+        | {
+            Args: { p_user_id: string }
+            Returns: {
+              action: string
+              count: number
+              newest_attempt: string
+              oldest_attempt: string
+            }[]
+          }
+        | {
+            Args: never
+            Returns: {
+              action: string
+              count: number
+              newest_attempt: string
+              oldest_attempt: string
+            }[]
+          }
     }
     Enums: {
+      length_unit: "cm" | "in"
       mod_action:
         | "delete_catch"
         | "delete_comment"
@@ -1891,7 +2354,7 @@ export type Database = {
       time_of_day: "morning" | "afternoon" | "evening" | "night"
       visibility_type: "public" | "followers" | "private"
       warning_severity: "warning" | "temporary_suspension" | "permanent_ban"
-      weight_unit: "kg" | "lb_oz"
+      weight_unit: "lb_oz" | "kg" | "g"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2017,8 +2480,12 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
+      length_unit: ["cm", "in"],
       mod_action: [
         "delete_catch",
         "delete_comment",
@@ -2044,7 +2511,8 @@ export const Constants = {
       time_of_day: ["morning", "afternoon", "evening", "night"],
       visibility_type: ["public", "followers", "private"],
       warning_severity: ["warning", "temporary_suspension", "permanent_ban"],
-      weight_unit: ["kg", "lb_oz"],
+      weight_unit: ["lb_oz", "kg", "g"],
     },
   },
 } as const
+

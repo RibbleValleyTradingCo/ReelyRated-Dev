@@ -1,7 +1,9 @@
 import Section from "@/components/layout/Section";
 import Text from "@/components/typography/Text";
+import MarkdownContent from "@/components/typography/MarkdownContent";
 import type { CatchRow } from "@/pages/venue-detail/types";
-import VenueRecordCard from "@/pages/venue-detail/components/VenueRecordSection";
+import { humanizeSpecies } from "@/pages/venue-detail/utils";
+import VenueRecordCard from "@/pages/venue-detail/components/VenueRecordCard";
 
 type AboutSectionProps = {
   aboutText: string;
@@ -12,8 +14,6 @@ type AboutSectionProps = {
   recordWeightLabel: string | null;
   recordSpeciesLabel: string | null;
   featuredCatch?: CatchRow;
-  featuredCatchTitle: string | null;
-  venueSlug: string;
 };
 
 const AboutSection = ({
@@ -25,9 +25,15 @@ const AboutSection = ({
   recordWeightLabel,
   recordSpeciesLabel,
   featuredCatch,
-  featuredCatchTitle,
-  venueSlug,
 }: AboutSectionProps) => {
+  const ratingAverage =
+    featuredCatch?.ratings?.length
+      ? (
+          featuredCatch.ratings.reduce((sum, rating) => sum + rating.rating, 0) /
+          featuredCatch.ratings.length
+        ).toFixed(1)
+      : null;
+
   return (
     <Section className="space-y-8 py-14 md:py-16">
       <div id="about" className="-mt-24 h-24" aria-hidden="true" />
@@ -41,13 +47,12 @@ const AboutSection = ({
               What to expect when visiting this venue.
             </p>
           </div>
-          <Text
+          <MarkdownContent
+            content={aboutText}
             className={`text-lg text-slate-800 ${
               aboutExpanded ? "" : "line-clamp-4"
             }`}
-          >
-            {aboutText}
-          </Text>
+          />
           {aboutText && aboutText.length > 220 ? (
             <button
               type="button"
@@ -75,11 +80,36 @@ const AboutSection = ({
           </div>
           <div className="md:sticky md:top-24 md:self-start">
             <VenueRecordCard
-              recordWeightLabel={recordWeightLabel}
-              recordSpeciesLabel={recordSpeciesLabel}
-              featuredCatch={featuredCatch}
-              featuredCatchTitle={featuredCatchTitle}
-              venueSlug={venueSlug}
+              venueName={venueName}
+              catchWeightLabel={
+                recordWeightLabel ||
+                (featuredCatch?.weight
+                  ? `${featuredCatch.weight}${
+                      featuredCatch.weight_unit === "kg" ? "kg" : "lb"
+                    }`
+                  : "Record pending")
+              }
+              speciesLabel={
+                recordSpeciesLabel
+                  ? humanizeSpecies(recordSpeciesLabel)
+                  : featuredCatch?.species
+                  ? humanizeSpecies(featuredCatch.species)
+                  : undefined
+              }
+              anglerName={
+                featuredCatch
+                  ? featuredCatch.profiles?.username ?? "Unknown angler"
+                  : undefined
+              }
+              timestamp={featuredCatch?.created_at}
+              lakeName={featuredCatch?.location ?? null}
+              imageUrl={featuredCatch?.image_url ?? null}
+              catchUrl={featuredCatch ? `/catch/${featuredCatch.id}` : undefined}
+              ratingCount={featuredCatch?.ratings?.length}
+              ratingAverage={ratingAverage}
+              commentCount={featuredCatch?.comments?.length}
+              reactionCount={featuredCatch?.reactions?.length ?? undefined}
+              isRecord
             />
           </div>
         </div>

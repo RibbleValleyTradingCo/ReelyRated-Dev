@@ -38,14 +38,7 @@ const RecentCatchesSection = ({
 
   return (
     <Section className="space-y-6">
-      <div id="catches" className="h-0" aria-hidden="true" />
-      <div className="text-center space-y-2 md:space-y-3">
-        {recentWindow > 0 ? (
-          <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-sm font-medium text-emerald-800">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            {recentWindow} catches in the last 30 days
-          </div>
-        ) : null}
+      <div id="catches" className="text-center space-y-2 md:space-y-3 scroll-mt-24">
         <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
           Recent Catches
         </h2>

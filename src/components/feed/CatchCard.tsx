@@ -135,16 +135,18 @@ export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
 
   return (
     <Card
-      className="cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      className="group flex h-full flex-col cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       onClick={() => navigate(`/catch/${catchItem.id}`)}
       data-testid="catch-card"
     >
-      <CardContent className="p-0 relative">
-        <img
-          src={catchItem.image_url}
-          alt={catchItem.title}
-          className="w-full h-64 object-cover rounded-t-lg"
-        />
+      <CardContent className="relative p-0">
+        <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100">
+          <img
+            src={catchItem.image_url}
+            alt={catchItem.title}
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.02]"
+          />
+        </div>
         {catchItem.species && catchItem.weight && (
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent p-4 text-white">
             <div className="flex items-center justify-between">
@@ -159,12 +161,12 @@ export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
           </div>
         )}
       </CardContent>
-      <CardFooter className="flex flex-col items-start gap-3 p-4">
-        <h3 className="text-lg font-semibold text-gray-900 md:text-xl" data-testid="catch-title">
-          {catchItem.title}
+      <CardFooter className="flex flex-1 flex-col items-start gap-3 p-4">
+        <h3 className="text-lg font-semibold text-gray-900 md:text-xl line-clamp-2" data-testid="catch-title">
+          {catchItem.title || "Untitled catch"}
         </h3>
-        <div className="flex items-center gap-2 w-full">
-          <Avatar className="w-9 h-9">
+        <div className="flex items-center gap-2 w-full min-w-0">
+          <Avatar className="w-9 h-9 shrink-0">
             <AvatarImage
               src={
                 resolveAvatarUrl({
@@ -177,14 +179,14 @@ export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
               {catchItem.profiles?.username?.[0]?.toUpperCase() ?? "A"}
             </AvatarFallback>
           </Avatar>
-          <span className="text-sm font-medium text-slate-700">
+          <span className="truncate text-sm font-medium text-slate-700">
             {catchItem.profiles?.username ?? "Unknown angler"}
           </span>
         </div>
         {catchItem.venues ? (
           <Link
             to={`/venues/${catchItem.venues.slug}`}
-            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-primary"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-primary min-w-0"
           >
             <MapPin className="h-4 w-4 text-slate-400" />
             <span className="truncate">{catchItem.venues.name}</span>
@@ -196,7 +198,7 @@ export const CatchCard = memo(({ catchItem, userId }: CatchCardProps) => {
               : "Undisclosed venue"}
           </p>
         ) : null}
-          <div className="flex items-center gap-5 w-full pt-1">
+        <div className="mt-auto flex items-center gap-5 w-full pt-2 min-w-0">
           {!ratingSummaryAccessError && (
             <div className="flex items-center gap-1.5">
               <Star className="w-4 h-4 text-amber-500 fill-amber-400/90" />

@@ -1,5 +1,5 @@
 **Frontend Page Map (v4 UI)**  
-Updated: 2025-12-19
+Updated: 2025-12-19 (latest)
 
 ### Public marketing/browse
 
@@ -26,7 +26,7 @@ Updated: 2025-12-19
 
 ### Admin
 
-- `/admin/reports` → `src/pages/AdminReports.tsx` (Moderation queue; v4 primitives + typography applied; mobile-first overflow/wrapping fixes applied).
+- `/admin/reports` → `src/pages/AdminReports.tsx` (Moderation queue; v4 primitives + typography applied; mobile-first overflow/wrapping fixes; sticky Filters/Sort headers; mobile collapsible Filters summary).
 - `/admin/audit-log` → `src/pages/AdminAuditLog.tsx` (Audit log; v4 primitives + typography applied; mobile-safe filters/table overflow).
 - `/admin/users/:userId/moderation` → `src/pages/AdminUserModeration.tsx` (User moderation; v4 primitives + typography applied; mobile-safe actions/tables).
 - `/admin/venues` → `src/pages/AdminVenuesList.tsx` (Admin venues list; v4 primitives + typography applied; mobile overflow-safe).
@@ -35,7 +35,7 @@ Updated: 2025-12-19
 
 ### Auth/account
 
-- `/auth` → `src/pages/Auth.tsx` (no navbar).
+- `/auth` → `src/pages/Auth.tsx` (no navbar; v4 primitives + typography applied; centered auth card; UI-only changes).
 - `/account-deleted` → `src/pages/AccountDeleted.tsx` (no navbar; single centered card + CTAs; v4 primitives + typography applied).
 
 ### Notes
@@ -43,6 +43,8 @@ Updated: 2025-12-19
 - Shared shell: `src/components/Layout.tsx` renders Navbar + Suspense (`RouteSkeleton`) + DeletedAccountGate around outlet.
 - Guards: `RequireAuth` wraps authed/admin routes; admin checks occur inside admin pages.
 - Section structure: pages are being migrated to v4 primitives (PageContainer/Section/SectionHeader + Heading/Text/Eyebrow) which wrap the existing `.section-container` and shadcn/ui primitives (Card, Button, etc.).
+- `Typography primitive:` `Eyebrow` renders a `<span>` (not a `<p>`) to avoid invalid nested paragraph warnings.
 - Import rule: prefer direct file imports for v4 primitives/typography (avoid casing conflicts with `src/components/Layout.tsx`).
+- Avoid: directory-style imports like `@/components/layout` or `@/components/typography`; import the specific file path (e.g. `@/components/layout/PageContainer`).
 - Suspense: Only inside `Layout`, fallback = `RouteSkeleton` (content-only), so navbar stays mounted across route changes.
 - Layout scope: All routes except `/auth` and `/account-deleted` are children of `Layout`. Guards (RequireAuth) wrap elements inside those routes; admin enforcement is inside page components.

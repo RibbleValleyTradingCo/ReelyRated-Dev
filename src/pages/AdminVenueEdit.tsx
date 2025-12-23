@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import MarkdownEditor from "@/components/inputs/MarkdownEditor";
 import { Button } from "@/components/ui/button";
 import { Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
@@ -15,6 +16,11 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import Eyebrow from "@/components/typography/Eyebrow";
+import BookingCard from "@/pages/venue-owner-admin/components/BookingCard";
+import OpeningHoursCard from "@/pages/venue-owner-admin/components/OpeningHoursCard";
+import PricingTiersCard from "@/pages/venue-owner-admin/components/PricingTiersCard";
+import RulesCard from "@/pages/my-venues/components/RulesCard";
+import VenuePhotosCard from "@/pages/venue-owner-admin/components/VenuePhotosCard";
 
 type Venue = {
   id: string;
@@ -31,6 +37,7 @@ type Venue = {
   booking_url: string | null;
   contact_phone: string | null;
   notes_for_rr_team: string | null;
+  booking_enabled?: boolean | null;
 };
 
 type VenueEvent = {
@@ -500,10 +507,13 @@ const AdminVenueEdit = () => {
                     />
                   </div>
                   <div className="space-y-2 md:col-span-2 min-w-0">
-                    <label className="text-sm font-semibold text-slate-800">Description</label>
-                    <Textarea
+                    <MarkdownEditor
+                      id="venueDescription"
+                      label="Description"
                       value={form.description}
-                      onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(value) =>
+                        setForm((prev) => ({ ...prev, description: value }))
+                      }
                       rows={4}
                       placeholder="Brief description of the venue"
                     />
@@ -592,6 +602,33 @@ const AdminVenueEdit = () => {
                 </div>
               </CardContent>
             </Card>
+          </Section>
+
+          <Section>
+            <BookingCard
+              venueId={venue.id}
+              initialEnabled={venue.booking_enabled ?? true}
+              mode="admin"
+              onUpdated={(nextValue) =>
+                setVenue((current) => (current ? { ...current, booking_enabled: nextValue } : current))
+              }
+            />
+          </Section>
+
+          <Section>
+            <OpeningHoursCard venueId={venue.id} mode="admin" />
+          </Section>
+
+          <Section>
+            <PricingTiersCard venueId={venue.id} mode="admin" />
+          </Section>
+
+          <Section>
+            <RulesCard venueId={venue.id} venueName={venue.name} mode="admin" />
+          </Section>
+
+          <Section>
+            <VenuePhotosCard venueId={venue.id} />
           </Section>
 
           <Section>

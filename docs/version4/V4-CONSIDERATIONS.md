@@ -75,13 +75,15 @@ These standards reflect how we are executing the v4 UI pass in the codebase. The
 
 - **Default**: use `PageSpinner` for page-level loading states (content-area only; never full-screen overlays).
 - Use `InlineSpinner` for inline button/CTA loading states.
-- `RouteSkeleton` should remain a simple `PageSpinner` fallback.
+- `RouteSkeleton` must remain a simple `PageSpinner` fallback (route-level Suspense).
+- No per-page skeleton grids (including `/feed`) unless explicitly approved later.
 
 ### Navbar and top spacing
 
 - The Navbar is owned by the shared `Layout` shell.
 - Pages should **not** render a `Navbar` directly (prevents duplicate navs and refresh-time crashes).
 - The shell should reserve top space via the navbar height variable to prevent content sliding under the fixed header.
+- If a page shows content under the navbar on hard refresh, fix the Layout spacing (not per-page padding hacks).
 
 ### Mobile-first overflow / truncation checklist
 
@@ -98,6 +100,7 @@ Use this checklist on every page (especially admin screens) to ensure **no horiz
 ### Admin pages: accepted patterns
 
 - Sticky filter/sort headers are OK **if** they do not overlap the navbar and include clear separation (divider) from the list.
+- Prefer “full width on mobile, constrained on desktop” containers (e.g., responsive max-width + md:mx-auto) rather than permanently max-w-none.
 - Action clusters must wrap/stack on mobile; avoid compressed multi-button rows.
 
 ### Verification steps (minimum)
@@ -105,6 +108,21 @@ Use this checklist on every page (especially admin screens) to ensure **no horiz
 - `npm run build` must pass.
 - Device emulation checks: 320px, 360px, 375px, 390px, plus desktop 1440px.
 - Confirm `document.documentElement.scrollWidth === document.documentElement.clientWidth` on mobile widths.
+
+## Current v4 rollout status
+
+Pages updated to v4 foundations (PageContainer/Section/SectionHeader + Heading/Text/Eyebrow) with direct imports:
+
+- Public: `/` (Index), `/venues` (VenuesIndex), `/venues/:slug` (VenueDetail), `/leaderboard` (LeaderboardPage), `*` (NotFound)
+- Core social: `/feed` (Feed), `/catch/:id` (CatchDetail), `/add-catch` (AddCatch), `/profile/:slug` (Profile), `/sessions` (Sessions), `/search` (Search), `/insights` (Insights), `/settings/profile` (ProfileSettings)
+- Owner: `/my/venues` (MyVenues), `/my/venues/:slug` (MyVenueEdit)
+- Admin: `/admin/reports` (AdminReports), `/admin/audit-log` (AdminAuditLog), `/admin/users/:userId/moderation` (AdminUserModeration), `/admin/venues` (AdminVenuesList), `/admin/venues/:slug` (AdminVenueEdit)
+- Account: `/account-deleted` (AccountDeleted)
+
+Notes:
+
+- Admin pages require extra mobile-first overflow/truncation checks (chips, buttons, selects, tables) to avoid horizontal scroll.
+- Some pages are intentionally **outside Layout** (no navbar): `/auth`, `/account-deleted`.
 
 ## Services for Venue Owners (Paid, mobile-first admin)
 
