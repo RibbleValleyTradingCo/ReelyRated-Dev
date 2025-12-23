@@ -19,10 +19,10 @@ import HeroStatsStrip from "@/pages/venue-detail/components/HeroStatsStrip";
 import LeaderboardSection from "@/pages/venue-detail/components/LeaderboardSection";
 import LocationMapSection from "@/pages/venue-detail/components/LocationMapSection";
 import PlanYourVisitSection from "@/pages/venue-detail/components/PlanYourVisitSection";
+import RatingModal from "@/pages/venue-detail/components/RatingModal";
 import RecentCatchesSection from "@/pages/venue-detail/components/RecentCatchesSection";
 import VenueCarouselSection from "@/pages/venue-detail/components/VenueCarouselSection";
 import VenueHero from "@/pages/venue-detail/components/VenueHero";
-import RatingModal from "@/pages/venue-detail/components/RatingModal";
 import type {
   CatchRow,
   TopAngler,
@@ -412,7 +412,6 @@ const VenueDetail = () => {
       void loadUpcomingEvents(venue.id);
       void loadPastEvents(venue.id, 0, false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [venue?.id]);
 
   useEffect(() => {
@@ -679,9 +678,7 @@ const VenueDetail = () => {
 
   const bookingEnabled = venue?.booking_enabled !== false;
   const hasOperationalContent =
-    openingHours.length > 0 ||
-    pricingTiers.length > 0 ||
-    Boolean(rulesText);
+    openingHours.length > 0 || pricingTiers.length > 0 || Boolean(rulesText);
   const planHasContent =
     hasPlanContent || hasOperationalContent || operationalLoading;
 
@@ -835,20 +832,27 @@ const VenueDetail = () => {
     );
   }
 
-
   const BookingCtaBanner = () => {
     const safeBookingUrl = normalizeExternalUrl(bookingUrl);
     const safeWebsiteUrl = normalizeExternalUrl(websiteUrl);
     const safeMapsUrl = normalizeExternalUrl(mapsUrl);
     const hasBookingUrl = Boolean(safeBookingUrl);
-    const bannerPrimaryLabel = hasBookingUrl ? "Book your session" : "Visit website";
+    const bannerPrimaryLabel = hasBookingUrl
+      ? "Book your session"
+      : "Visit website";
     const bannerPrimaryUrl =
-      hasBookingUrl && !bookingEnabled ? null : safeBookingUrl || safeWebsiteUrl;
-    const bannerSecondaryLabel = safeWebsiteUrl ? "Check availability" : "Get directions";
+      hasBookingUrl && !bookingEnabled
+        ? null
+        : safeBookingUrl || safeWebsiteUrl;
+    const bannerSecondaryLabel = safeWebsiteUrl
+      ? "Check availability"
+      : "Get directions";
     const bannerSecondaryUrl = safeWebsiteUrl || safeMapsUrl;
     const bannerSubtextParts = [
       activeAnglers > 0
-        ? `See ${activeAnglers} leaderboard entr${activeAnglers === 1 ? "y" : "ies"}.`
+        ? `See ${activeAnglers} leaderboard entr${
+            activeAnglers === 1 ? "y" : "ies"
+          }.`
         : "",
       displayPriceFrom ? `${displayPriceFrom} day tickets.` : "",
     ].filter(Boolean);
@@ -877,7 +881,11 @@ const VenueDetail = () => {
                 asChild
                 className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg transition hover:bg-slate-100 sm:w-auto"
               >
-                <a href={bannerPrimaryUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={bannerPrimaryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {bannerPrimaryLabel}
                 </a>
               </Button>
@@ -894,7 +902,11 @@ const VenueDetail = () => {
                 asChild
                 className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 sm:w-auto"
               >
-                <a href={bannerSecondaryUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={bannerSecondaryUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {bannerSecondaryLabel}
                 </a>
               </Button>
@@ -926,7 +938,7 @@ const VenueDetail = () => {
   return (
     <div
       ref={pageRef}
-      className="bg-gradient-to-b from-background to-muted pb-[var(--sticky-cta-h,0px)]"
+      className="bg-gradient-to-b from-background to-muted pb-[var(--sticky-cta-h,70px)]"
     >
       <VenueHero
         venue={venue}
@@ -1087,7 +1099,9 @@ const VenueDetail = () => {
               asChild
               className="flex-1 h-12 rounded-full bg-primary text-white shadow-lg"
             >
-              <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>
+              <Link
+                to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}
+              >
                 Log catch
               </Link>
             </Button>
