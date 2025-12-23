@@ -32,6 +32,7 @@ const LocationMapSection = ({
       <SectionHeader
         title="Location"
         subtitle="Find this venue on the map."
+        titleClassName="text-3xl font-bold text-gray-900 md:text-4xl"
         className="px-0"
       />
     </div>

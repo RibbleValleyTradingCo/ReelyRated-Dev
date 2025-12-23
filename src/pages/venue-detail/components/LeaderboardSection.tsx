@@ -22,6 +22,7 @@ const LeaderboardSection = ({ topCatches, topLoading }: LeaderboardSectionProps)
       <SectionHeader
         title="Top Catches Leaderboard"
         subtitle="Think you can beat these? Book a session and get on the board."
+        titleClassName="text-3xl font-bold text-gray-900 md:text-4xl"
         className="px-0 mb-6"
       />
       {topLoading ? (

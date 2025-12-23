@@ -40,7 +40,7 @@ const AboutSection = ({
       <div className="grid gap-8 md:grid-cols-2 md:items-start">
         <div className="space-y-4">
           <div className="space-y-1">
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
               About This Venue
             </h2>
             <p className="text-sm text-slate-600">
@@ -71,7 +71,7 @@ const AboutSection = ({
         </div>
         <div className="space-y-4">
           <div id="stats" className="space-y-1 scroll-mt-24">
-            <h2 className="text-2xl font-semibold text-slate-900">
+            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
               Venue Record
             </h2>
             <p className="text-sm text-slate-600">

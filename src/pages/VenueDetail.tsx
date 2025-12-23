@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminUser } from "@/lib/admin";
+import { normalizeExternalUrl } from "@/lib/urls";
+import {
+  getVenueCache,
+  getVenueRatingCache,
+  setVenueCache,
+  setVenueRatingCache,
+} from "@/lib/venueCache";
 import AboutSection from "@/pages/venue-detail/components/AboutSection";
 import EventsSection from "@/pages/venue-detail/components/EventsSection";
 import HeroStatsStrip from "@/pages/venue-detail/components/HeroStatsStrip";
@@ -31,11 +38,21 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
+const VENUE_STALE_MS = 60_000;
+const RATING_STALE_MS = 60_000;
+
 const VenueDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const { user } = useAuth();
-  const [venue, setVenue] = useState<Venue | null>(null);
-  const [venueLoading, setVenueLoading] = useState(true);
+  const cachedVenueEntry = slug ? getVenueCache(slug) : null;
+  const cachedRatingEntry =
+    user && cachedVenueEntry
+      ? getVenueRatingCache(`${user.id}:${cachedVenueEntry.data.id}`)
+      : null;
+  const [venue, setVenue] = useState<Venue | null>(
+    cachedVenueEntry?.data ?? null
+  );
+  const [venueLoading, setVenueLoading] = useState(!cachedVenueEntry);
   const [topCatches, setTopCatches] = useState<CatchRow[]>([]);
   const [recentCatches, setRecentCatches] = useState<CatchRow[]>([]);
   const [recentLoading, setRecentLoading] = useState(false);
@@ -59,9 +76,18 @@ const VenueDetail = () => {
   const [pricingTiers, setPricingTiers] = useState<VenuePricingTier[]>([]);
   const [rulesText, setRulesText] = useState<string | null>(null);
   const [operationalLoading, setOperationalLoading] = useState(false);
-  const [avgRating, setAvgRating] = useState<number | null>(null);
-  const [ratingCount, setRatingCount] = useState<number | null>(null);
-  const [userRating, setUserRating] = useState<number | null>(null);
+  const [avgRating, setAvgRating] = useState<number | null>(
+    cachedVenueEntry?.data.avg_rating ?? null
+  );
+  const [ratingCount, setRatingCount] = useState<number | null>(
+    cachedVenueEntry?.data.rating_count ?? null
+  );
+  const [userRating, setUserRating] = useState<number | null>(
+    cachedRatingEntry?.rating ?? null
+  );
+  const [userRatingResolved, setUserRatingResolved] = useState(
+    Boolean(cachedRatingEntry)
+  );
   const [ratingLoading, setRatingLoading] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
@@ -76,27 +102,116 @@ const VenueDetail = () => {
   const ratingTriggerRef = useRef<HTMLButtonElement | null>(null);
   const carouselSwipeStartRef = useRef<number | null>(null);
   const stickyCtaRef = useRef<HTMLDivElement | null>(null);
+  const pageRef = useRef<HTMLDivElement | null>(null);
+  const venueRef = useRef<Venue | null>(null);
+  const ratingKeyRef = useRef<string | null>(null);
+  const requestIdsRef = useRef({
+    venue: 0,
+    photos: 0,
+    operational: 0,
+    recent: 0,
+    past: 0,
+    top: 0,
+    upcoming: 0,
+    topAnglers: 0,
+    rating: 0,
+  });
+  const handleHeroImageLoad = useCallback(() => {
+    setHeroHasImage(true);
+    setHeroReady(true);
+    if (import.meta.env.DEV) {
+      console.log("[VenueHero] image loaded");
+    }
+  }, []);
+
+  const handleHeroImageError = useCallback(() => {
+    setHeroHasImage(false);
+    setHeroReady(true);
+    if (import.meta.env.DEV) {
+      console.log("[VenueHero] image failed to load");
+    }
+  }, []);
 
   useEffect(() => {
-    const loadVenue = async () => {
+    venueRef.current = venue;
+  }, [venue]);
+
+  const loadVenue = useCallback(
+    async (reason: string) => {
       if (!slug) return;
-      setVenueLoading(true);
+      const cached = getVenueCache(slug);
+      const now = Date.now();
+      const cachedAge = cached ? now - cached.loadedAt : null;
+      const isFresh = cachedAge !== null && cachedAge < VENUE_STALE_MS;
+
+      if (import.meta.env.DEV) {
+        console.log("[VenueDetail] loadVenue", {
+          slug,
+          reason,
+          visibility:
+            typeof document === "undefined"
+              ? "unknown"
+              : document.visibilityState,
+          cachedAge,
+          isFresh,
+        });
+      }
+
+      if (isFresh && cached) {
+        const currentVenue = venueRef.current;
+        if (!currentVenue || currentVenue.id !== cached.data.id) {
+          setVenue(cached.data);
+          setAvgRating(cached.data.avg_rating ?? null);
+          setRatingCount(cached.data.rating_count ?? null);
+        }
+        setVenueLoading(false);
+        return;
+      }
+
+      const requestId = ++requestIdsRef.current.venue;
+      if (!cached) {
+        setVenueLoading(true);
+      } else {
+        setVenueLoading(false);
+      }
+
       const { data, error } = await supabase.rpc("get_venue_by_slug", {
         p_slug: slug,
       });
+      if (requestId !== requestIdsRef.current.venue) return;
       if (error) {
         console.error("Failed to load venue", error);
-        setVenue(null);
+        if (!cached) {
+          setVenue(null);
+        }
       } else {
         const row = (data as Venue[] | null)?.[0] ?? null;
         setVenue(row);
         setAvgRating(row?.avg_rating ?? null);
         setRatingCount(row?.rating_count ?? null);
+        if (row) {
+          setVenueCache(slug, { data: row, loadedAt: Date.now() });
+        }
       }
       setVenueLoading(false);
+    },
+    [slug]
+  );
+
+  useEffect(() => {
+    void loadVenue("slug-change");
+  }, [loadVenue, slug]);
+
+  useEffect(() => {
+    if (!slug || typeof document === "undefined") return;
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      void loadVenue("visibility");
     };
-    void loadVenue();
-  }, [slug]);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, [loadVenue, slug]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -104,11 +219,13 @@ const VenueDetail = () => {
   }, [slug]);
 
   const loadTopCatches = async (venueId: string) => {
+    const requestId = ++requestIdsRef.current.top;
     setTopLoading(true);
     const { data, error } = await supabase.rpc("get_venue_top_catches", {
       p_venue_id: venueId,
       p_limit: 6,
     });
+    if (requestId !== requestIdsRef.current.top) return;
     if (error) {
       console.error("Failed to load top catches", error);
       setTopCatches([]);
@@ -119,11 +236,13 @@ const VenueDetail = () => {
   };
 
   const loadTopAnglers = async (venueId: string) => {
+    const requestId = ++requestIdsRef.current.topAnglers;
     setTopAnglersLoading(true);
     const { data, error } = await supabase.rpc("get_venue_top_anglers", {
       p_venue_id: venueId,
       p_limit: 12,
     });
+    if (requestId !== requestIdsRef.current.topAnglers) return;
     if (error) {
       console.error("Failed to load top anglers", error);
       setTopAnglers([]);
@@ -138,6 +257,7 @@ const VenueDetail = () => {
     nextOffset = 0,
     append = false
   ) => {
+    const requestId = ++requestIdsRef.current.recent;
     setRecentLoading(true);
     const limit = 12;
     const { data, error } = await supabase.rpc("get_venue_recent_catches", {
@@ -145,13 +265,14 @@ const VenueDetail = () => {
       p_limit: limit,
       p_offset: nextOffset,
     });
+    if (requestId !== requestIdsRef.current.recent) return;
     if (error) {
       console.error("Failed to load recent catches", error);
       if (!append) setRecentCatches([]);
       setRecentHasMore(false);
     } else {
       const fetched = ((data as CatchRow[]) ?? []).map(normalizeCatchRow);
-      setRecentCatches(append ? [...recentCatches, ...fetched] : fetched);
+      setRecentCatches((prev) => (append ? [...prev, ...fetched] : fetched));
       setRecentHasMore(fetched.length === limit);
       setRecentOffset(nextOffset + fetched.length);
     }
@@ -159,10 +280,12 @@ const VenueDetail = () => {
   };
 
   const loadUpcomingEvents = async (venueId: string) => {
+    const requestId = ++requestIdsRef.current.upcoming;
     setEventsLoading(true);
     const { data, error } = await supabase.rpc("get_venue_upcoming_events", {
       p_venue_id: venueId,
     });
+    if (requestId !== requestIdsRef.current.upcoming) return;
     if (error) {
       console.error("Failed to load events", error);
       setUpcomingEvents([]);
@@ -177,6 +300,7 @@ const VenueDetail = () => {
     nextOffset = 0,
     append = false
   ) => {
+    const requestId = ++requestIdsRef.current.past;
     setPastEventsLoading(true);
     const limit = 10;
     const { data, error } = await supabase.rpc("get_venue_past_events", {
@@ -184,13 +308,14 @@ const VenueDetail = () => {
       p_limit: limit,
       p_offset: nextOffset,
     });
+    if (requestId !== requestIdsRef.current.past) return;
     if (error) {
       console.error("Failed to load past events", error);
       if (!append) setPastEvents([]);
       setPastHasMore(false);
     } else {
       const fetched = (data as VenueEvent[]) ?? [];
-      setPastEvents(append ? [...pastEvents, ...fetched] : fetched);
+      setPastEvents((prev) => (append ? [...prev, ...fetched] : fetched));
       setPastHasMore(fetched.length === limit);
       setPastOffset(nextOffset + fetched.length);
     }
@@ -200,12 +325,14 @@ const VenueDetail = () => {
   useEffect(() => {
     const loadPhotos = async () => {
       if (!venue?.id) return;
+      const requestId = ++requestIdsRef.current.photos;
       setPhotosLoading(true);
       const { data, error } = await supabase.rpc("get_venue_photos", {
         p_venue_id: venue.id,
         p_limit: 20,
         p_offset: 0,
       });
+      if (requestId !== requestIdsRef.current.photos) return;
       if (error) {
         console.error("Failed to load venue photos", error);
         setPhotos([]);
@@ -220,6 +347,7 @@ const VenueDetail = () => {
   useEffect(() => {
     const loadOperationalDetails = async () => {
       if (!venue?.id) return;
+      const requestId = ++requestIdsRef.current.operational;
       setOperationalLoading(true);
       setOpeningHours([]);
       setPricingTiers([]);
@@ -241,6 +369,8 @@ const VenueDetail = () => {
           .eq("venue_id", venue.id)
           .maybeSingle(),
       ]);
+
+      if (requestId !== requestIdsRef.current.operational) return;
 
       if (hoursResult.error) {
         console.error("Failed to load venue opening hours", hoursResult.error);
@@ -342,23 +472,54 @@ const VenueDetail = () => {
     const loadUserRating = async () => {
       if (!venue?.id || !user) {
         setUserRating(null);
+        setUserRatingResolved(false);
+        ratingKeyRef.current = null;
         return;
       }
+      const ratingKey = `${user.id}:${venue.id}`;
+      const cached = getVenueRatingCache(ratingKey);
+      const now = Date.now();
+      const cachedAge = cached ? now - cached.loadedAt : null;
+      const isFresh = cachedAge !== null && cachedAge < RATING_STALE_MS;
+
+      if (ratingKeyRef.current !== ratingKey) {
+        ratingKeyRef.current = ratingKey;
+        if (cached) {
+          setUserRating(cached.rating);
+          setUserRatingResolved(true);
+        } else {
+          setUserRating(null);
+          setUserRatingResolved(false);
+        }
+      } else if (cached) {
+        setUserRating(cached.rating);
+        setUserRatingResolved(true);
+      }
+
+      if (isFresh) {
+        return;
+      }
+
+      const requestId = ++requestIdsRef.current.rating;
       const { data, error } = await supabase.rpc("get_my_venue_rating", {
         p_venue_id: venue.id,
       });
+      if (requestId !== requestIdsRef.current.rating) return;
       if (error) {
         console.error("Failed to load your venue rating", error);
+        setUserRatingResolved(true);
         return;
       }
       const row = (
         data as { venue_id: string; user_rating: number }[] | null
       )?.[0];
-      if (row?.user_rating) {
-        setUserRating(row.user_rating);
-      } else {
-        setUserRating(null);
-      }
+      const resolvedRating = row?.user_rating ?? null;
+      setUserRating(resolvedRating);
+      setUserRatingResolved(true);
+      setVenueRatingCache(ratingKey, {
+        rating: resolvedRating,
+        loadedAt: Date.now(),
+      });
     };
     void loadUserRating();
   }, [user, venue?.id]);
@@ -370,7 +531,13 @@ const VenueDetail = () => {
     const prevCount = ratingCount;
     const prevLastAvg = lastKnownAvg;
     const prevLastCount = lastKnownCount;
+    const ratingKey = `${user.id}:${venue.id}`;
     setUserRating(rating);
+    setUserRatingResolved(true);
+    setVenueRatingCache(ratingKey, {
+      rating,
+      loadedAt: Date.now(),
+    });
     const currentAvg = avgRating ?? lastKnownAvg ?? 0;
     const currentCount = ratingCount ?? lastKnownCount ?? 0;
     const isFirst = previous === null || previous === undefined;
@@ -395,6 +562,10 @@ const VenueDetail = () => {
       setRatingCount(prevCount ?? null);
       setLastKnownAvg(prevLastAvg);
       setLastKnownCount(prevLastCount);
+      setVenueRatingCache(ratingKey, {
+        rating: previous ?? null,
+        loadedAt: Date.now(),
+      });
       setRatingLoading(false);
       return;
     }
@@ -411,6 +582,10 @@ const VenueDetail = () => {
     setAvgRating(row?.avg_rating ?? optimisticAvg);
     setRatingCount(row?.rating_count ?? optimisticCount);
     setUserRating(row?.user_rating ?? rating);
+    setVenueRatingCache(ratingKey, {
+      rating: row?.user_rating ?? rating,
+      loadedAt: Date.now(),
+    });
     setRatingModalOpen(false);
     toast.success("Thanks for rating this venue!");
     setRatingLoading(false);
@@ -511,6 +686,7 @@ const VenueDetail = () => {
     hasPlanContent || hasOperationalContent || operationalLoading;
 
   const featuredCatch = topCatches[0];
+  const safeMapsUrl = normalizeExternalUrl(mapsUrl);
 
   useEffect(() => {
     setHeroIndex(0);
@@ -526,14 +702,19 @@ const VenueDetail = () => {
   }, [activeHeroImage]);
 
   useEffect(() => {
+    const pageEl = pageRef.current;
+    if (!pageEl) return;
     if (!showStickyActions) {
       setStickyCtaHeight(0);
+      pageEl.style.setProperty("--sticky-cta-h", "0px");
       return;
     }
     const element = stickyCtaRef.current;
     if (!element) return;
     const updateHeight = () => {
-      setStickyCtaHeight(element.getBoundingClientRect().height);
+      const height = element.getBoundingClientRect().height;
+      setStickyCtaHeight(height);
+      pageEl.style.setProperty("--sticky-cta-h", `${height + 12}px`);
     };
     updateHeight();
     if (typeof ResizeObserver === "undefined") return;
@@ -563,34 +744,18 @@ const VenueDetail = () => {
     setPendingRating(null);
   };
 
-  const handleHeroImageLoad = useCallback(() => {
-    setHeroHasImage(true);
-    setHeroReady(true);
-    if (import.meta.env.DEV) {
-      console.log("[VenueHero] image loaded");
-    }
-  }, []);
-
-  const handleHeroImageError = useCallback(() => {
-    setHeroHasImage(false);
-    setHeroReady(true);
-    if (import.meta.env.DEV) {
-      console.log("[VenueHero] image failed to load");
-    }
-  }, []);
-
   useEffect(() => {
     if (!activeHeroImage) return;
     let cancelled = false;
     const img = new Image();
     img.decoding = "async";
-    img.src = activeHeroImage;
     img.onload = () => {
       if (!cancelled) handleHeroImageLoad();
     };
     img.onerror = () => {
       if (!cancelled) handleHeroImageError();
     };
+    img.src = activeHeroImage;
     return () => {
       cancelled = true;
       img.onload = null;
@@ -672,11 +837,15 @@ const VenueDetail = () => {
 
 
   const BookingCtaBanner = () => {
-    const bannerPrimaryLabel = bookingUrl ? "Book your session" : "Visit website";
+    const safeBookingUrl = normalizeExternalUrl(bookingUrl);
+    const safeWebsiteUrl = normalizeExternalUrl(websiteUrl);
+    const safeMapsUrl = normalizeExternalUrl(mapsUrl);
+    const hasBookingUrl = Boolean(safeBookingUrl);
+    const bannerPrimaryLabel = hasBookingUrl ? "Book your session" : "Visit website";
     const bannerPrimaryUrl =
-      !bookingUrl || bookingEnabled ? bookingUrl || websiteUrl : null;
-    const bannerSecondaryLabel = websiteUrl ? "Check availability" : "Get directions";
-    const bannerSecondaryUrl = websiteUrl || mapsUrl;
+      hasBookingUrl && !bookingEnabled ? null : safeBookingUrl || safeWebsiteUrl;
+    const bannerSecondaryLabel = safeWebsiteUrl ? "Check availability" : "Get directions";
+    const bannerSecondaryUrl = safeWebsiteUrl || safeMapsUrl;
     const bannerSubtextParts = [
       activeAnglers > 0
         ? `See ${activeAnglers} leaderboard entr${activeAnglers === 1 ? "y" : "ies"}.`
@@ -708,7 +877,7 @@ const VenueDetail = () => {
                 asChild
                 className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg transition hover:bg-slate-100 sm:w-auto"
               >
-                <a href={bannerPrimaryUrl} target="_blank" rel="noreferrer">
+                <a href={bannerPrimaryUrl} target="_blank" rel="noopener noreferrer">
                   {bannerPrimaryLabel}
                 </a>
               </Button>
@@ -720,16 +889,25 @@ const VenueDetail = () => {
                 {bannerPrimaryLabel}
               </Button>
             )}
-            <Button
-              asChild
-              className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 sm:w-auto"
-            >
-              <a href={bannerSecondaryUrl} target="_blank" rel="noreferrer">
+            {bannerSecondaryUrl ? (
+              <Button
+                asChild
+                className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 sm:w-auto"
+              >
+                <a href={bannerSecondaryUrl} target="_blank" rel="noopener noreferrer">
+                  {bannerSecondaryLabel}
+                </a>
+              </Button>
+            ) : (
+              <Button
+                disabled
+                className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm sm:w-auto"
+              >
                 {bannerSecondaryLabel}
-              </a>
-            </Button>
+              </Button>
+            )}
           </div>
-          {!bookingEnabled && bookingUrl ? (
+          {!bookingEnabled && hasBookingUrl ? (
             <p className="mt-3 text-xs text-blue-100">
               Bookings currently closed.
             </p>
@@ -746,12 +924,16 @@ const VenueDetail = () => {
   };
 
   return (
-    <div className="bg-gradient-to-b from-background to-muted">
+    <div
+      ref={pageRef}
+      className="bg-gradient-to-b from-background to-muted pb-[var(--sticky-cta-h,0px)]"
+    >
       <VenueHero
         venue={venue}
         heroTagline={heroTagline}
         ratingSummaryText={ratingSummaryText}
         userRating={userRating}
+        isUserRatingResolved={userRatingResolved}
         isLoggedIn={!!user}
         onOpenRatingModal={openRatingModal}
         isOwner={isOwner}
@@ -841,6 +1023,7 @@ const VenueDetail = () => {
                 bookingUrl={bookingUrl}
                 websiteUrl={websiteUrl}
                 mapsUrl={mapsUrl}
+                venueName={venue.name}
               />
             </div>
           </div>
@@ -881,9 +1064,7 @@ const VenueDetail = () => {
         venueName={venue.name}
         venueLocation={venue.location}
         contactPhone={contactPhone}
-        stickyCtaOffset={
-          showStickyActions ? Math.max(stickyCtaHeight, 88) : 0
-        }
+        stickyCtaOffset={0}
       />
       <RatingModal
         open={ratingModalOpen}
@@ -910,15 +1091,25 @@ const VenueDetail = () => {
                 Log catch
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-12 rounded-full border-slate-200 bg-white"
-            >
-              <a href={mapsUrl} target="_blank" rel="noreferrer">
+            {safeMapsUrl ? (
+              <Button
+                asChild
+                variant="outline"
+                className="h-12 rounded-full border-slate-200 bg-white"
+              >
+                <a href={safeMapsUrl} target="_blank" rel="noreferrer">
+                  Maps
+                </a>
+              </Button>
+            ) : (
+              <Button
+                disabled
+                variant="outline"
+                className="h-12 rounded-full border-slate-200 bg-white"
+              >
                 Maps
-              </a>
-            </Button>
+              </Button>
+            )}
           </div>
         </div>
       ) : null}

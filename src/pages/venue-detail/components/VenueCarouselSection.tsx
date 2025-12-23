@@ -26,9 +26,14 @@ const VenueCarouselSection = ({
   return (
     <section className="py-10 md:py-12">
       <div className="px-4 md:px-6 lg:px-8">
-        <p className="mb-4 text-center text-2xl font-semibold text-slate-900 md:mb-6">
-          {label}
-        </p>
+        <div className="mb-4 text-center md:mb-6">
+          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+            {label}
+          </h2>
+          <p className="mt-2 text-base text-slate-600 md:text-lg">
+            Uploads from the venue and the community.
+          </p>
+        </div>
       </div>
       <div className="-mx-4 md:-mx-6 lg:-mx-8">
         <div className="relative overflow-hidden bg-slate-100 rounded-none md:rounded-3xl">

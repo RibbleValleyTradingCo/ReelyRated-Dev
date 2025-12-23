@@ -1,16 +1,22 @@
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import MarkdownContent from "@/components/typography/MarkdownContent";
+import { normalizeExternalUrl } from "@/lib/urls";
+import { cn } from "@/lib/utils";
 import type {
   VenueOpeningHour,
   VenuePricingTier,
 } from "@/pages/venue-detail/types";
+import { useState } from "react";
 import {
   Anchor,
   Car,
   ChevronRight,
-  Coffee,
   Clock,
+  Coffee,
   Fish,
   Globe2,
   ParkingCircle,
@@ -43,6 +49,7 @@ type PlanYourVisitSectionProps = {
   bookingUrl: string;
   websiteUrl: string;
   mapsUrl: string;
+  venueName?: string;
 };
 
 const PlanYourVisitSection = ({
@@ -62,9 +69,14 @@ const PlanYourVisitSection = ({
   bookingUrl,
   websiteUrl,
   mapsUrl,
+  venueName,
 }: PlanYourVisitSectionProps) => {
+  const [rulesExpanded, setRulesExpanded] = useState(false);
   const [primaryPrice, ...restPrices] = pricingLines;
   const secondaryPrices = restPrices.filter((line) => line !== ticketType);
+  const safeBookingUrl = normalizeExternalUrl(bookingUrl);
+  const safeWebsiteUrl = normalizeExternalUrl(websiteUrl);
+  const safeMapsUrl = normalizeExternalUrl(mapsUrl);
   const formattedBestForTags = bestForTags.map((tag) =>
     tag.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
   );
@@ -119,313 +131,517 @@ const PlanYourVisitSection = ({
     if (value.includes("car")) return Car;
     return Wrench;
   };
-  const linkClassName =
-    "text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2";
-  const mutedIconClassName = "h-4 w-4 text-slate-500";
-  const cardBase =
-    "group h-full rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-200 hover:shadow-lg";
-  const actionRowClassName =
+
+  const venueLabel = venueName?.trim() ? venueName : "this venue";
+  const sectionSubtitle = `Everything you need to prepare for your trip to ${venueLabel}.`;
+
+  const iconClass = "h-4 w-4 text-slate-500";
+  const linkRowClass =
     "flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2";
+
+  const SkeletonLine = ({ className }: { className?: string }) => (
+    <div className={cn("h-3 w-full rounded-full bg-slate-100 animate-pulse", className)} />
+  );
+
+  const pricingDetails = isOperationalLoading && !hasPricingContent ? (
+    <div className="space-y-2">
+      <SkeletonLine className="w-24" />
+      <SkeletonLine className="w-5/6" />
+      <SkeletonLine className="w-2/3" />
+    </div>
+  ) : hasPricingContent ? (
+    hasPricingTiers ? (
+      <div className="space-y-2 text-sm text-slate-700">
+        {sortedPricingTiers.map((tier) => (
+          <div key={tier.id} className="flex flex-wrap items-baseline justify-between gap-2">
+            <div className="flex flex-wrap items-baseline gap-2">
+              <span className="font-semibold text-slate-900">{tier.label}</span>
+              {tier.unit ? (
+                <span className="text-xs text-slate-500">({tier.unit})</span>
+              ) : null}
+            </div>
+            <span className="font-semibold text-slate-900">{tier.price}</span>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="space-y-2">
+        {primaryPrice ? (
+          <p className="text-4xl font-semibold text-slate-900">{primaryPrice}</p>
+        ) : null}
+        {ticketType ? (
+          <p className="text-sm font-semibold text-slate-600">{ticketType}</p>
+        ) : null}
+        {secondaryPrices.length > 0 ? (
+          <div className="space-y-1 text-sm text-slate-600">
+            {secondaryPrices.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    )
+  ) : (
+    <div className="space-y-1 text-sm text-slate-500">
+      <p>Details coming soon.</p>
+      {(isOwner || isAdmin) && (
+        <p className="text-xs text-slate-400">Add these details in Manage venue.</p>
+      )}
+    </div>
+  );
+
+  const pricingActions = (
+    <div className="space-y-3">
+      {safeBookingUrl && bookingEnabled ? (
+        <Button asChild className="h-11 w-full rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700">
+          <a href={safeBookingUrl} target="_blank" rel="noreferrer">
+            Book now
+          </a>
+        </Button>
+      ) : safeBookingUrl ? (
+        <Button disabled className="h-11 w-full rounded-lg bg-blue-600/60 text-white">
+          Book now
+        </Button>
+      ) : null}
+      {!bookingEnabled && safeBookingUrl ? (
+        <p className="text-xs font-semibold text-slate-500">Bookings currently closed.</p>
+      ) : null}
+      {formattedBestForTags.length > 0 ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold text-slate-500">Best for:</span>
+          {formattedBestForTags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+
+  const contactDetails =
+    contactPhone || safeWebsiteUrl ? (
+      <div className="space-y-2 text-sm text-slate-600">
+        {contactPhone ? (
+          <>
+            <a
+              href={`tel:${contactPhone}`}
+              className="text-base font-semibold text-slate-900 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
+            >
+              {contactPhone}
+            </a>
+            <p className="text-sm text-slate-500">Call for booking questions.</p>
+          </>
+        ) : null}
+        {safeWebsiteUrl ? (
+          <a
+            href={safeWebsiteUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800"
+          >
+            Visit official website
+          </a>
+        ) : null}
+      </div>
+    ) : (
+      <div className="space-y-1 text-sm text-slate-500">
+        <p>Details coming soon.</p>
+        {(isOwner || isAdmin) && (
+          <p className="text-xs text-slate-400">Add these details in Manage venue.</p>
+        )}
+      </div>
+    );
+
+  const openingHoursContent = isOperationalLoading && openingHours.length === 0 ? (
+    <div className="space-y-2">
+      <SkeletonLine className="w-32" />
+      <SkeletonLine className="w-5/6" />
+      <SkeletonLine className="w-2/3" />
+    </div>
+  ) : openingGroups.length > 0 ? (
+    <div className="space-y-4">
+      {openingGroups.map((group) => (
+        <div key={group.label} className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+            {group.label}
+          </p>
+          <div className="space-y-1">
+            {group.rows.map((row) => {
+              const label = dayLabels[row.day_of_week] ?? "Day";
+              const opensAt = formatTime(row.opens_at);
+              const closesAt = formatTime(row.closes_at);
+              return (
+                <div
+                  key={row.id}
+                  className="flex items-center justify-between text-sm text-slate-700"
+                >
+                  <span className="font-medium text-slate-600">{label}</span>
+                  {row.is_closed ? (
+                    <span className="text-slate-500">Closed</span>
+                  ) : opensAt && closesAt ? (
+                    <span className="font-semibold text-slate-700">
+                      {opensAt}–{closesAt}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400">-</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-sm text-slate-500">No opening hours posted yet.</p>
+  );
+
+  const facilitiesContent = facilitiesList.length > 0 ? (
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      {facilitiesList.map((facility) => {
+        const FacilityIcon = resolveFacilityIcon(facility);
+        return (
+          <div
+            key={facility}
+            className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700"
+          >
+            <FacilityIcon className="h-4 w-4 text-blue-600" strokeWidth={2.25} />
+            <span className="truncate">{facility}</span>
+          </div>
+        );
+      })}
+    </div>
+  ) : (
+    <p className="text-sm text-slate-500">No facilities posted yet.</p>
+  );
+
+  const rulesContent = isOperationalLoading && !hasRulesText ? (
+    <div className="space-y-2">
+      <SkeletonLine />
+      <SkeletonLine className="w-5/6" />
+      <SkeletonLine className="w-2/3" />
+    </div>
+  ) : hasRulesText ? (
+    <MarkdownContent content={rulesText ?? ""} className="text-sm text-slate-700" />
+  ) : (
+    <p className="text-sm text-slate-500">No rules posted yet.</p>
+  );
+
+  const rulesNeedsClamp = (rulesText?.trim().length ?? 0) > 280;
+  const rulesContentDesktop = isOperationalLoading && !hasRulesText ? (
+    <div className="space-y-2">
+      <SkeletonLine />
+      <SkeletonLine className="w-5/6" />
+      <SkeletonLine className="w-2/3" />
+    </div>
+  ) : hasRulesText ? (
+    <div className="space-y-3">
+      <div
+        className={cn(
+          "text-sm text-slate-700",
+          !rulesExpanded && rulesNeedsClamp && "line-clamp-6"
+        )}
+      >
+        <MarkdownContent content={rulesText ?? ""} />
+      </div>
+      {rulesNeedsClamp ? (
+        <button
+          type="button"
+          onClick={() => setRulesExpanded((prev) => !prev)}
+          className="text-xs font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800"
+        >
+          {rulesExpanded ? "Show less" : "Show more"}
+        </button>
+      ) : null}
+    </div>
+  ) : (
+    <p className="text-sm text-slate-500">No rules posted yet.</p>
+  );
+
+  const bookingStatusBadge = !bookingEnabled ? (
+    <span className="inline-flex items-center rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+      Bookings currently closed
+    </span>
+  ) : null;
+
+  const quickLinksContent = (
+    <div className="space-y-3">
+      <div className="grid gap-2 sm:grid-cols-2">
+        {safeBookingUrl ? (
+          bookingEnabled ? (
+            <Button asChild className="h-11 w-full rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700">
+              <a href={safeBookingUrl} target="_blank" rel="noreferrer">
+                Book now
+              </a>
+            </Button>
+          ) : (
+            <Button disabled className="h-11 w-full rounded-lg bg-blue-600/60 text-white">
+              Book now
+            </Button>
+          )
+        ) : null}
+        {contactPhone ? (
+          <Button asChild variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+            <a href={`tel:${contactPhone}`}>Call venue</a>
+          </Button>
+        ) : (
+          <Button disabled variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+            Call venue
+          </Button>
+        )}
+      </div>
+      <div className="space-y-2">
+        {safeWebsiteUrl ? (
+          <a href={safeWebsiteUrl} target="_blank" rel="noreferrer" className={linkRowClass}>
+            <span>Visit website</span>
+            <ChevronRight className="h-4 w-4 text-slate-400" />
+          </a>
+        ) : null}
+        {safeMapsUrl ? (
+          <a href={safeMapsUrl} target="_blank" rel="noreferrer" className={linkRowClass}>
+            <span>Get directions</span>
+            <ChevronRight className="h-4 w-4 text-slate-400" />
+          </a>
+        ) : (
+          <span className={cn(linkRowClass, "cursor-not-allowed opacity-60")}>
+            <span>Get directions</span>
+            <ChevronRight className="h-4 w-4 text-slate-300" />
+          </span>
+        )}
+      </div>
+      {!safeBookingUrl && !safeWebsiteUrl && (isOwner || isAdmin) ? (
+        <p className="text-xs text-slate-400">Add these details in Manage venue.</p>
+      ) : null}
+    </div>
+  );
+
+  const accordionItems = [
+    {
+      value: "pricing",
+      title: "Tickets & Pricing",
+      icon: Ticket,
+      content: (
+        <div className="space-y-4">
+          {pricingDetails}
+          {pricingActions}
+        </div>
+      ),
+    },
+    {
+      value: "contact",
+      title: "Contact",
+      icon: Phone,
+      content: contactDetails,
+    },
+    {
+      value: "hours",
+      title: "Opening Hours",
+      icon: Clock,
+      content: openingHoursContent,
+    },
+    {
+      value: "facilities",
+      title: "Facilities",
+      icon: Wrench,
+      content: facilitiesContent,
+    },
+    {
+      value: "rules",
+      title: "Rules & Tackle",
+      icon: ScrollText,
+      content: rulesContent,
+    },
+    {
+      value: "actions",
+      title: "Quick Links",
+      icon: Globe2,
+      content: quickLinksContent,
+    },
+  ];
 
   return hasPlanContent || isOwner || isAdmin || isOperationalLoading ? (
     <Section className="space-y-6 py-14 md:py-16">
-      <SectionHeader title="Plan Your Visit" className="px-0 mb-6" />
-      <div className="grid gap-6 md:grid-cols-3 md:grid-rows-2">
-        <div className={`md:col-span-2 md:row-span-2 ${cardBase} flex flex-col`}>
-          <div className="flex items-center gap-2">
-            <Ticket className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">
-              Tickets & Pricing
-            </h3>
-          </div>
-          <div className="mt-4 space-y-3 text-sm text-gray-600">
-            {hasPricingContent ? (
-              hasPricingTiers ? (
-                <div className="space-y-2 text-sm text-slate-700">
-                  {sortedPricingTiers.map((tier) => (
-                    <div key={tier.id} className="flex flex-wrap gap-1">
-                      <span className="font-semibold text-slate-900">
-                        {tier.label}
-                      </span>
-                      <span className="text-slate-500">-</span>
-                      <span className="font-semibold text-slate-900">
-                        {tier.price}
-                      </span>
-                      {tier.unit ? (
-                        <span className="text-slate-500">({tier.unit})</span>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <>
-                  {primaryPrice ? (
-                    <p className="text-5xl font-semibold text-slate-900">
-                      {primaryPrice}
-                    </p>
-                  ) : null}
-                  {ticketType ? (
-                    <p className="text-sm font-semibold text-slate-600">
-                      {ticketType}
-                    </p>
-                  ) : null}
-                  {secondaryPrices.length > 0 ? (
-                    <div className="space-y-1.5 text-sm text-slate-600">
-                      {secondaryPrices.map((line) => (
-                        <p key={line} className="leading-snug">
-                          {line}
-                        </p>
-                      ))}
-                    </div>
-                  ) : null}
-                </>
-              )
-            ) : (
-              <div className="space-y-1">
-                <p className="leading-snug">Details coming soon.</p>
-                {(isOwner || isAdmin) && (
-                  <p className="text-xs text-gray-500">
-                    Add these details in Manage venue.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="mt-auto flex flex-col gap-3 pt-6">
-            {bookingUrl && bookingEnabled ? (
-              <a
-                href={bookingUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
-              >
-                Book Now
-              </a>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-blue-600/60 px-5 text-sm font-semibold text-white"
-              >
-                Book Now
-              </button>
-            )}
-            {!bookingEnabled ? (
-              <p className="text-xs font-semibold text-slate-500">
-                Bookings currently closed.
-              </p>
-            ) : null}
-            {formattedBestForTags.length > 0 ? (
-              <div className="flex flex-wrap items-center gap-2 pt-1">
-                <span className="text-xs font-semibold text-slate-500">
-                  Best for:
-                </span>
-                {formattedBestForTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-        <div className={cardBase}>
-          <div className="flex items-center gap-2">
-            <Phone className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">Contact Us</h3>
-          </div>
-          <div className="mt-4 space-y-2 text-sm text-gray-600">
-            {contactPhone ? (
-              <>
-                <a
-                  href={`tel:${contactPhone}`}
-                  className={`${linkClassName} text-blue-700 group-hover:text-blue-800`}
-                >
-                  {contactPhone}
-                </a>
-                <p className="leading-snug">Call for booking questions.</p>
-                <p className="text-xs text-slate-500 opacity-0 transition group-hover:opacity-100">
-                  Click to call
-                </p>
-              </>
-            ) : (
-              <div className="space-y-1">
-                <p className="leading-snug">Details coming soon.</p>
-                {(isOwner || isAdmin) && (
-                  <p className="text-xs text-gray-500">
-                    Add these details in Manage venue.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-        <div className={cardBase}>
-          <div className="flex items-center gap-2">
-            <Globe2 className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">
-              Quick Links
-            </h3>
-          </div>
-          <div className="mt-4 flex flex-col gap-2 text-sm text-gray-600">
-            {websiteUrl ? (
-              <a
-                href={websiteUrl}
-                target="_blank"
-                rel="noreferrer"
-                className={actionRowClassName}
-              >
-                <span>Visit website</span>
-                <ChevronRight className="h-4 w-4 text-slate-400" />
-              </a>
-            ) : null}
-            <a
-              href={mapsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={actionRowClassName}
-            >
-              <span>Get directions</span>
-              <ChevronRight className="h-4 w-4 text-slate-400" />
-            </a>
-            {!bookingUrl && !websiteUrl ? (
-              (isOwner || isAdmin) && (
-                <p className="text-xs text-gray-500">
-                  Add these details in Manage venue.
-                </p>
-              )
-            ) : null}
-          </div>
-        </div>
-        <div className={`md:col-span-3 md:row-start-3 ${cardBase}`}>
-          <div className="flex items-center gap-2">
-            <Wrench className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">Facilities</h3>
-          </div>
-          <div className="mt-4 text-sm text-gray-600">
-            {facilitiesList.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {facilitiesList.map((facility) => {
-                  const FacilityIcon = resolveFacilityIcon(facility);
-                  return (
-                    <span
-                      key={facility}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700"
-                    >
-                      <FacilityIcon
-                        className="h-4 w-4 text-blue-600"
-                        strokeWidth={2.25}
-                      />
-                      {facility}
-                    </span>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <p className="leading-snug">Details coming soon.</p>
-                {(isOwner || isAdmin) && (
-                  <p className="text-xs text-gray-500">
-                    Add these details in Manage venue.
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className={cardBase}>
-          <div className="flex items-center gap-2">
-            <Clock className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">
-              Opening hours
-            </h3>
-          </div>
-          <div className="mt-4 text-sm text-gray-600">
-            {isOperationalLoading && openingHours.length === 0 ? (
-              <div className="space-y-2">
-                <div className="h-4 w-28 animate-pulse rounded-full bg-slate-100" />
-                <div className="h-3 w-3/4 animate-pulse rounded-full bg-slate-100" />
-                <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-100" />
-              </div>
-            ) : openingGroups.length > 0 ? (
-              <div className="space-y-4">
-                {openingGroups.map((group) => (
-                  <div key={group.label} className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      {group.label}
-                    </p>
-                    <div className="space-y-1">
-                      {group.rows.map((row) => {
-                        const label = dayLabels[row.day_of_week] ?? "Day";
-                        const opensAt = formatTime(row.opens_at);
-                        const closesAt = formatTime(row.closes_at);
-                        return (
-                          <div
-                            key={row.id}
-                            className="flex items-center justify-between text-sm text-slate-700"
-                          >
-                            <span className="font-medium text-slate-600">
-                              {label}
-                            </span>
-                            {row.is_closed ? (
-                              <span className="text-slate-500">Closed</span>
-                            ) : opensAt && closesAt ? (
-                              <span className="font-semibold text-slate-700">
-                                {opensAt}–{closesAt}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
+      <SectionHeader
+        title="Plan Your Visit"
+        subtitle={sectionSubtitle}
+        titleClassName="text-3xl font-bold text-gray-900 md:text-4xl"
+        className="px-0 mb-6"
+        emphasizeOnMobile
+      />
+
+      <div className="hidden lg:block">
+        <div className="rounded-3xl bg-slate-50/80 p-4 lg:p-5">
+          <div className="grid grid-cols-2 gap-5">
+            <Card className={cn("rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <Ticket className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="leading-snug text-slate-500">
-                No opening hours posted yet.
-              </p>
-            )}
-          </div>
-        </div>
-        <div className={cardBase}>
-          <div className="flex items-center gap-2">
-            <ScrollText className={mutedIconClassName} strokeWidth={2.25} />
-            <h3 className="text-base font-semibold text-gray-800">
-              Rules & tackle
-            </h3>
-          </div>
-          <div className="mt-4 text-sm text-gray-600">
-            {isOperationalLoading && !hasRulesText ? (
-              <div className="space-y-2">
-                <div className="h-3 w-full animate-pulse rounded-full bg-slate-100" />
-                <div className="h-3 w-5/6 animate-pulse rounded-full bg-slate-100" />
-                <div className="h-3 w-2/3 animate-pulse rounded-full bg-slate-100" />
-              </div>
-            ) : hasRulesText ? (
-              <MarkdownContent
-                content={rulesText ?? ""}
-                className="text-sm text-slate-700"
-              />
-            ) : (
-              <p className="leading-snug text-slate-500">
-                No rules posted yet.
-              </p>
-            )}
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Tickets & Pricing</p>
+                    <p className="text-xs text-slate-500">Rates and ticket types for this venue.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2 space-y-4">
+                {pricingDetails}
+                {pricingActions}
+              </CardContent>
+            </Card>
+
+            <Card className={cn("rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <Phone className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Booking & Contact</p>
+                    <p className="text-xs text-slate-500">Call or check availability before you travel.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2 space-y-3">
+                {bookingStatusBadge}
+                {contactDetails}
+              </CardContent>
+            </Card>
+
+            <Card className={cn("rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <Globe2 className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Quick Links</p>
+                    <p className="text-xs text-slate-500">Fast actions for booking and directions.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2 space-y-3">
+                <div className="grid gap-2">
+                  {safeBookingUrl ? (
+                    bookingEnabled ? (
+                      <Button asChild className="h-11 w-full rounded-lg bg-blue-600 text-white shadow-sm hover:bg-blue-700">
+                        <a href={safeBookingUrl} target="_blank" rel="noreferrer">
+                          Book now
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button disabled className="h-11 w-full rounded-lg bg-blue-600/60 text-white">
+                        Book now
+                      </Button>
+                    )
+                  ) : null}
+                  {safeWebsiteUrl ? (
+                    <Button asChild variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+                      <a href={safeWebsiteUrl} target="_blank" rel="noreferrer">
+                        Visit website
+                      </a>
+                    </Button>
+                  ) : null}
+                  {safeMapsUrl ? (
+                    <Button asChild variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+                      <a href={safeMapsUrl} target="_blank" rel="noreferrer">
+                        Get directions
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button disabled variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+                      Get directions
+                    </Button>
+                  )}
+                  {contactPhone ? (
+                    <Button asChild variant="outline" className="h-11 w-full rounded-lg border-slate-200 bg-white">
+                      <a href={`tel:${contactPhone}`}>Call venue</a>
+                    </Button>
+                  ) : null}
+                </div>
+                {!safeBookingUrl && !safeWebsiteUrl && (isOwner || isAdmin) ? (
+                  <p className="text-xs text-slate-400">Add these details in Manage venue.</p>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            <Card className={cn("rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <Wrench className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Facilities</p>
+                    <p className="text-xs text-slate-500">Amenities available on-site.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2">{facilitiesContent}</CardContent>
+            </Card>
+
+            <Card className={cn("col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <Clock className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Opening Hours</p>
+                    <p className="text-xs text-slate-500">Seasonal or day-by-day opening times.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2">{openingHoursContent}</CardContent>
+            </Card>
+
+            <Card className={cn("col-span-2 rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg")}>
+              <CardHeader className="p-5 pb-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 inline-flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100">
+                    <ScrollText className="h-4 w-4 text-slate-500" strokeWidth={2.25} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-900">Rules & Tackle</p>
+                    <p className="text-xs text-slate-500">Key rules anglers should know.</p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 pt-2">{rulesContentDesktop}</CardContent>
+            </Card>
           </div>
         </div>
       </div>
+
+      <div className="lg:hidden">
+        <Accordion type="multiple" className="space-y-3">
+          {accordionItems.map((item) => (
+            <AccordionItem
+              key={item.value}
+              value={item.value}
+              className="rounded-2xl border border-b-0 border-slate-200 bg-white shadow-sm"
+            >
+              <AccordionTrigger className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-semibold text-slate-900 hover:no-underline">
+                <span className="flex items-center gap-2">
+                  <item.icon className={iconClass} strokeWidth={2.25} />
+                  {item.title}
+                </span>
+              </AccordionTrigger>
+              <AccordionContent className="px-4 pb-4 pt-0">
+                {item.content}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </div>
+
       {!hasPlanContent && (isOwner || isAdmin) ? (
         <p className="text-base text-gray-600">
-          Owners can add contact, booking, and facilities details from Edit /
-          Manage venue.
+          Owners can add contact, booking, and facilities details from Edit / Manage venue.
         </p>
       ) : null}
     </Section>

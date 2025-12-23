@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { clearVenueCache, clearVenueRatingCache } from "@/lib/venueCache";
 
 // Separate contexts for each piece of auth state
 // This allows components to subscribe only to what they need
@@ -101,8 +102,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, authSession) => {
+    } = supabase.auth.onAuthStateChange((event, authSession) => {
       if (!mounted) return;
+      if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+        clearVenueCache();
+        clearVenueRatingCache();
+      }
       setSession(authSession);
       setUser(authSession?.user ?? null);
       setLoading(false);

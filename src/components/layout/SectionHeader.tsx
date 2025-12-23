@@ -7,6 +7,8 @@ type SectionHeaderProps = {
   eyebrow?: ReactNode;
   actions?: ReactNode;
   className?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
 };
 
 export const SectionHeader = ({
@@ -15,14 +17,20 @@ export const SectionHeader = ({
   eyebrow,
   actions,
   className,
+  titleClassName,
+  subtitleClassName,
 }: SectionHeaderProps) => {
   return (
     <div className={cn("mb-6", className)}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           {eyebrow ? <div>{eyebrow}</div> : null}
-          <h2 className="text-2xl font-bold text-gray-900 md:text-3xl mb-2">{title}</h2>
-          {subtitle ? <p className="text-sm text-gray-500">{subtitle}</p> : null}
+          <h2 className={cn("text-2xl font-bold text-gray-900 md:text-3xl mb-2", titleClassName)}>
+            {title}
+          </h2>
+          {subtitle ? (
+            <p className={cn("text-sm text-gray-500", subtitleClassName)}>{subtitle}</p>
+          ) : null}
         </div>
         {actions ? <div className="sm:pl-4">{actions}</div> : null}
       </div>
