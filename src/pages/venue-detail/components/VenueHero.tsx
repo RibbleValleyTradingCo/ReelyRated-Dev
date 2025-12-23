@@ -240,7 +240,7 @@ const VenueHero = ({
                   Get Directions
                 </a>
               </Button>
-              {isOwner && !isAdmin ? (
+              {isOwner ? (
                 <Button
                   asChild
                   className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
@@ -249,8 +249,7 @@ const VenueHero = ({
                     Manage venue
                   </Link>
                 </Button>
-              ) : null}
-              {isAdmin ? (
+              ) : isAdmin ? (
                 <Button
                   asChild
                   className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
@@ -315,8 +314,12 @@ const VenueHero = ({
       {activeHeroImage ? (
         <img
           src={activeHeroImage}
-          alt={`${venue.name} hero`}
-          className="hidden"
+          alt=""
+          aria-hidden="true"
+          className="absolute left-0 top-0 h-px w-px opacity-0 pointer-events-none"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
           onLoad={onHeroImageLoad}
           onError={onHeroImageError}
         />

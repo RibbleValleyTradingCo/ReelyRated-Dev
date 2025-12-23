@@ -27,7 +27,7 @@ import type {
 } from "@/pages/venue-detail/types";
 import { normalizeCatchRow } from "@/pages/venue-detail/utils";
 import { buildVenueDetailViewModel } from "@/pages/venue-detail/viewModel";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -96,6 +96,11 @@ const VenueDetail = () => {
       setVenueLoading(false);
     };
     void loadVenue();
+  }, [slug]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   }, [slug]);
 
   const loadTopCatches = async (venueId: string) => {
@@ -288,6 +293,12 @@ const VenueDetail = () => {
       }
       const adminStatus = await isAdminUser(user.id);
       setIsAdmin(adminStatus);
+      if (import.meta.env.DEV) {
+        console.log("[VenueDetail] admin status", {
+          userId: user.id,
+          isAdmin: adminStatus,
+        });
+      }
     };
     void checkAdmin();
   }, [user]);
@@ -306,9 +317,23 @@ const VenueDetail = () => {
         .maybeSingle();
       if (error || !data) {
         setIsOwner(false);
+        if (import.meta.env.DEV) {
+          console.log("[VenueDetail] owner status", {
+            userId: user.id,
+            venueId: venue.id,
+            isOwner: false,
+          });
+        }
         return;
       }
       setIsOwner(true);
+      if (import.meta.env.DEV) {
+        console.log("[VenueDetail] owner status", {
+          userId: user.id,
+          venueId: venue.id,
+          isOwner: true,
+        });
+      }
     };
     void checkOwner();
   }, [user, venue?.id]);
@@ -538,15 +563,51 @@ const VenueDetail = () => {
     setPendingRating(null);
   };
 
-  const handleHeroImageLoad = () => {
+  const handleHeroImageLoad = useCallback(() => {
     setHeroHasImage(true);
     setHeroReady(true);
-  };
+    if (import.meta.env.DEV) {
+      console.log("[VenueHero] image loaded");
+    }
+  }, []);
 
-  const handleHeroImageError = () => {
+  const handleHeroImageError = useCallback(() => {
     setHeroHasImage(false);
     setHeroReady(true);
-  };
+    if (import.meta.env.DEV) {
+      console.log("[VenueHero] image failed to load");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!activeHeroImage) return;
+    let cancelled = false;
+    const img = new Image();
+    img.decoding = "async";
+    img.src = activeHeroImage;
+    img.onload = () => {
+      if (!cancelled) handleHeroImageLoad();
+    };
+    img.onerror = () => {
+      if (!cancelled) handleHeroImageError();
+    };
+    return () => {
+      cancelled = true;
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [activeHeroImage, handleHeroImageError, handleHeroImageLoad]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) return;
+    console.log("[VenueHero] state", {
+      activeHeroImage,
+      heroHasImage,
+      heroReady,
+      hasHeroCarousel,
+      heroIndex,
+    });
+  }, [activeHeroImage, hasHeroCarousel, heroHasImage, heroIndex, heroReady]);
 
   const handleCarouselPrev = () => {
     const count = carouselItems.length;
