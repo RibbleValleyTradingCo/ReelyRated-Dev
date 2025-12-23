@@ -2,12 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-
 import { useAuth } from "@/components/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { getProfilePath } from "@/lib/profile";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -18,6 +17,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type SortDirection = "asc" | "desc";
 type DateRange = "24h" | "7d" | "30d" | "all";
@@ -265,8 +270,10 @@ const AdminAuditLog = () => {
   // Show loading spinner while checking admin status
   if (adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageContainer className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </PageContainer>
       </div>
     );
   }
@@ -322,232 +329,267 @@ const AdminAuditLog = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto max-w-6xl px-4 py-8 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
-            <h1 className="text-3xl font-bold text-foreground">Audit log</h1>
-            <p className="text-sm text-muted-foreground">
-              History of moderation actions.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(-1)}>
-              Back
-            </Button>
-            <Button onClick={() => void fetchAuditLog()} disabled={isLoading} variant="ghost">
-              Refresh
-            </Button>
-          </div>
-        </div>
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-6xl py-8 md:py-10 overflow-x-hidden">
+        <div className="space-y-6 min-w-0">
+          <Section>
+            <SectionHeader
+              eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
+              title="Audit log"
+              subtitle="History of moderation actions."
+              actions={
+                <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                  <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
+                    Back
+                  </Button>
+                  <Button onClick={() => void fetchAuditLog()} disabled={isLoading} variant="ghost" className="w-full sm:w-auto">
+                    Refresh
+                  </Button>
+                </div>
+              }
+            />
+          </Section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Filters</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4 md:flex-row md:items-end md:flex-wrap">
-            <div className="w-full md:w-48">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Action</label>
-              <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value as typeof actionFilter); setPage(1); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by action" />
-                </SelectTrigger>
-                <SelectContent>
-                  {actionOptions.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full md:w-48">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Date range</label>
-              <Select value={dateRange} onValueChange={(value) => { setDateRange(value as DateRange); setPage(1); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="24h">Last 24 hours</SelectItem>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex-1 min-w-[240px]">
-              <label className="mb-2 block text-sm font-medium text-muted-foreground">Search</label>
-              <Input
-                placeholder="Search by admin, reason, target, or details"
-                value={searchTerm}
-                onChange={(event) => {
-                  setSearchTerm(event.target.value);
-                  setPage(1);
-                }}
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={handleToggleSort}>
-                Sort: {sortDirection === "asc" ? "Oldest first" : "Newest first"}
-              </Button>
-              <Button onClick={() => void handleExportCsv()} disabled={isExporting || filteredRows.length === 0}>
-                Export CSV
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="sm" className="text-foreground">
+                  Filters
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Refine by action, date, or keyword.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-4 p-4 md:p-6">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 items-end">
+                  <div className="space-y-2 min-w-0">
+                    <label className="block text-sm font-medium text-muted-foreground">Action</label>
+                    <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value as typeof actionFilter); setPage(1); }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Filter by action" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {actionOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 min-w-0">
+                    <label className="block text-sm font-medium text-muted-foreground">Date range</label>
+                    <Select value={dateRange} onValueChange={(value) => { setDateRange(value as DateRange); setPage(1); }}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select range" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="24h">Last 24 hours</SelectItem>
+                        <SelectItem value="7d">Last 7 days</SelectItem>
+                        <SelectItem value="30d">Last 30 days</SelectItem>
+                        <SelectItem value="all">All time</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2 min-w-0 sm:col-span-2 xl:col-span-2">
+                    <label className="block text-sm font-medium text-muted-foreground">Search</label>
+                    <Input
+                      placeholder="Search by admin, reason, target, or details"
+                      value={searchTerm}
+                      onChange={(event) => {
+                        setSearchTerm(event.target.value);
+                        setPage(1);
+                      }}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                  <Button variant="outline" onClick={handleToggleSort} className="w-full sm:w-auto">
+                    Sort: {sortDirection === "asc" ? "Oldest first" : "Newest first"}
+                  </Button>
+                  <Button
+                    onClick={() => void handleExportCsv()}
+                    disabled={isExporting || filteredRows.length === 0}
+                    className="w-full sm:w-auto"
+                  >
+                    Export CSV
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-        {(dateRange !== "7d" || actionFilter !== "all" || searchTerm.trim()) && (
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="rounded-full bg-muted px-3 py-1">
-              {dateRange === "24h"
-                ? "Last 24 hours"
-                : dateRange === "7d"
-                ? "Last 7 days"
-                : dateRange === "30d"
-                ? "Last 30 days"
-                : "All time"}
-            </span>
-            {actionFilter !== "all" && (
-              <span className="rounded-full bg-muted px-3 py-1">
-                {actionFilter === "all" ? "All actions" : formatActionLabel(actionFilter)}
-              </span>
+            {(dateRange !== "7d" || actionFilter !== "all" || searchTerm.trim()) && (
+              <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground pt-3">
+                <span className="rounded-full bg-muted px-3 py-1">
+                  {dateRange === "24h"
+                    ? "Last 24 hours"
+                    : dateRange === "7d"
+                    ? "Last 7 days"
+                    : dateRange === "30d"
+                    ? "Last 30 days"
+                    : "All time"}
+                </span>
+                {actionFilter !== "all" && (
+                  <span className="rounded-full bg-muted px-3 py-1">
+                    {actionFilter === "all" ? "All actions" : formatActionLabel(actionFilter)}
+                  </span>
+                )}
+                {searchTerm.trim() ? (
+                  <span className="rounded-full bg-muted px-3 py-1 truncate">{`"${searchTerm.trim()}"`}</span>
+                ) : null}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    setDateRange("7d");
+                    setActionFilter("all");
+                    setSearchTerm("");
+                    setPage(1);
+                  }}
+                >
+                  Clear all
+                </Button>
+              </div>
             )}
-            {searchTerm.trim() ? <span className="rounded-full bg-muted px-3 py-1">“{searchTerm.trim()}”</span> : null}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs"
-              onClick={() => {
-                setDateRange("7d");
-                setActionFilter("all");
-                setSearchTerm("");
-                setPage(1);
-              }}
-            >
-              Clear all
-            </Button>
-          </div>
-        )}
+          </Section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading moderation log…</p>
-            ) : filteredRows.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No moderation actions matched your filters.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Timestamp</TableHead>
-                      <TableHead>Relative</TableHead>
-                      <TableHead>Admin</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Reason</TableHead>
-                      <TableHead>Details</TableHead>
-                      <TableHead className="w-24 text-right">View</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRows.map((row) => {
-                      const adminName = row.admin?.username ?? row.admin?.id ?? "Unknown";
-                      const displayAction = formatActionLabel(row.action);
-                      const detailsText = row.details ? JSON.stringify(row.details, null, 2) : "—";
-                      const targetLabel =
-                        row.target_type === "user"
-                          ? `@${row.target_id ?? "user"}`
-                          : row.target_type === "catch"
-                          ? "Catch"
-                          : row.target_type === "comment"
-                          ? "Comment"
-                          : "Unknown";
-
-                      return (
-                        <TableRow key={row.id}>
-                          <TableCell className="whitespace-nowrap text-sm">
-                            {format(new Date(row.created_at), "yyyy-MM-dd HH:mm")}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                            {formatRelative(row.created_at)}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-sm text-foreground">
-                            {adminName}
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-sm">
-                            <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground">
-                              {displayAction}
-                            </span>
-                          </TableCell>
-                          <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                            <div className="flex flex-col">
-                              <span className="text-sm text-foreground">{targetLabel}</span>
-                              {row.target_id ? <span className="font-mono text-[11px] text-muted-foreground">{row.target_id}</span> : null}
-                            </div>
-                          </TableCell>
-                          <TableCell className="min-w-[14rem] text-sm text-foreground">
-                            {row.reason}
-                          </TableCell>
-                          <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                            {detailsText}
-                          </TableCell>
-                          <TableCell className="text-right space-x-1 whitespace-nowrap">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => void handleViewTarget(row)}
-                              disabled={row.target_type === "comment" && !row.target_id}
-                            >
-                              View
-                            </Button>
-                            {resolveModerationUserId(row) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleViewUserModeration(row)}
-                              >
-                                Moderation
-                              </Button>
-                            )}
-                          </TableCell>
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="sm" className="text-foreground">
+                  Activity
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Recent moderation actions with links to targets.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoading ? (
+                  <Text variant="muted" className="text-sm">
+                    Loading moderation log…
+                  </Text>
+                ) : filteredRows.length === 0 ? (
+                  <Text variant="muted" className="text-sm">
+                    No moderation actions matched your filters.
+                  </Text>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Timestamp</TableHead>
+                          <TableHead>Relative</TableHead>
+                          <TableHead>Admin</TableHead>
+                          <TableHead>Action</TableHead>
+                          <TableHead>Target</TableHead>
+                          <TableHead>Reason</TableHead>
+                          <TableHead>Details</TableHead>
+                          <TableHead className="text-right">View</TableHead>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground">
-              <span>
-                {`Showing ${filteredRows.length} action${filteredRows.length === 1 ? "" : "s"} (${dateRange === "24h" ? "Last 24 hours" : dateRange === "7d" ? "Last 7 days" : dateRange === "30d" ? "Last 30 days" : "All time"}, ${actionFilter === "all" ? "All actions" : actionLabels[actionFilter] ?? actionFilter})`}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                  disabled={page === 1 || isLoading}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((prev) => prev + 1)}
-                  disabled={!canGoNext || isLoading}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredRows.map((row) => {
+                          const adminName = row.admin?.username ?? row.admin?.id ?? "Unknown";
+                          const displayAction = formatActionLabel(row.action);
+                          const detailsText = row.details ? JSON.stringify(row.details, null, 2) : "—";
+                          const targetLabel =
+                            row.target_type === "user"
+                              ? `@${row.target_id ?? "user"}`
+                              : row.target_type === "catch"
+                              ? "Catch"
+                              : row.target_type === "comment"
+                              ? "Comment"
+                              : "Unknown";
+
+                          return (
+                            <TableRow key={row.id} className="align-top">
+                              <TableCell className="whitespace-nowrap text-sm">
+                                {format(new Date(row.created_at), "yyyy-MM-dd HH:mm")}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                                {formatRelative(row.created_at)}
+                              </TableCell>
+                              <TableCell className="max-w-[12rem] whitespace-nowrap text-sm text-foreground truncate">
+                                {adminName}
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap text-sm">
+                                <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 text-xs font-semibold text-foreground max-w-[12rem] truncate">
+                                  {displayAction}
+                                </span>
+                              </TableCell>
+                              <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                                <div className="flex flex-col">
+                                  <span className="text-sm text-foreground">{targetLabel}</span>
+                                  {row.target_id ? <span className="font-mono text-[11px] text-muted-foreground truncate">{row.target_id}</span> : null}
+                                </div>
+                              </TableCell>
+                              <TableCell className="min-w-[12rem] max-w-[18rem] text-sm text-foreground">
+                                <span className="line-clamp-2">{row.reason}</span>
+                              </TableCell>
+                              <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words text-xs text-muted-foreground">
+                                {detailsText}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full sm:w-auto"
+                                    onClick={() => void handleViewTarget(row)}
+                                    disabled={row.target_type === "comment" && !row.target_id}
+                                  >
+                                    View
+                                  </Button>
+                                  {resolveModerationUserId(row) && (
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="w-full sm:w-auto"
+                                      onClick={() => handleViewUserModeration(row)}
+                                    >
+                                      Moderation
+                                    </Button>
+                                  )}
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+                <div className="flex flex-col gap-3 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                  <span className="min-w-0">
+                    {`Showing ${filteredRows.length} action${filteredRows.length === 1 ? "" : "s"} (${dateRange === "24h" ? "Last 24 hours" : dateRange === "7d" ? "Last 7 days" : dateRange === "30d" ? "Last 30 days" : "All time"}, ${actionFilter === "all" ? "All actions" : actionLabels[actionFilter] ?? actionFilter})`}
+                  </span>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                      disabled={page === 1 || isLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPage((prev) => prev + 1)}
+                      disabled={!canGoNext || isLoading}
+                      className="w-full sm:w-auto"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+        </div>
+      </PageContainer>
     </div>
   );
 };

@@ -18,9 +18,17 @@ interface ReportButtonProps {
   label?: string;
   className?: string;
   onReported?: () => void;
+  triggerRef?: React.Ref<HTMLButtonElement>;
 }
 
-export const ReportButton = ({ targetType, targetId, label = "Report", className, onReported }: ReportButtonProps) => {
+export const ReportButton = ({
+  targetType,
+  targetId,
+  label = "Report",
+  className,
+  onReported,
+  triggerRef,
+}: ReportButtonProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -75,7 +83,7 @@ export const ReportButton = ({ targetType, targetId, label = "Report", className
   return (
     <Dialog open={open} onOpenChange={(value) => !submitting && setOpen(value)}>
       <DialogTrigger asChild>
-        <Button variant="link" size="sm" className={className}>
+        <Button ref={triggerRef} variant="link" size="sm" className={className}>
           {label}
         </Button>
       </DialogTrigger>

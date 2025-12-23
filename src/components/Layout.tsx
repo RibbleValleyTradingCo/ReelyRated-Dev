@@ -8,11 +8,13 @@ const Layout = () => {
   return (
     <div className="min-h-screen bg-slate-50">
       <Navbar />
-      <Suspense fallback={<RouteSkeleton />}>
-        <DeletedAccountGate>
-          <Outlet />
-        </DeletedAccountGate>
-      </Suspense>
+      <main className="pt-[calc(var(--nav-height)+1px)]">
+        <Suspense fallback={<RouteSkeleton />}>
+          <DeletedAccountGate>
+            <Outlet />
+          </DeletedAccountGate>
+        </Suspense>
+      </main>
     </div>
   );
 };

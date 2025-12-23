@@ -7,13 +7,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Chrome } from "lucide-react";
 import LogoMark from "@/components/LogoMark";
 import { signInSchema, signUpSchema, type SignInFormData, type SignUpFormData } from "@/schemas";
 import { LoadingState } from "@/components/ui/LoadingState";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -227,227 +231,249 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <LogoMark className="h-16 w-16" />
-          </div>
-          <CardTitle className="text-3xl">ReelyRated</CardTitle>
-          <CardDescription>Log your freshwater sessions and join the community</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {authView === "auth" && (
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Sign In</TabsTrigger>
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-              </TabsList>
-              <TabsContent value="signin">
-                <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
-                    <Input
-                      id="signin-email"
-                      type="email"
-                      autoComplete="email"
-                      {...signInForm.register("email")}
-                      aria-invalid={!!signInForm.formState.errors.email}
-                    />
-                    {signInForm.formState.errors.email && (
-                      <p className="text-sm text-destructive">
-                        {signInForm.formState.errors.email.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
-                    <Input
-                      id="signin-password"
-                      type="password"
-                      autoComplete="current-password"
-                      {...signInForm.register("password")}
-                      aria-invalid={!!signInForm.formState.errors.password}
-                    />
-                    {signInForm.formState.errors.password && (
-                      <p className="text-sm text-destructive">
-                        {signInForm.formState.errors.password.message}
-                      </p>
-                    )}
-                    <div className="flex justify-end">
-                      <button
+    <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+      <PageContainer className="w-full px-4 sm:px-6 py-6">
+        <Section>
+          <div className="flex min-h-[80vh] items-center justify-center">
+            <Card className="w-full max-w-md">
+              <CardHeader className="text-center space-y-3">
+                <div className="flex justify-center">
+                  <LogoMark className="h-16 w-16" />
+                </div>
+                <Heading as="h1" size="lg" className="text-foreground">
+                  ReelyRated
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Log your freshwater sessions and join the community
+                </Text>
+              </CardHeader>
+              <CardContent>
+                {authView === "auth" && (
+                  <Tabs defaultValue="signin" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="signin">Sign In</TabsTrigger>
+                      <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="signin">
+                      <form onSubmit={signInForm.handleSubmit(handleSignIn)} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="signin-email">Email</Label>
+                          <Input
+                            id="signin-email"
+                            type="email"
+                            autoComplete="email"
+                            {...signInForm.register("email")}
+                            aria-invalid={!!signInForm.formState.errors.email}
+                          />
+                          {signInForm.formState.errors.email && (
+                            <p className="text-sm text-destructive">
+                              {signInForm.formState.errors.email.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signin-password">Password</Label>
+                          <Input
+                            id="signin-password"
+                            type="password"
+                            autoComplete="current-password"
+                            {...signInForm.register("password")}
+                            aria-invalid={!!signInForm.formState.errors.password}
+                          />
+                          {signInForm.formState.errors.password && (
+                            <p className="text-sm text-destructive">
+                              {signInForm.formState.errors.password.message}
+                            </p>
+                          )}
+                          <div className="flex justify-end">
+                            <button
+                              type="button"
+                              className="text-xs text-sky-600 hover:underline"
+                              onClick={() => setAuthView("forgot")}
+                            >
+                              Forgot password?
+                            </button>
+                          </div>
+                        </div>
+                        <Button type="submit" className="w-full" disabled={signInForm.formState.isSubmitting}>
+                          {signInForm.formState.isSubmitting ? "Signing in..." : "Sign In"}
+                        </Button>
+                      </form>
+                      <div className="my-6 flex items-center gap-4">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs uppercase tracking-wide text-muted-foreground">or</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <Button
                         type="button"
-                        className="text-xs text-sky-600 hover:underline"
-                        onClick={() => setAuthView("forgot")}
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={handleGoogleSignIn}
+                        disabled={isGoogleLoading}
                       >
+                        <Chrome className="h-4 w-4" />
+                        {isGoogleLoading ? "Opening Google…" : "Continue with Google"}
+                      </Button>
+                    </TabsContent>
+                    <TabsContent value="signup">
+                      <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-username">Username</Label>
+                          <Input
+                            id="signup-username"
+                            type="text"
+                            {...signUpForm.register("username")}
+                            aria-invalid={!!signUpForm.formState.errors.username}
+                          />
+                          {signUpForm.formState.errors.username && (
+                            <p className="text-sm text-destructive">
+                              {signUpForm.formState.errors.username.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-email">Email</Label>
+                          <Input
+                            id="signup-email"
+                            type="email"
+                            autoComplete="email"
+                            {...signUpForm.register("email")}
+                            aria-invalid={!!signUpForm.formState.errors.email}
+                          />
+                          {signUpForm.formState.errors.email && (
+                            <p className="text-sm text-destructive">
+                              {signUpForm.formState.errors.email.message}
+                            </p>
+                          )}
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="signup-password">Password</Label>
+                          <Input
+                            id="signup-password"
+                            type="password"
+                            autoComplete="new-password"
+                            {...signUpForm.register("password")}
+                            aria-invalid={!!signUpForm.formState.errors.password}
+                          />
+                          {signUpForm.formState.errors.password && (
+                            <p className="text-sm text-destructive">
+                              {signUpForm.formState.errors.password.message}
+                            </p>
+                          )}
+                        </div>
+                        <Button type="submit" className="w-full" disabled={signUpForm.formState.isSubmitting}>
+                          {signUpForm.formState.isSubmitting ? "Creating account..." : "Sign Up"}
+                        </Button>
+                      </form>
+                      <div className="my-6 flex items-center gap-4">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs uppercase tracking-wide text-muted-foreground">or</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full flex items-center justify-center gap-2"
+                        onClick={handleGoogleSignIn}
+                      >
+                        <Chrome className="h-4 w-4" />
+                        Continue with Google
+                      </Button>
+                    </TabsContent>
+                  </Tabs>
+                )}
+
+                {authView === "forgot" && (
+                  <div className="space-y-6">
+                    <div className="space-y-2 text-center">
+                      <Heading as="h2" size="md" className="text-foreground">
                         Forgot password?
-                      </button>
+                      </Heading>
+                      <Text variant="muted" className="text-sm">
+                        We&apos;ll email you a link to choose a new password.
+                      </Text>
                     </div>
+                    <form onSubmit={resetRequestForm.handleSubmit(handleResetRequest)} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">Email</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          autoComplete="email"
+                          {...resetRequestForm.register("email")}
+                          aria-invalid={!!resetRequestForm.formState.errors.email}
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={resetRequestForm.formState.isSubmitting}>
+                        {resetRequestForm.formState.isSubmitting ? "Sending link…" : "Send reset link"}
+                      </Button>
+                    </form>
+                    <Button type="button" variant="ghost" className="w-full" onClick={() => setAuthView("auth")}>
+                      Back to sign in
+                    </Button>
                   </div>
-                  <Button type="submit" className="w-full" disabled={signInForm.formState.isSubmitting}>
-                    {signInForm.formState.isSubmitting ? "Signing in..." : "Sign In"}
-                  </Button>
-                </form>
-                <div className="my-6 flex items-center gap-4">
-                  <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs uppercase tracking-wide text-muted-foreground">or</span>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={handleGoogleSignIn}
-                  disabled={isGoogleLoading}
-                >
-                  <Chrome className="h-4 w-4" />
-                  {isGoogleLoading ? "Opening Google…" : "Continue with Google"}
-                </Button>
-              </TabsContent>
-              <TabsContent value="signup">
-                <form onSubmit={signUpForm.handleSubmit(handleSignUp)} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-username">Username</Label>
-                    <Input
-                      id="signup-username"
-                      type="text"
-                      {...signUpForm.register("username")}
-                      aria-invalid={!!signUpForm.formState.errors.username}
-                    />
-                    {signUpForm.formState.errors.username && (
-                      <p className="text-sm text-destructive">
-                        {signUpForm.formState.errors.username.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
-                    <Input
-                      id="signup-email"
-                      type="email"
-                      autoComplete="email"
-                      {...signUpForm.register("email")}
-                      aria-invalid={!!signUpForm.formState.errors.email}
-                    />
-                    {signUpForm.formState.errors.email && (
-                      <p className="text-sm text-destructive">
-                        {signUpForm.formState.errors.email.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
-                    <Input
-                      id="signup-password"
-                      type="password"
-                      autoComplete="new-password"
-                      {...signUpForm.register("password")}
-                      aria-invalid={!!signUpForm.formState.errors.password}
-                    />
-                    {signUpForm.formState.errors.password && (
-                      <p className="text-sm text-destructive">
-                        {signUpForm.formState.errors.password.message}
-                      </p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={signUpForm.formState.isSubmitting}>
-                    {signUpForm.formState.isSubmitting ? "Creating account..." : "Sign Up"}
-                  </Button>
-                </form>
-                <div className="my-6 flex items-center gap-4">
-                  <div className="h-px flex-1 bg-border" />
-                  <span className="text-xs uppercase tracking-wide text-muted-foreground">or</span>
-                  <div className="h-px flex-1 bg-border" />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full flex items-center justify-center gap-2"
-                  onClick={handleGoogleSignIn}
-                >
-                  <Chrome className="h-4 w-4" />
-                  Continue with Google
-                </Button>
-              </TabsContent>
-            </Tabs>
-          )}
+                )}
 
-          {authView === "forgot" && (
-            <div className="space-y-6">
-              <div className="space-y-2 text-center">
-                <CardTitle className="text-2xl">Forgot password?</CardTitle>
-                <CardDescription>We&apos;ll email you a link to choose a new password.</CardDescription>
-              </div>
-              <form onSubmit={resetRequestForm.handleSubmit(handleResetRequest)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="reset-email">Email</Label>
-                  <Input
-                    id="reset-email"
-                    type="email"
-                    autoComplete="email"
-                    {...resetRequestForm.register("email")}
-                    aria-invalid={!!resetRequestForm.formState.errors.email}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={resetRequestForm.formState.isSubmitting}>
-                  {resetRequestForm.formState.isSubmitting ? "Sending link…" : "Send reset link"}
-                </Button>
-              </form>
-              <Button type="button" variant="ghost" className="w-full" onClick={() => setAuthView("auth")}>
-                Back to sign in
-              </Button>
-            </div>
-          )}
-
-          {authView === "reset" && (
-            <div className="space-y-6">
-              <div className="space-y-2 text-center">
-                <CardTitle className="text-2xl">Choose a new password</CardTitle>
-                <CardDescription>Set a new password to secure your account.</CardDescription>
-              </div>
-              {!session && (
-                <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                  This link has expired or is invalid. Please request a new password reset email.
-                </div>
-              )}
-              <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="new-password">New password</Label>
-                  <Input
-                    id="new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    {...resetPasswordForm.register("newPassword")}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirm-new-password">Confirm new password</Label>
-                  <Input
-                    id="confirm-new-password"
-                    type="password"
-                    autoComplete="new-password"
-                    {...resetPasswordForm.register("confirmPassword")}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={resetPasswordForm.formState.isSubmitting || !session}>
-                  {resetPasswordForm.formState.isSubmitting ? "Updating…" : "Update password"}
-                </Button>
-              </form>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => {
-                  setAuthView("auth");
-                  navigate("/auth", { replace: true });
-                }}
-              >
-                Back to sign in
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                {authView === "reset" && (
+                  <div className="space-y-6">
+                    <div className="space-y-2 text-center">
+                      <Heading as="h2" size="md" className="text-foreground">
+                        Choose a new password
+                      </Heading>
+                      <Text variant="muted" className="text-sm">
+                        Set a new password to secure your account.
+                      </Text>
+                    </div>
+                    {!session && (
+                      <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                        This link has expired or is invalid. Please request a new password reset email.
+                      </div>
+                    )}
+                    <form onSubmit={resetPasswordForm.handleSubmit(handleResetPassword)} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="new-password">New password</Label>
+                        <Input
+                          id="new-password"
+                          type="password"
+                          autoComplete="new-password"
+                          {...resetPasswordForm.register("newPassword")}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-new-password">Confirm new password</Label>
+                        <Input
+                          id="confirm-new-password"
+                          type="password"
+                          autoComplete="new-password"
+                          {...resetPasswordForm.register("confirmPassword")}
+                        />
+                      </div>
+                      <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={resetPasswordForm.formState.isSubmitting || !session}
+                      >
+                        {resetPasswordForm.formState.isSubmitting ? "Updating…" : "Update password"}
+                      </Button>
+                    </form>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      className="w-full"
+                      onClick={() => {
+                        setAuthView("auth");
+                        navigate("/auth", { replace: true });
+                      }}
+                    >
+                      Back to sign in
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </Section>
+      </PageContainer>
     </div>
   );
 };

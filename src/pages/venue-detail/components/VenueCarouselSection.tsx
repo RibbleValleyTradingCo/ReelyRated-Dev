@@ -1,0 +1,113 @@
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { RefObject } from "react";
+
+type VenueCarouselSectionProps = {
+  items: { url: string; alt: string }[];
+  label: string;
+  index: number;
+  onPrev: () => void;
+  onNext: () => void;
+  onIndexChange: (index: number) => void;
+  swipeStartRef: RefObject<number | null>;
+};
+
+const VenueCarouselSection = ({
+  items,
+  label,
+  index,
+  onPrev,
+  onNext,
+  onIndexChange,
+  swipeStartRef,
+}: VenueCarouselSectionProps) => {
+  const hasMultiple = items.length > 1;
+  const activeItem = items[index];
+
+  return (
+    <section className="py-10 md:py-12">
+      <div className="px-4 md:px-6 lg:px-8">
+        <p className="mb-4 text-center text-2xl font-semibold text-slate-900 md:mb-6">
+          {label}
+        </p>
+      </div>
+      <div className="-mx-4 md:-mx-6 lg:-mx-8">
+        <div className="relative overflow-hidden bg-slate-100 rounded-none md:rounded-3xl">
+          <div
+            className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 md:aspect-[3/1] touch-pan-y"
+            onTouchStart={(event) => {
+              swipeStartRef.current = event.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(event) => {
+              const startX = swipeStartRef.current;
+              if (startX === null || items.length <= 1) {
+                swipeStartRef.current = null;
+                return;
+              }
+              const endX = event.changedTouches[0]?.clientX ?? startX;
+              const delta = endX - startX;
+              if (Math.abs(delta) > 40) {
+                if (delta > 0) {
+                  onPrev();
+                } else {
+                  onNext();
+                }
+              }
+              swipeStartRef.current = null;
+            }}
+          >
+            {activeItem ? (
+              <img
+                src={activeItem.url}
+                alt={activeItem.alt}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-sm text-slate-600">
+                No photos yet.
+              </div>
+            )}
+            {hasMultiple ? (
+              <>
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/35 to-transparent"
+                  aria-hidden
+                />
+                <button
+                  type="button"
+                  onClick={onPrev}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-slate-700 shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Previous photo"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onNext}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-slate-700 shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  aria-label="Next photo"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-2">
+                  {items.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => onIndexChange(idx)}
+                      className={`h-2.5 rounded-full transition ${
+                        index === idx ? "w-6 bg-white" : "w-2.5 bg-white/60"
+                      }`}
+                      aria-label={`Show photo ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export default VenueCarouselSection;

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { RouteSkeleton } from "@/components/RouteSkeleton";
@@ -9,24 +9,43 @@ const DeletedAccountGate = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [status, setStatus] = useState<"checking" | "ok" | "redirecting">("ok");
+  const hasCheckedRef = useRef(false);
+  const lastCheckedAtRef = useRef(0);
+  const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let active = true;
     const checkDeletedProfile = async () => {
       if (location.pathname === "/account-deleted") {
         setStatus("ok");
+        hasCheckedRef.current = true;
         return;
       }
+      if (user?.id !== lastUserIdRef.current) {
+        lastUserIdRef.current = user?.id ?? null;
+        hasCheckedRef.current = false;
+      }
       if (loading) {
-        setStatus("checking");
+        if (!hasCheckedRef.current) {
+          setStatus("checking");
+        }
         return;
       }
       if (!user) {
         setStatus("ok");
+        hasCheckedRef.current = true;
         return;
       }
 
-      setStatus("checking");
+      const now = Date.now();
+      if (hasCheckedRef.current && now - lastCheckedAtRef.current < 60000) {
+        return;
+      }
+      lastCheckedAtRef.current = now;
+      const shouldBlockUi = !hasCheckedRef.current;
+      if (shouldBlockUi) {
+        setStatus("checking");
+      }
       const { data, error } = await supabase
         .from("profiles")
         .select("is_deleted")
@@ -35,7 +54,10 @@ const DeletedAccountGate = ({ children }: { children: ReactNode }) => {
       if (!active) return;
       if (error) {
         console.error("Failed to check profile deletion status", error);
-        setStatus("ok");
+        if (shouldBlockUi) {
+          setStatus("ok");
+        }
+        hasCheckedRef.current = true;
         return;
       }
       if (data?.is_deleted) {
@@ -43,7 +65,10 @@ const DeletedAccountGate = ({ children }: { children: ReactNode }) => {
         await supabase.auth.signOut();
         navigate("/account-deleted", { replace: true });
       } else {
-        setStatus("ok");
+        if (shouldBlockUi) {
+          setStatus("ok");
+        }
+        hasCheckedRef.current = true;
       }
     };
 

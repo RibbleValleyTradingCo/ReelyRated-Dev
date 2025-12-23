@@ -1,11 +1,9 @@
 import { Link } from "react-router-dom";
-import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Compass } from "lucide-react";
 
 const ProfileNotFound = () => (
   <div className="min-h-screen bg-slate-50">
-    <Navbar />
     <main className="mx-auto flex max-w-3xl flex-col items-center justify-center px-4 py-16 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-600">
         <Compass className="h-8 w-8" aria-hidden="true" />

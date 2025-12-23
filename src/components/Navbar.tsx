@@ -302,7 +302,10 @@ export const Navbar = () => {
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-3 md:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-3 md:gap-4 md:h-[72px]">
+        <div
+          className="flex items-center justify-between gap-3 md:gap-4"
+          style={{ height: "var(--nav-height)" }}
+        >
           <Link to="/" className="group flex items-center gap-3">
             <LogoMark className="h-10 w-10 md:h-11 md:w-11 transition-transform duration-200 hover:scale-105" />
             <div className="leading-tight">

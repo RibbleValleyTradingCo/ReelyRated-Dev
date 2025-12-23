@@ -1,116 +1,35 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ExternalLink, Loader2, MapPin, Sparkles, Fish, Star, Flame } from "lucide-react";
-import { CatchCard } from "@/components/feed/CatchCard";
-import { isAdminUser } from "@/lib/admin";
 import { useAuth } from "@/components/AuthProvider";
-import { getPublicAssetUrl } from "@/lib/storage";
+import PageContainer from "@/components/layout/PageContainer";
+import PageSpinner from "@/components/loading/PageSpinner";
+import Text from "@/components/typography/Text";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { isAdminUser } from "@/lib/admin";
+import AboutSection from "@/pages/venue-detail/components/AboutSection";
+import EventsSection from "@/pages/venue-detail/components/EventsSection";
+import HeroStatsStrip from "@/pages/venue-detail/components/HeroStatsStrip";
+import LeaderboardSection from "@/pages/venue-detail/components/LeaderboardSection";
+import LocationMapSection from "@/pages/venue-detail/components/LocationMapSection";
+import PlanYourVisitSection from "@/pages/venue-detail/components/PlanYourVisitSection";
+import RecentCatchesSection from "@/pages/venue-detail/components/RecentCatchesSection";
+import VenueCarouselSection from "@/pages/venue-detail/components/VenueCarouselSection";
+import VenueHero from "@/pages/venue-detail/components/VenueHero";
+import RatingModal from "@/pages/venue-detail/components/RatingModal";
+import type {
+  CatchRow,
+  TopAngler,
+  Venue,
+  VenueEvent,
+  VenueOpeningHour,
+  VenuePhoto,
+  VenuePricingTier,
+} from "@/pages/venue-detail/types";
+import { normalizeCatchRow } from "@/pages/venue-detail/utils";
+import { buildVenueDetailViewModel } from "@/pages/venue-detail/viewModel";
+import { useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "sonner";
-
-type Venue = {
-  id: string;
-  slug: string;
-  name: string;
-  location: string | null;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
-  short_tagline: string | null;
-  ticket_type: string | null;
-  price_from: string | null;
-  best_for_tags: string[] | null;
-  facilities: string[] | null;
-  website_url: string | null;
-  booking_url: string | null;
-  contact_phone: string | null;
-  notes_for_rr_team: string | null;
-  total_catches: number | null;
-  recent_catches_30d: number | null;
-  headline_pb_weight: number | null;
-  headline_pb_unit: string | null;
-  headline_pb_species: string | null;
-  top_species: string[] | null;
-  avg_rating: number | null;
-  rating_count: number | null;
-  is_published?: boolean | null;
-};
-
-type VenuePhoto = {
-  id: string;
-  venue_id: string;
-  image_path: string;
-  caption: string | null;
-  created_at: string;
-  created_by: string | null;
-};
-
-type CatchRow = {
-  id: string;
-  title: string;
-  image_url: string;
-  user_id: string;
-  location: string | null;
-  species: string | null;
-  weight: number | null;
-  weight_unit: string | null;
-  visibility: string | null;
-  hide_exact_spot: boolean | null;
-  conditions: Record<string, unknown> | null;
-  created_at: string;
-  profiles: {
-    username: string;
-    avatar_path: string | null;
-    avatar_url: string | null;
-  };
-  ratings: { rating: number }[];
-  comments: { id: string }[];
-  reactions: { user_id: string }[] | null;
-  venues?: {
-    id?: string;
-    slug: string;
-    name: string;
-  } | null;
-};
-
-type VenueEvent = {
-  id: string;
-  venue_id: string;
-  title: string;
-  event_type: string | null;
-  starts_at: string;
-  ends_at: string | null;
-  description: string | null;
-  ticket_info: string | null;
-  website_url: string | null;
-  booking_url: string | null;
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
-};
-
-const normalizeCatchRow = (row: CatchRow): CatchRow => ({
-  ...row,
-  profiles: row.profiles ?? { username: "Unknown", avatar_path: null, avatar_url: null },
-  ratings: (row.ratings ?? []) as CatchRow["ratings"],
-  comments: (row.comments ?? []) as CatchRow["comments"],
-  reactions: (row.reactions ?? []) as CatchRow["reactions"],
-  venues: row.venues ?? null,
-});
-
-type TopAngler = {
-  user_id: string;
-  username: string | null;
-  avatar_path: string | null;
-  avatar_url: string | null;
-  catch_count: number;
-  best_weight: number | null;
-  best_weight_unit: string | null;
-  last_catch_at: string | null;
-};
 
 const VenueDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -133,20 +52,38 @@ const VenueDetail = () => {
   const [pastEventsLoading, setPastEventsLoading] = useState(false);
   const [pastOffset, setPastOffset] = useState(0);
   const [pastHasMore, setPastHasMore] = useState(true);
-  const [eventsTab, setEventsTab] = useState<"upcoming" | "past">("upcoming");
+  const [showPastEvents, setShowPastEvents] = useState(false);
   const [photos, setPhotos] = useState<VenuePhoto[]>([]);
   const [photosLoading, setPhotosLoading] = useState(false);
-  const [selectedSpecies, setSelectedSpecies] = useState<string>("all");
+  const [openingHours, setOpeningHours] = useState<VenueOpeningHour[]>([]);
+  const [pricingTiers, setPricingTiers] = useState<VenuePricingTier[]>([]);
+  const [rulesText, setRulesText] = useState<string | null>(null);
+  const [operationalLoading, setOperationalLoading] = useState(false);
   const [avgRating, setAvgRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState<number | null>(null);
   const [userRating, setUserRating] = useState<number | null>(null);
   const [ratingLoading, setRatingLoading] = useState(false);
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [pendingRating, setPendingRating] = useState<number | null>(null);
+  const [lastKnownAvg, setLastKnownAvg] = useState<number | null>(null);
+  const [lastKnownCount, setLastKnownCount] = useState<number | null>(null);
+  const [heroHasImage, setHeroHasImage] = useState(false);
+  const [heroReady, setHeroReady] = useState(false);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [aboutExpanded, setAboutExpanded] = useState(false);
+  const [stickyCtaHeight, setStickyCtaHeight] = useState(0);
+  const ratingTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const carouselSwipeStartRef = useRef<number | null>(null);
+  const stickyCtaRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const loadVenue = async () => {
       if (!slug) return;
       setVenueLoading(true);
-      const { data, error } = await supabase.rpc("get_venue_by_slug", { p_slug: slug });
+      const { data, error } = await supabase.rpc("get_venue_by_slug", {
+        p_slug: slug,
+      });
       if (error) {
         console.error("Failed to load venue", error);
         setVenue(null);
@@ -163,7 +100,10 @@ const VenueDetail = () => {
 
   const loadTopCatches = async (venueId: string) => {
     setTopLoading(true);
-    const { data, error } = await supabase.rpc("get_venue_top_catches", { p_venue_id: venueId, p_limit: 6 });
+    const { data, error } = await supabase.rpc("get_venue_top_catches", {
+      p_venue_id: venueId,
+      p_limit: 6,
+    });
     if (error) {
       console.error("Failed to load top catches", error);
       setTopCatches([]);
@@ -188,7 +128,11 @@ const VenueDetail = () => {
     setTopAnglersLoading(false);
   };
 
-  const loadRecentCatches = async (venueId: string, nextOffset = 0, append = false) => {
+  const loadRecentCatches = async (
+    venueId: string,
+    nextOffset = 0,
+    append = false
+  ) => {
     setRecentLoading(true);
     const limit = 12;
     const { data, error } = await supabase.rpc("get_venue_recent_catches", {
@@ -223,7 +167,11 @@ const VenueDetail = () => {
     setEventsLoading(false);
   };
 
-  const loadPastEvents = async (venueId: string, nextOffset = 0, append = false) => {
+  const loadPastEvents = async (
+    venueId: string,
+    nextOffset = 0,
+    append = false
+  ) => {
     setPastEventsLoading(true);
     const limit = 10;
     const { data, error } = await supabase.rpc("get_venue_past_events", {
@@ -248,7 +196,11 @@ const VenueDetail = () => {
     const loadPhotos = async () => {
       if (!venue?.id) return;
       setPhotosLoading(true);
-      const { data, error } = await supabase.rpc("get_venue_photos", { p_venue_id: venue.id, p_limit: 20, p_offset: 0 });
+      const { data, error } = await supabase.rpc("get_venue_photos", {
+        p_venue_id: venue.id,
+        p_limit: 20,
+        p_offset: 0,
+      });
       if (error) {
         console.error("Failed to load venue photos", error);
         setPhotos([]);
@@ -258,6 +210,63 @@ const VenueDetail = () => {
       setPhotosLoading(false);
     };
     void loadPhotos();
+  }, [venue?.id]);
+
+  useEffect(() => {
+    const loadOperationalDetails = async () => {
+      if (!venue?.id) return;
+      setOperationalLoading(true);
+      setOpeningHours([]);
+      setPricingTiers([]);
+      setRulesText(null);
+      const [hoursResult, tiersResult, rulesResult] = await Promise.all([
+        supabase
+          .from("venue_opening_hours")
+          .select("*")
+          .eq("venue_id", venue.id)
+          .order("order_index", { ascending: true }),
+        supabase
+          .from("venue_pricing_tiers")
+          .select("*")
+          .eq("venue_id", venue.id)
+          .order("order_index", { ascending: true }),
+        supabase
+          .from("venue_rules")
+          .select("rules_text")
+          .eq("venue_id", venue.id)
+          .maybeSingle(),
+      ]);
+
+      if (hoursResult.error) {
+        console.error("Failed to load venue opening hours", hoursResult.error);
+        if (import.meta.env.DEV) {
+          toast.error("Failed to load opening hours.");
+        }
+      } else {
+        setOpeningHours(hoursResult.data ?? []);
+      }
+
+      if (tiersResult.error) {
+        console.error("Failed to load venue pricing tiers", tiersResult.error);
+        if (import.meta.env.DEV) {
+          toast.error("Failed to load pricing tiers.");
+        }
+      } else {
+        setPricingTiers(tiersResult.data ?? []);
+      }
+
+      if (rulesResult.error) {
+        console.error("Failed to load venue rules", rulesResult.error);
+        if (import.meta.env.DEV) {
+          toast.error("Failed to load venue rules.");
+        }
+      } else {
+        setRulesText(rulesResult.data?.rules_text ?? null);
+      }
+
+      setOperationalLoading(false);
+    };
+    void loadOperationalDetails();
   }, [venue?.id]);
 
   useEffect(() => {
@@ -317,7 +326,9 @@ const VenueDetail = () => {
         console.error("Failed to load your venue rating", error);
         return;
       }
-      const row = (data as { venue_id: string; user_rating: number }[] | null)?.[0];
+      const row = (
+        data as { venue_id: string; user_rating: number }[] | null
+      )?.[0];
       if (row?.user_rating) {
         setUserRating(row.user_rating);
       } else {
@@ -329,6 +340,23 @@ const VenueDetail = () => {
 
   const handleRatingSelect = async (rating: number) => {
     if (!venue?.id || !user || ratingLoading) return;
+    const previous = userRating;
+    const prevAvg = avgRating;
+    const prevCount = ratingCount;
+    const prevLastAvg = lastKnownAvg;
+    const prevLastCount = lastKnownCount;
+    setUserRating(rating);
+    const currentAvg = avgRating ?? lastKnownAvg ?? 0;
+    const currentCount = ratingCount ?? lastKnownCount ?? 0;
+    const isFirst = previous === null || previous === undefined;
+    const optimisticCount = isFirst ? currentCount + 1 : currentCount || 1;
+    const optimisticAvg = isFirst
+      ? (currentAvg * currentCount + rating) / optimisticCount
+      : currentCount > 0
+      ? (currentAvg * currentCount - (previous ?? 0) + rating) / currentCount
+      : rating;
+    setAvgRating(optimisticAvg);
+    setRatingCount(optimisticCount);
     setRatingLoading(true);
     const { data, error } = await supabase.rpc("upsert_venue_rating", {
       p_venue_id: venue.id,
@@ -337,846 +365,503 @@ const VenueDetail = () => {
     if (error) {
       console.error("Failed to submit rating", error);
       toast.error("Could not save your rating. Please try again.");
+      setUserRating(previous);
+      setAvgRating(prevAvg ?? null);
+      setRatingCount(prevCount ?? null);
+      setLastKnownAvg(prevLastAvg);
+      setLastKnownCount(prevLastCount);
       setRatingLoading(false);
       return;
     }
-    const row = (data as { venue_id: string; avg_rating: number | null; rating_count: number | null; user_rating: number | null }[] | null)?.[0];
-    setAvgRating(row?.avg_rating ?? null);
-    setRatingCount(row?.rating_count ?? null);
+    const row = (
+      data as
+        | {
+            venue_id: string;
+            avg_rating: number | null;
+            rating_count: number | null;
+            user_rating: number | null;
+          }[]
+        | null
+    )?.[0];
+    setAvgRating(row?.avg_rating ?? optimisticAvg);
+    setRatingCount(row?.rating_count ?? optimisticCount);
     setUserRating(row?.user_rating ?? rating);
+    setRatingModalOpen(false);
     toast.success("Thanks for rating this venue!");
     setRatingLoading(false);
   };
 
-  const StarRating = ({
-    value,
-    onSelect,
-    disabled,
-  }: {
-    value: number | null;
-    onSelect?: (next: number) => void;
-    disabled?: boolean;
-  }) => {
-    const current = value ?? 0;
-    return (
-      <div className="inline-flex items-center gap-1" role="radiogroup" aria-label="Your rating">
-        {[1, 2, 3, 4, 5].map((star) => {
-          const filled = current >= star;
-          return (
-            <button
-              key={star}
-              type="button"
-              role="radio"
-              aria-checked={filled}
-              disabled={disabled}
-              onClick={() => onSelect?.(star)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  onSelect?.(star);
-                }
-              }}
-              className={`rounded-full p-1 transition ${disabled ? "cursor-not-allowed opacity-60" : "hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"}`}
-            >
-              <Star className={`h-4 w-4 ${filled ? "fill-amber-400 text-amber-400" : "text-slate-300"}`} />
-            </button>
-          );
-        })}
-      </div>
-    );
+  const safeVenue: Venue = venue ?? {
+    id: "",
+    slug: "",
+    name: "",
+    location: null,
+    description: null,
+    created_at: "",
+    updated_at: "",
+    short_tagline: null,
+    ticket_type: null,
+    price_from: null,
+    best_for_tags: null,
+    facilities: null,
+    website_url: null,
+    booking_url: null,
+    booking_enabled: null,
+    contact_phone: null,
+    notes_for_rr_team: null,
+    total_catches: 0,
+    recent_catches_30d: 0,
+    headline_pb_weight: null,
+    headline_pb_unit: null,
+    headline_pb_species: null,
+    top_species: null,
+    avg_rating: null,
+    rating_count: null,
+    is_published: null,
   };
 
-  const renderCatchesGrid = (items: CatchRow[]) => {
-    if (items.length === 0) {
-      return (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-600">
-          No catches to show here yet.
-        </div>
-      );
+  const viewModel = buildVenueDetailViewModel({
+    venue: safeVenue,
+    topCatches,
+    recentCatches,
+    photos,
+    userId: user?.id ?? null,
+    isAdmin,
+    isOwner,
+    avgRating,
+    ratingCount,
+    userRating,
+    ratingLoading,
+    lastKnownAvg,
+    lastKnownCount,
+    heroIndex,
+    heroHasImage,
+    upcomingEventsCount: upcomingEvents.length,
+    pastEventsCount: pastEvents.length,
+  });
+
+  const {
+    ticketType,
+    websiteUrl,
+    bookingUrl,
+    contactPhone,
+    totalCatches,
+    recentWindow,
+    displayPriceFrom,
+    hasPlanContent,
+    facilitiesList,
+    bestForTags,
+    pricingLines,
+    heroTagline,
+    aboutText,
+    heroImages,
+    activeHeroImage,
+    hasHeroCarousel,
+    carouselItems,
+    carouselLabel,
+    showStickyActions,
+    hasEvents,
+    activeAnglers,
+    recordWeightLabel,
+    recordSpeciesLabel,
+    topSpeciesLabel,
+    featuredCatchTitle,
+    primaryCtaUrl,
+    secondaryCtaUrl,
+    secondaryCtaLabel,
+    ratingSummaryText,
+    scrimClass,
+    mapsUrl,
+    mapEmbedUrl,
+    viewAllCount,
+    showAboutAdminHint,
+  } = viewModel;
+
+  const bookingEnabled = venue?.booking_enabled !== false;
+  const hasOperationalContent =
+    openingHours.length > 0 ||
+    pricingTiers.length > 0 ||
+    Boolean(rulesText);
+  const planHasContent =
+    hasPlanContent || hasOperationalContent || operationalLoading;
+
+  const featuredCatch = topCatches[0];
+
+  useEffect(() => {
+    setHeroIndex(0);
+  }, [heroImages.length]);
+
+  useEffect(() => {
+    setCarouselIndex(0);
+  }, [carouselItems.length]);
+
+  useEffect(() => {
+    setHeroHasImage(false);
+    setHeroReady(!activeHeroImage);
+  }, [activeHeroImage]);
+
+  useEffect(() => {
+    if (!showStickyActions) {
+      setStickyCtaHeight(0);
+      return;
     }
-    return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((catchItem) => (
-          <CatchCard key={catchItem.id} catchItem={catchItem} userId={undefined} />
-        ))}
-      </div>
-    );
+    const element = stickyCtaRef.current;
+    if (!element) return;
+    const updateHeight = () => {
+      setStickyCtaHeight(element.getBoundingClientRect().height);
+    };
+    updateHeight();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [showStickyActions]);
+
+  useEffect(() => {
+    if (avgRating !== null && avgRating !== undefined) {
+      setLastKnownAvg(avgRating);
+    }
+    if (ratingCount !== null && ratingCount !== undefined) {
+      setLastKnownCount(ratingCount);
+    }
+  }, [avgRating, ratingCount]);
+
+  const openRatingModal = (trigger?: HTMLButtonElement | null) => {
+    if (!user) return;
+    setPendingRating(userRating ?? 3);
+    setRatingModalOpen(true);
+    if (trigger) ratingTriggerRef.current = trigger;
   };
 
-  const PageShell = ({ children }: { children: React.ReactNode }) => (
-    <div className="bg-gradient-to-b from-background to-muted">
-      <main className="section-container space-y-8 pb-16 pt-8 md:pt-10 lg:pb-20">{children}</main>
-    </div>
-  );
+  const closeRatingModal = () => {
+    setRatingModalOpen(false);
+    setPendingRating(null);
+  };
+
+  const handleHeroImageLoad = () => {
+    setHeroHasImage(true);
+    setHeroReady(true);
+  };
+
+  const handleHeroImageError = () => {
+    setHeroHasImage(false);
+    setHeroReady(true);
+  };
+
+  const handleCarouselPrev = () => {
+    const count = carouselItems.length;
+    if (count < 2) return;
+    setCarouselIndex((prev) => (prev - 1 + count) % count);
+  };
+
+  const handleCarouselNext = () => {
+    const count = carouselItems.length;
+    if (count < 2) return;
+    setCarouselIndex((prev) => (prev + 1) % count);
+  };
+
+  const handleCarouselIndexChange = (index: number) => {
+    setCarouselIndex(index);
+  };
+
+  const handleToggleAboutExpanded = () => {
+    setAboutExpanded((prev) => !prev);
+  };
+
+  const handleTogglePastEvents = () => {
+    setShowPastEvents((prev) => !prev);
+  };
+
+  const handleLoadPastEvents = () => {
+    if (!venue) return;
+    void loadPastEvents(venue.id, pastOffset, true);
+  };
 
   if (venueLoading) {
     return (
-      <PageShell>
-        <div className="flex items-center justify-center py-16 text-slate-500">
-          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-          Loading venue…
-        </div>
-      </PageShell>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageContainer className="py-8 md:py-10 lg:py-12">
+          <PageSpinner label="Loading venue…" />
+        </PageContainer>
+      </div>
     );
   }
 
   if (!venue) {
     return (
-      <PageShell>
-        <Card className="border border-slate-200 bg-white shadow-sm">
-          <CardHeader>
-            <CardTitle>Venue not found</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm text-slate-600">This venue doesn&apos;t exist or isn&apos;t published.</p>
-            <Button asChild variant="outline">
-              <Link to="/venues">Back to venues</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </PageShell>
+      <div className="bg-gradient-to-b from-background to-muted">
+        <PageContainer className="space-y-6 pb-16 pt-8 md:pt-10 lg:pb-20">
+          <Card className="border border-slate-200 bg-white shadow-sm">
+            <CardHeader>
+              <CardTitle>Venue not found</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Text variant="muted">
+                This venue doesn&apos;t exist or isn&apos;t published.
+              </Text>
+              <Button asChild variant="outline">
+                <Link to="/venues">Back to venues</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </PageContainer>
+      </div>
     );
   }
 
-  const ticketType = venue.ticket_type?.trim() ?? "";
-  const priceFrom = venue.price_from?.trim() ?? "";
-  const websiteUrl = venue.website_url?.trim() ?? "";
-  const bookingUrl = venue.booking_url?.trim() ?? "";
-  const contactPhone = venue.contact_phone?.trim() ?? "";
-  const totalCatches = venue.total_catches ?? 0;
-  const recentWindow = venue.recent_catches_30d ?? 0;
-  const facilities = (venue.facilities ?? []).filter(Boolean);
-  const bestForTags = (venue.best_for_tags ?? []).filter(Boolean);
-  const hasTicketsContent = !!ticketType || !!priceFrom || !!websiteUrl || !!bookingUrl || !!contactPhone;
-  const hasFacilities = facilities.length > 0;
-  const hasBestFor = bestForTags.length > 0;
-  const normalize = (value: string) => value.trim().toLowerCase();
-  const bestForSet = new Set(bestForTags.map((tag) => normalize(tag)));
-  const filteredFacilities = facilities.filter((item) => !bestForSet.has(normalize(item)));
-  const getDisplayPriceFrom = (raw: string | null | undefined) => {
-    if (!raw) return "";
-    const trimmed = raw.trim();
-    if (!trimmed) return "";
-    if (trimmed.toLowerCase().startsWith("from ")) return trimmed;
-    return `From ${trimmed}`;
-  };
-  const displayPriceFrom = getDisplayPriceFrom(venue.price_from);
-  const hasPlanContent = hasTicketsContent || hasBestFor || hasFacilities;
-  const fallbackCatchPhotos = recentCatches.filter((c) => c.image_url).slice(0, 4);
-  const featuredCatch = topCatches[0];
-  const humanizeSpecies = (species?: string | null) =>
-    species ? species.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "Species unknown";
-  const heroTagline =
-    venue.short_tagline ||
-    (venue.description ? `${venue.description.split(". ").slice(0, 2).join(". ")}${venue.description.includes(".") ? "." : ""}` : "") ||
-    "Details autogenerated from our venue list. Community catches coming soon.";
-  const aboutText =
-    venue.description || heroTagline || "Details coming soon.";
-  const heroImage =
-    photos.length > 0
-      ? getPublicAssetUrl(photos[0].image_path)
-      : fallbackCatchPhotos.length > 0
-      ? fallbackCatchPhotos[0].image_url
-      : null;
 
-  const formatEventDate = (startsAt: string, endsAt: string | null) => {
-    const start = new Date(startsAt);
-    const end = endsAt ? new Date(endsAt) : null;
-    const startDate = start.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
-    const startTime = start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-    const endTime = end ? end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }) : null;
-    return endTime ? `${startDate} · ${startTime}–${endTime}` : `${startDate} · ${startTime}`;
-  };
+  const BookingCtaBanner = () => {
+    const bannerPrimaryLabel = bookingUrl ? "Book your session" : "Visit website";
+    const bannerPrimaryUrl =
+      !bookingUrl || bookingEnabled ? bookingUrl || websiteUrl : null;
+    const bannerSecondaryLabel = websiteUrl ? "Check availability" : "Get directions";
+    const bannerSecondaryUrl = websiteUrl || mapsUrl;
+    const bannerSubtextParts = [
+      activeAnglers > 0
+        ? `See ${activeAnglers} leaderboard entr${activeAnglers === 1 ? "y" : "ies"}.`
+        : "",
+      displayPriceFrom ? `${displayPriceFrom} day tickets.` : "",
+    ].filter(Boolean);
+    const bannerSubtext = bannerSubtextParts.length
+      ? bannerSubtextParts.join(" ")
+      : "Book your next session directly with the venue.";
 
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.name)}`;
-  const hasRatings = (ratingCount ?? 0) > 0;
-  const formattedAvg = avgRating ? Number(avgRating).toFixed(1) : null;
-  const ratingSummary = hasRatings && formattedAvg ? (
-    <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-      <span>{formattedAvg}</span>
-      <Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" />
-      <span className="text-[11px] font-normal text-slate-200/80">({ratingCount})</span>
-    </div>
-  ) : (
-    <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-200/80">No ratings yet</span>
-  );
-
-  return (
-    <PageShell>
-      <div className="relative z-0 grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)] md:items-start">
-          <div className="space-y-3">
-            <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 text-white shadow-lg">
-              <div className="flex flex-col gap-5 p-6 md:p-7">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-3 md:max-w-2xl">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-200">
-                      <Link to="/venues" className="hover:underline">
-                        Venues
-                      </Link>{" "}
-                      / <span className="text-sky-300">{venue.name}</span>
-                    </p>
-                    <h1 className="text-3xl font-bold leading-tight md:text-4xl">{venue.name}</h1>
-                    {venue.is_published === false && (isOwner || isAdmin) ? (
-                      <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
-                        Unpublished – only visible to you and admins
-                      </span>
-                    ) : null}
-                    <div className="flex flex-wrap items-center gap-2 text-sm text-slate-100">
-                      {venue.location ? (
-                        <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1">
-                          <MapPin className="h-4 w-4 text-slate-200" />
-                          <span>{venue.location}</span>
-                        </span>
-                      ) : null}
-                    </div>
-                    <p className="max-w-3xl text-sm text-slate-100/80">{heroTagline}</p>
-                    <div className="flex flex-col gap-2 rounded-xl bg-white/5 p-3 text-xs text-slate-200/80 ring-1 ring-white/10">
-                      <div>{ratingSummary}</div>
-                      {user ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-[11px] font-semibold uppercase tracking-wide text-slate-200/90">Your rating</span>
-                          <div className="flex items-center gap-2">
-                            <StarRating value={userRating} onSelect={handleRatingSelect} disabled={ratingLoading} />
-                            {userRating ? (
-                              <span className="text-[11px] text-slate-200/80">You rated this {userRating} star{userRating === 1 ? "" : "s"}</span>
-                            ) : (
-                              <span className="text-[11px] text-slate-200/80">Tap a star to leave your rating</span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-[11px] text-slate-200/80">
-                          <Link to="/auth" className="underline hover:text-white">
-                            Log in
-                          </Link>{" "}
-                          to rate this venue.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  {(isAdmin || isOwner) && (
-                    <div className="pt-1">
-                      {isAdmin ? (
-                        <Button asChild variant="outline" size="sm" className="text-xs font-semibold">
-                          <Link to={`/admin/venues/${venue.slug}`}>Edit venue</Link>
-                        </Button>
-                      ) : (
-                        <Button variant="outline" size="sm" className="text-xs font-semibold" disabled title="Owner tools coming soon">
-                          Manage venue
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
+    return (
+      <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-10 text-white shadow-2xl md:px-10">
+        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+          {recentWindow > 0 ? (
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              High demand last 30 days
             </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm px-4 py-3">
-              <div className="flex flex-wrap items-center gap-2">
-              <Button asChild size="sm" variant="outline" className="text-sm font-semibold">
-                <a href={mapsUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
-                  View on maps
-                  <ExternalLink className="h-3.5 w-3.5" />
+          ) : null}
+          <h2 className="text-3xl font-bold text-white md:text-4xl">
+            Ready to land your next PB?
+          </h2>
+          <p className="mt-3 text-base text-blue-100 md:text-lg">
+            {bannerSubtext}
+          </p>
+          <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+            {bannerPrimaryUrl ? (
+              <Button
+                asChild
+                className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg transition hover:bg-slate-100 sm:w-auto"
+              >
+                <a href={bannerPrimaryUrl} target="_blank" rel="noreferrer">
+                  {bannerPrimaryLabel}
                 </a>
               </Button>
-              {websiteUrl ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={websiteUrl} target="_blank" rel="noreferrer">
-                    Visit website
-                  </a>
-                </Button>
-              ) : null}
-              {bookingUrl ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={bookingUrl} target="_blank" rel="noreferrer">
-                    Book now
-                  </a>
-                </Button>
-              ) : null}
-              {contactPhone ? (
-                <Button variant="outline" size="sm" className="text-sm font-semibold" asChild>
-                  <a href={`tel:${contactPhone}`}>Call</a>
-                </Button>
-              ) : null}
-              {user ? (
-                <Button asChild variant="default" size="sm" className="px-4 text-sm font-semibold">
-                  {!isAdmin && (
-                    <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
-                  )}
-                </Button>
-              ) : null}
+            ) : (
+              <Button
+                disabled
+                className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg sm:w-auto"
+              >
+                {bannerPrimaryLabel}
+              </Button>
+            )}
+            <Button
+              asChild
+              className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 sm:w-auto"
+            >
+              <a href={bannerSecondaryUrl} target="_blank" rel="noreferrer">
+                {bannerSecondaryLabel}
+              </a>
+            </Button>
+          </div>
+          {!bookingEnabled && bookingUrl ? (
+            <p className="mt-3 text-xs text-blue-100">
+              Bookings currently closed.
+            </p>
+          ) : null}
+          <p className="mt-4 text-xs text-blue-100">
+            {ticketType || "Day tickets available"}
+            {recentWindow > 0
+              ? ` • ${recentWindow} catches in the last 30 days`
+              : ""}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="bg-gradient-to-b from-background to-muted">
+      <VenueHero
+        venue={venue}
+        heroTagline={heroTagline}
+        ratingSummaryText={ratingSummaryText}
+        userRating={userRating}
+        isLoggedIn={!!user}
+        onOpenRatingModal={openRatingModal}
+        isOwner={isOwner}
+        isAdmin={isAdmin}
+        primaryCtaUrl={primaryCtaUrl}
+        secondaryCtaUrl={secondaryCtaUrl}
+        secondaryCtaLabel={secondaryCtaLabel}
+        contactPhone={contactPhone}
+        mapsUrl={mapsUrl}
+        bookingEnabled={bookingEnabled}
+        heroHasImage={heroHasImage}
+        heroReady={heroReady}
+        activeHeroImage={activeHeroImage}
+        scrimClass={scrimClass}
+        hasHeroCarousel={hasHeroCarousel}
+        heroImages={heroImages}
+        heroIndex={heroIndex}
+        setHeroIndex={setHeroIndex}
+        onHeroImageLoad={handleHeroImageLoad}
+        onHeroImageError={handleHeroImageError}
+      />
+      <PageContainer className="pb-16 pt-2 md:pt-4 lg:pb-20">
+        <div>
+          <HeroStatsStrip
+            totalCatches={totalCatches}
+            recentWindow={recentWindow}
+            recordWeightLabel={recordWeightLabel}
+            topSpeciesLabel={topSpeciesLabel}
+          />
+          <div className="-mx-4 bg-white md:-mx-6 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <AboutSection
+                aboutText={aboutText}
+                aboutExpanded={aboutExpanded}
+                onToggleAboutExpanded={handleToggleAboutExpanded}
+                showAdminHint={showAboutAdminHint}
+                venueName={venue.name}
+                recordWeightLabel={recordWeightLabel}
+                recordSpeciesLabel={recordSpeciesLabel}
+                featuredCatch={featuredCatch}
+              />
+            </div>
+          </div>
+          <div className="-mx-4 bg-slate-50 md:-mx-6 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <VenueCarouselSection
+                items={carouselItems}
+                label={carouselLabel}
+                index={carouselIndex}
+                onPrev={handleCarouselPrev}
+                onNext={handleCarouselNext}
+                onIndexChange={handleCarouselIndexChange}
+                swipeStartRef={carouselSwipeStartRef}
+              />
+            </div>
+          </div>
+          <div className="-mx-4 bg-white py-16 md:-mx-6 md:py-20 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <RecentCatchesSection
+                recentCatches={recentCatches}
+                totalCatches={totalCatches}
+                recentWindow={recentWindow}
+                venueName={venue.name}
+                venueSlug={venue.slug}
+                isLoggedIn={!!user}
+                isAdmin={isAdmin}
+                viewAllCount={viewAllCount}
+              />
+            </div>
+          </div>
+          <div className="-mx-4 bg-[#F8FAFC] md:-mx-6 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <PlanYourVisitSection
+                hasPlanContent={planHasContent}
+                isOwner={isOwner}
+                isAdmin={isAdmin}
+                pricingLines={pricingLines}
+                ticketType={ticketType}
+                contactPhone={contactPhone}
+                facilitiesList={facilitiesList}
+                bestForTags={bestForTags}
+                openingHours={openingHours}
+                pricingTiers={pricingTiers}
+                rulesText={rulesText}
+                bookingEnabled={bookingEnabled}
+                isOperationalLoading={operationalLoading}
+                bookingUrl={bookingUrl}
+                websiteUrl={websiteUrl}
+                mapsUrl={mapsUrl}
+              />
+            </div>
+          </div>
+          <div className="-mx-4 py-16 md:-mx-6 md:py-20 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <BookingCtaBanner />
+            </div>
+          </div>
+          {hasEvents ? (
+            <div className="-mx-4 bg-blue-50 py-16 md:-mx-6 md:py-20 lg:-mx-8">
+              <div className="px-4 md:px-6 lg:px-8">
+                <EventsSection
+                  upcomingEvents={upcomingEvents}
+                  pastEvents={pastEvents}
+                  eventsLoading={eventsLoading}
+                  pastEventsLoading={pastEventsLoading}
+                  pastHasMore={pastHasMore}
+                  showPastEvents={showPastEvents}
+                  onTogglePastEvents={handleTogglePastEvents}
+                  onLoadPastEvents={handleLoadPastEvents}
+                />
               </div>
             </div>
-
-            <section className="space-y-2 rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">About this venue</p>
-              <h2 className="text-xl font-semibold text-slate-900">About {venue.name}</h2>
-              <p className="max-w-4xl text-sm text-slate-800">{aboutText}</p>
-              {!(venue.description || heroTagline) && (isAdmin || isOwner) ? (
-                <p className="text-xs text-slate-500">Add more information about this venue from the Manage venue page.</p>
-              ) : null}
-            </section>
-
-            <section className="space-y-4 rounded-2xl border border-slate-200 bg-white p-0 shadow-sm">
-              <div className="bg-gradient-to-r from-primary/10 to-slate-50 px-6 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-primary">Visiting Us</p>
-                <h2 className="text-lg font-semibold text-slate-900">What this place is like</h2>
-              </div>
-              <div className="grid gap-4 p-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:items-start">
-                <div className="space-y-2">
-                  <p className="text-sm text-slate-800">Photos curated by the venue and community.</p>
-                  {heroTagline ? (
-                    <p className="line-clamp-3 text-sm text-slate-600">{heroTagline}</p>
-                  ) : venue.description ? (
-                    <p className="line-clamp-3 text-sm text-slate-600">{venue.description}</p>
-                  ) : null}
-                  {photos.length === 0 && (isAdmin || isOwner) ? (
-                    <p className="text-xs text-slate-500">Admins/owners can add photos from the Manage venue page.</p>
-                  ) : null}
-                </div>
-                <div>
-                  {photosLoading ? (
-                    <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading photos…
-                    </div>
-                  ) : photos.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-2 lg:grid-cols-2">
-                      {photos.slice(0, 4).map((photo) => {
-                        const url = getPublicAssetUrl(photo.image_path);
-                        return (
-                          <div key={photo.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                            {url ? (
-                              <img src={url} alt={`${venue.name} venue photo`} className="aspect-[3/2] h-full w-full object-cover" />
-                            ) : (
-                              <div className="flex aspect-[3/2] items-center justify-center text-sm text-slate-500">No image</div>
-                            )}
-                            {photo.caption ? (
-                              <div className="px-3 py-2 text-xs text-slate-700">{photo.caption}</div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : fallbackCatchPhotos.length > 0 ? (
-                    <div className="grid grid-cols-2 gap-3 overflow-x-auto pb-2 sm:grid-cols-4 sm:overflow-visible">
-                      {fallbackCatchPhotos.map((c) => (
-                        <div key={c.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                          <img src={c.image_url} alt={c.title} className="aspect-[3/2] h-full w-full object-cover" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-50 p-5 text-sm text-slate-600">
-                      No photos yet — log a catch to help show this venue off.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-          </div>
-          <div className="space-y-3 md:space-y-4">
-            <Card className="flex flex-col overflow-hidden border border-slate-200 bg-white shadow-sm">
-              {featuredCatch?.image_url ? (
-                <img
-                  src={featuredCatch.image_url}
-                  alt={featuredCatch.title}
-                  className="h-56 w-full object-cover sm:h-64"
-                />
-              ) : heroImage ? (
-                <img
-                  src={heroImage}
-                  alt={`${venue.name} record`}
-                  className="h-56 w-full object-cover sm:h-64"
-                />
-              ) : (
-                <div className="flex h-48 items-center justify-center bg-gradient-to-br from-slate-800 to-slate-700 text-sm text-slate-200">
-                  No venue record logged yet
-                </div>
-              )}
-              <CardContent className="flex flex-col space-y-2 p-4">
-                <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-700">
-                  <Fish className="h-3.5 w-3.5" />
-                  Venue record
-                </div>
-                <p className="text-lg font-bold text-slate-900">
-                  {featuredCatch?.weight
-                    ? `${featuredCatch.weight}${featuredCatch.weight_unit === "kg" ? "kg" : "lb"} ${humanizeSpecies(featuredCatch.species)}`
-                    : "No venue record logged yet"}
-                </p>
-                {featuredCatch ? (
-                  <div className="mt-1 flex items-center justify-between gap-3">
-                    <Link
-                      to={`/profile/${featuredCatch.profiles?.username ?? featuredCatch.user_id}`}
-                      className="flex items-center gap-2"
-                    >
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage
-                          src={
-                            featuredCatch.profiles?.avatar_path
-                              ? undefined
-                              : featuredCatch.profiles?.avatar_url ?? undefined
-                          }
-                        />
-                        <AvatarFallback>
-                          {featuredCatch.profiles?.username?.[0]?.toUpperCase() ?? "A"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm font-medium text-slate-900">
-                        {featuredCatch.profiles?.username ?? "Unknown angler"}
-                      </span>
-                    </Link>
-                    <span className="text-xs text-slate-500">
-                      {new Date(featuredCatch.created_at).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                  </div>
-                ) : (
-                  <p className="text-sm text-slate-600">Be the first to set a venue record here.</p>
-                )}
-                <div className="pt-2">
-                  {featuredCatch ? (
-                    <Button asChild className="w-full">
-                      <Link to={`/catch/${featuredCatch.id}`}>View catch</Link>
-                    </Button>
-                  ) : (
-                    <Button asChild className="w-full">
-                      {!isAdmin && (
-                        <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch here</Link>
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <CardContent className="space-y-4 p-4">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Venue stats</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Catches logged</p>
-                  <p className="text-sm font-bold text-slate-900">{totalCatches}</p>
-                  <p className="text-xs text-slate-600">{totalCatches > 0 ? "Total catches on ReelyRated" : "No catches logged yet"}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Last 30 days</p>
-                  <p className="text-sm font-bold text-slate-900">{recentWindow}</p>
-                  <div className="text-xs text-slate-600">
-                    {recentWindow === 0
-                      ? "No catches yet"
-                      : recentWindow === 1
-                      ? "1 catch this month"
-                      : recentWindow < 5
-                      ? "A few catches this month"
-                      : (
-                        <span className="inline-flex items-center gap-1">
-                          <Flame className="h-3.5 w-3.5 text-amber-500" />
-                          <span>Hot this month</span>
-                        </span>
-                      )}
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Top species here</p>
-                  {venue.top_species && venue.top_species.length > 0 ? (
-                    <div className="space-y-1">
-                      {venue.top_species.slice(0, 3).map((species) => (
-                        <p key={species} className="text-sm font-semibold text-slate-900">
-                          {humanizeSpecies(species)}
-                        </p>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-slate-600">No species data yet</p>
-                  )}
-                  <p className="text-[11px] text-slate-500">Based on catches logged at this venue</p>
-                </div>
-              </CardContent>
-            </Card>
-            {(hasPlanContent || isOwner || isAdmin) && (
-              <section className="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Socials &amp; contact</p>
-                  <h2 className="text-xl font-semibold text-slate-900">Plan your visit</h2>
-                  <p className="text-sm text-slate-600">How to book, who to call, and what to expect on-site.</p>
-                </div>
-                <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50 p-4 text-sm text-slate-700">
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Tickets &amp; pricing</p>
-                    {ticketType || displayPriceFrom ? (
-                      <p className="text-base font-semibold text-slate-900">
-                        {ticketType ? `${ticketType}` : ""}
-                        {ticketType && displayPriceFrom ? " • " : ""}
-                        {displayPriceFrom || ""}
-                      </p>
-                    ) : (
-                      <p className="text-sm text-slate-500">Ticket details coming soon.</p>
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Contact</p>
-                    {contactPhone ? (
-                      <p className="font-semibold text-slate-900">Call: {contactPhone}</p>
-                    ) : (
-                      <p className="text-sm text-slate-500">Phone number not provided.</p>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-3">
-                    {websiteUrl ? (
-                      <Button variant="outline" size="sm" className="rounded-full" asChild>
-                        <a href={websiteUrl} target="_blank" rel="noreferrer">
-                          Visit website
-                        </a>
-                      </Button>
-                    ) : null}
-                    {bookingUrl ? (
-                      <Button variant="outline" size="sm" className="rounded-full" asChild>
-                        <a href={bookingUrl} target="_blank" rel="noreferrer">
-                          Book online
-                        </a>
-                      </Button>
-                    ) : null}
-                  </div>
-                  {!(ticketType || displayPriceFrom || contactPhone || websiteUrl || bookingUrl) && (isOwner || isAdmin) ? (
-                    <p className="text-xs text-slate-500">Owners can add contact and booking info from Edit / Manage venue.</p>
-                  ) : null}
-                  {hasBestFor ? (
-                    <div className="space-y-2 rounded-xl border border-slate-100 bg-white p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Best for</p>
-                      <div className="flex flex-wrap gap-2">
-                        {bestForTags.slice(0, 12).map((tag) => (
-                          <span
-                            key={tag}
-                            className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                  {hasFacilities || filteredFacilities.length > 0 ? (
-                    <div className="space-y-2 rounded-xl border border-slate-100 bg-white p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Facilities</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(filteredFacilities.length > 0 ? filteredFacilities : facilities).slice(0, 12).map((facility) => (
-                          <span
-                            key={facility}
-                            className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
-                          >
-                            {facility}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                  {!hasBestFor && !hasFacilities && (isOwner || isAdmin) ? (
-                    <p className="text-xs text-slate-500">Owners can add facilities and best-for tags from Edit / Manage venue.</p>
-                  ) : null}
-                </div>
-              </section>
-            )}
-            { (upcomingEvents.length > 0 || pastEvents.length > 0) ? (
-              <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Events &amp; announcements</p>
-                  <h2 className="text-xl font-semibold text-slate-900">Updates from this venue</h2>
-                </div>
-                <div className="inline-flex rounded-full border border-slate-200 bg-slate-100 p-1 text-sm font-semibold text-slate-700">
-                  <button
-                    type="button"
-                    className={`rounded-full px-3 py-1 ${eventsTab === "upcoming" ? "bg-white shadow-sm" : ""}`}
-                    onClick={() => setEventsTab("upcoming")}
-                  >
-                    Upcoming
-                  </button>
-                  <button
-                    type="button"
-                    className={`rounded-full px-3 py-1 ${eventsTab === "past" ? "bg-white shadow-sm" : ""}`}
-                    onClick={() => setEventsTab("past")}
-                  >
-                    Past
-                  </button>
-                </div>
-
-                {eventsTab === "upcoming" ? (
-                  eventsLoading ? (
-                    <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading events…
-                    </div>
-                  ) : upcomingEvents.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-slate-200 bg-white p-5 text-sm text-slate-600">
-                      No upcoming events — check back soon.
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {upcomingEvents.map((event) => (
-                        <Card key={event.id} className="border border-slate-200 bg-white shadow-sm">
-                          <CardContent className="space-y-2 p-4">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="space-y-1">
-                                <p className="text-sm font-semibold text-slate-900">{event.title}</p>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                  {formatEventDate(event.starts_at, event.ends_at)}
-                                </p>
-                              </div>
-                              {event.event_type ? (
-                                <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700">
-                                  {event.event_type}
-                                </span>
-                              ) : null}
-                            </div>
-                            {event.description ? (
-                              <p className="text-sm text-slate-600 line-clamp-3">{event.description}</p>
-                            ) : null}
-                            {event.ticket_info ? (
-                              <p className="text-xs font-semibold text-slate-700">Tickets: {event.ticket_info}</p>
-                            ) : null}
-                            <div className="flex flex-wrap items-center gap-3">
-                              {event.booking_url ? (
-                                <Button asChild size="sm" variant="outline" className="rounded-full">
-                                  <a href={event.booking_url} target="_blank" rel="noreferrer">
-                                    Book now
-                                  </a>
-                                </Button>
-                              ) : event.website_url ? (
-                                <Button asChild size="sm" variant="outline" className="rounded-full">
-                                  <a href={event.website_url} target="_blank" rel="noreferrer">
-                                    More details
-                                  </a>
-                                </Button>
-                              ) : null}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  )
-                ) : pastEventsLoading ? (
-                  <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-slate-500">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading past events…
-                  </div>
-                ) : pastEvents.length === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-5 text-sm text-slate-600">
-                    No past events yet.
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {pastEvents.map((event) => (
-                      <Card key={event.id} className="border border-slate-200 bg-white shadow-sm">
-                        <CardContent className="space-y-2 p-4">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="space-y-1">
-                              <p className="text-sm font-semibold text-slate-900">{event.title}</p>
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                {formatEventDate(event.starts_at, event.ends_at)}
-                              </p>
-                            </div>
-                            {event.event_type ? (
-                              <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-700">
-                                {event.event_type}
-                              </span>
-                            ) : null}
-                          </div>
-                          {event.description ? (
-                            <p className="text-sm text-slate-500 line-clamp-3">{event.description}</p>
-                          ) : null}
-                          {event.ticket_info ? (
-                            <p className="text-xs font-semibold text-slate-600">Tickets: {event.ticket_info}</p>
-                          ) : null}
-                          <div className="flex flex-wrap items-center gap-3">
-                            {event.booking_url ? (
-                              <Button asChild size="sm" variant="outline" className="rounded-full">
-                                <a href={event.booking_url} target="_blank" rel="noreferrer">
-                                  Book now
-                                </a>
-                              </Button>
-                            ) : event.website_url ? (
-                              <Button asChild size="sm" variant="outline" className="rounded-full">
-                                <a href={event.website_url} target="_blank" rel="noreferrer">
-                                  More details
-                                </a>
-                              </Button>
-                            ) : null}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    {pastHasMore ? (
-                      <div className="flex justify-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full px-4"
-                          disabled={pastEventsLoading}
-                          onClick={() => venue && void loadPastEvents(venue.id, pastOffset, true)}
-                        >
-                          {pastEventsLoading ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Loading…
-                            </>
-                          ) : (
-                            "Load more past events"
-                          )}
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                )}
-              </section>
-            ) : null}
+          ) : null}
+          <div className="-mx-4 bg-white md:-mx-6 lg:-mx-8">
+            <div className="px-4 md:px-6 lg:px-8">
+              <LeaderboardSection
+                topCatches={topCatches}
+                topLoading={topLoading}
+              />
+            </div>
           </div>
         </div>
-
-        <section className="relative z-10 mt-4 space-y-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:mt-6">
-          <div className="space-y-1">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Community catches</p>
-            <h2 className="text-xl font-semibold text-slate-900">What anglers are logging here</h2>
+      </PageContainer>
+      <LocationMapSection
+        mapEmbedUrl={mapEmbedUrl}
+        mapsUrl={mapsUrl}
+        venueName={venue.name}
+        venueLocation={venue.location}
+        contactPhone={contactPhone}
+        stickyCtaOffset={
+          showStickyActions ? Math.max(stickyCtaHeight, 88) : 0
+        }
+      />
+      <RatingModal
+        open={ratingModalOpen}
+        onClose={closeRatingModal}
+        pendingRating={pendingRating}
+        onPendingRatingChange={setPendingRating}
+        onSubmit={handleRatingSelect}
+        loading={ratingLoading}
+        ratingSummaryText={ratingSummaryText}
+        venueName={venue.name}
+        triggerRef={ratingTriggerRef}
+      />
+      {showStickyActions ? (
+        <div
+          ref={stickyCtaRef}
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/90 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur md:hidden"
+        >
+          <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
+            <Button
+              asChild
+              className="flex-1 h-12 rounded-full bg-primary text-white shadow-lg"
+            >
+              <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>
+                Log catch
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-12 rounded-full border-slate-200 bg-white"
+            >
+              <a href={mapsUrl} target="_blank" rel="noreferrer">
+                Maps
+              </a>
+            </Button>
           </div>
-
-          {totalCatches <= 0 ? (
-            <Card className="border border-dashed border-slate-300 bg-white shadow-sm">
-              <CardContent className="space-y-2 p-5 text-sm text-slate-600">
-                <p>No catches have been logged at this venue yet.</p>
-                <p>Be the first to add one from your catch log.</p>
-                {user && !isAdmin ? (
-                  <Button asChild className="rounded-full">
-                    <Link to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}>Log a catch at this venue</Link>
-                  </Button>
-                ) : null}
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Recent catches</p>
-                  <h3 className="text-lg font-semibold text-slate-900">Latest from the community</h3>
-                </div>
-                {renderCatchesGrid(recentCatches)}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <Button variant="ghost" size="sm" className="rounded-full px-4 text-sm text-primary">
-                    <Link to={`/feed?venue=${venue.slug}`}>View all catches from this venue</Link>
-                  </Button>
-                  {recentHasMore ? (
-                    <Button
-                      variant="outline"
-                      onClick={() => venue && void loadRecentCatches(venue.id, recentOffset, true)}
-                      disabled={recentLoading}
-                      className="h-11 rounded-full px-6"
-                    >
-                      {recentLoading ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading…
-                        </>
-                      ) : (
-                        "Load more"
-                      )}
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-
-              {topCatches.length > 0 ? (
-                <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="space-y-1">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Top catches</p>
-                      <h3 className="text-lg font-semibold text-slate-900">Heaviest catches logged here</h3>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Species</span>
-                      <select
-                        className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700"
-                        value={selectedSpecies}
-                        onChange={(e) => setSelectedSpecies(e.target.value)}
-                      >
-                        <option value="all">All species</option>
-                        {[...new Set(topCatches.map((c) => (c.species ? c.species.replace(/_/g, " ") : "")))]
-                          .filter((s) => s)
-                          .map((species) => (
-                            <option key={species} value={species}>
-                              {species}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
-                  </div>
-                  {topLoading ? (
-                    <div className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-6 text-slate-500">
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Loading top catches…
-                    </div>
-                  ) : (
-                    <Card className="border border-slate-200 bg-white shadow-sm">
-                      <CardContent className="p-0">
-                        <div className="divide-y divide-slate-100 text-sm text-slate-700">
-                          {topCatches
-                            .filter(
-                              (item) => selectedSpecies === "all" || (item.species ? item.species.replace(/_/g, " ") : "") === selectedSpecies
-                            )
-                            .slice(0, 3)
-                            .map((item, index) => (
-                              <div
-                                key={item.id}
-                                className={`flex flex-col gap-3 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 ${
-                                  index === 0 ? "border-l-4 border-primary/40 bg-primary/5" : ""
-                                } hover:bg-slate-50`}
-                              >
-                                <div className="flex items-start gap-3 sm:items-center">
-                                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">#{index + 1}</span>
-                                  <div className="space-y-1">
-                                    <p className="text-base font-bold text-slate-900">
-                                      {item.weight ? `${item.weight}${item.weight_unit === "kg" ? "kg" : "lb"}` : "Weight n/a"}
-                                    </p>
-                                    <p className="text-xs text-slate-500">{item.species ? item.species.replace(/_/g, " ") : "Species unknown"}</p>
-                                    <p className="text-xs text-slate-500">{new Date(item.created_at).toLocaleDateString()}</p>
-                                  </div>
-                                </div>
-                                <div className="flex flex-1 items-center justify-between gap-3 sm:justify-end">
-                                  <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                      <AvatarImage
-                                        src={
-                                          item.profiles?.avatar_path
-                                            ? undefined
-                                            : item.profiles?.avatar_url ?? undefined
-                                        }
-                                      />
-                                      <AvatarFallback>{item.profiles?.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
-                                    </Avatar>
-                                    <Link
-                                      to={`/profile/${item.profiles?.username ?? item.user_id}`}
-                                      className="text-sm font-semibold text-slate-900 hover:text-primary"
-                                    >
-                                      {item.profiles?.username ?? "Unknown angler"}
-                                    </Link>
-                                  </div>
-                                  <Button asChild size="sm" className="h-9 rounded-full px-4">
-                                    <Link to={`/catch/${item.id}`}>View catch</Link>
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              ) : null}
-
-            </div>
-          )}
-        </section>
-    </PageShell>
+        </div>
+      ) : null}
+    </div>
   );
 };
 

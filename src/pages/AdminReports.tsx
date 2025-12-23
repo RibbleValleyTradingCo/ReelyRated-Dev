@@ -38,6 +38,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Check, ChevronDown, Filter } from "lucide-react";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type SeverityOption = "warning" | "temporary_suspension" | "permanent_ban";
 type ReportStatus = "open" | "resolved" | "dismissed";
@@ -793,11 +800,26 @@ const AdminReports = () => {
     setWarnDuration("24");
   };
 
+  const typeLabel = filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1);
+  const statusLabel =
+    statusFilter === "all" ? "All" : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+  const dateLabel =
+    dateRange === "24h"
+      ? "24h"
+      : dateRange === "7d"
+        ? "7 days"
+        : dateRange === "30d"
+          ? "30 days"
+          : "All";
+  const filterSummary = `Type: ${typeLabel} • Status: ${statusLabel} • Date: ${dateLabel}`;
+
   // Show loading spinner while checking admin status
   if (adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageContainer className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </PageContainer>
       </div>
     );
   }
@@ -809,421 +831,566 @@ const AdminReports = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
-            <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-            <p className="text-sm text-muted-foreground">
-              Review and act on user reports.
-            </p>
-          </div>
-          <Button variant="outline" onClick={() => navigate(-1)}>
-            Back
-          </Button>
-        </div>
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-6xl py-6 md:py-8 overflow-x-hidden">
+        <div className="space-y-6 min-w-0">
+          <Section>
+            <SectionHeader
+              eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
+              title="Reports"
+              subtitle="Review and act on user reports."
+              actions={
+                <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
+                  Back
+                </Button>
+              }
+            />
+          </Section>
 
-        <Card className="border-border/70">
-          <CardContent className="space-y-4 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="space-y-1">
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Filters
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Narrow down the reports queue.
-                </p>
-              </div>
-              {activeFilterChips.length > 0 && (
-                <div className="flex flex-wrap items-center gap-2">
-                  {activeFilterChips.map((chip, index) => (
-                    <Button
-                      key={chip.label + index.toString()}
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-full px-3"
-                      onClick={chip.onClear}
-                    >
-                      {chip.label}
-                    </Button>
-                  ))}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={resetFilters}
-                    className="text-xs"
-                  >
-                    Reset filters
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Type</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["all", "catch", "comment", "profile"] as const).map((type) => (
-                    <Button
-                      key={type}
-                      variant={filter === type ? "ocean" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setFilter(type);
-                        setPage(1);
-                      }}
-                    >
-                      {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Status</p>
-                <div className="flex flex-wrap gap-2">
-                  {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
-                    <Button
-                      key={status}
-                      variant={statusFilter === status ? "ocean" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setStatusFilter(status);
-                        setPage(1);
-                      }}
-                    >
-                      {status === "all"
-                        ? "All statuses"
-                        : status.charAt(0).toUpperCase() + status.slice(1)}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-medium text-muted-foreground">Date</p>
-                <div className="flex">
-                  <div className="flex w-full rounded-md border border-border/70 overflow-hidden">
-                    {(["24h", "7d", "30d", "all"] as const).map((range) => (
+          <Section>
+            <div className="sticky top-16 z-20 space-y-3">
+              <Card className="border-border/70 w-full bg-card/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+                <CardContent className="space-y-5 p-4 md:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 min-w-0">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+                      <Filter className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-1 min-w-0">
+                      <Text variant="small" className="font-semibold uppercase tracking-wide">
+                        Filters
+                      </Text>
+                      <Text variant="small">Narrow down the reports queue.</Text>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 min-w-0">
+                    {activeFilterChips.map((chip, index) => (
                       <Button
-                        key={range}
-                        variant={dateRange === range ? "ocean" : "ghost"}
+                        key={chip.label + index.toString()}
+                        variant="secondary"
                         size="sm"
-                        className="flex-1 rounded-none"
-                        onClick={() => {
-                          setDateRange(range);
-                          setPage(1);
-                        }}
+                        className="rounded-full px-3 py-2"
+                        onClick={chip.onClear}
                       >
-                        {range === "24h"
-                          ? "24h"
-                          : range === "7d"
-                          ? "7 days"
-                          : range === "30d"
-                          ? "30 days"
-                          : "All"}
+                        {chip.label}
                       </Button>
                     ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetFilters}
+                      className="text-xs min-h-[36px]"
+                    >
+                      Reset filters
+                    </Button>
                   </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between gap-3">
-              <CardTitle>Reports</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Sort</span>
-                <div className="flex rounded-md border border-border/70 overflow-hidden">
-                  {(["newest", "oldest"] as const).map((order) => (
-                    <Button
-                      key={order}
-                      variant={sortOrder === order ? "ocean" : "ghost"}
-                      size="sm"
-                      className="rounded-none"
-                      onClick={() => {
-                        setSortOrder(order);
-                        setPage(1);
-                      }}
-                    >
-                      {order === "newest" ? "Newest first" : "Oldest first"}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading reports…</p>
-            ) : filteredReports.length === 0 ? (
-              <div className="rounded-md border border-dashed border-border/70 bg-muted/40 p-4">
-                <p className="text-sm text-muted-foreground">
-                  {filteredUserId
-                    ? `No reports about ${filteredUsername ? `@${filteredUsername}` : "this user"} match these filters.`
-                    : "No reports match these filters right now."}
-                </p>
-                <div className="mt-3">
-                  <Button variant="outline" size="sm" onClick={resetFilters}>
-                    Reset filters
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              filteredReports.map((report) => {
-                const isSelected = selectedReport?.id === report.id;
-                const currentDetails = isSelected ? details : null;
-                const isStatusUpdating = updatingId === report.id;
-                const canDelete =
-                  isSelected &&
-                  currentDetails &&
-                  !currentDetails.targetMissing &&
-                  ["catch", "comment"].includes(report.target_type);
-                const canWarn = Boolean(currentDetails?.targetUserId);
-                const canRestore =
-                  isSelected &&
-                  currentDetails &&
-                  Boolean(currentDetails.deletedAt) &&
-                  ["catch", "comment"].includes(report.target_type);
-
-                return (
-                  <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
-                        <Badge variant="secondary" className="uppercase tracking-wide">
-                          {report.target_type}
-                        </Badge>
-                        <Select
-                          value={report.status}
-                          onValueChange={(value) => handleUpdateStatus(report.id, value as ReportStatus)}
-                          disabled={isStatusUpdating}
-                        >
-                          <SelectTrigger className="w-[150px] h-8">
-                            <SelectValue placeholder={report.status} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {(["open", "resolved", "dismissed"] as const).map((status) => (
-                              <SelectItem key={status} value={status}>
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <span className="text-xs text-muted-foreground">·</span>
-                        <span className="text-xs text-muted-foreground">
-                          {formatRelative(report.created_at)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
+                <details className="block sm:hidden rounded-lg border border-border/70 bg-muted/30 p-3">
+                  <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-md border border-border/70 bg-white/60 px-3 py-2 text-sm text-muted-foreground">
+                    <span className="truncate">{filterSummary}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  </summary>
+                  <div className="mt-3 space-y-4">
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Type
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["all", "catch", "comment", "profile"] as const).map((type) => (
+                          <Button
+                          key={type}
+                          variant={filter === type ? "ocean" : "outline"}
                           size="sm"
-                          className="text-primary"
-                          onClick={() => void handleViewTarget(report, currentDetails?.parentCatchId)}
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setFilter(type);
+                            setPage(1);
+                          }}
                         >
-                          View target
-                        </Button>
-                        {isSelected ? (
-                          <Button variant="ghost" size="sm" onClick={handleCloseDetails}>
-                            Close
+                            {filter === type ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
+                            </span>
                           </Button>
-                        ) : (
-                          <Button variant="outline" size="sm" onClick={() => void handleSelectReport(report)}>
-                            Moderation actions
-                          </Button>
-                        )}
+                        ))}
                       </div>
                     </div>
-                    <p className="mt-2 text-sm text-foreground whitespace-pre-wrap">{report.reason}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Reported by {report.reporter?.username ?? report.reporter?.id ?? "Unknown"}
-                    </p>
 
-                    {isSelected && (
-                      <div className="mt-3 space-y-3">
-                        {detailsLoading ? (
-                          <p className="text-sm text-muted-foreground">Loading moderation context…</p>
-                        ) : currentDetails ? (
-                          <>
-                            {currentDetails.targetProfile?.id ? (
-                              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                                <span>
-                                  Target user: {currentDetails.targetProfile.username ?? currentDetails.targetProfile.id}
-                                </span>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-primary"
-                                  onClick={() =>
-                                    navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`, {
-                                      state: { from: "reports" },
-                                    })
-                                  }
-                                >
-                                  View moderation history
-                                </Button>
-                              </div>
-                            ) : null}
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Status
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
+                          <Button
+                          key={status}
+                          variant={statusFilter === status ? "ocean" : "outline"}
+                          size="sm"
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setPage(1);
+                          }}
+                        >
+                            {statusFilter === status ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {status === "all"
+                                ? "All statuses"
+                                : status.charAt(0).toUpperCase() + status.slice(1)}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
 
-                            {currentDetails.targetMissing && (
-                              <div className="rounded border border-dashed border-destructive/60 bg-destructive/10 p-3 text-sm text-destructive">
-                                The reported content is no longer available.
-                              </div>
-                            )}
+                    <div className="space-y-2 min-w-0">
+                      <Text variant="small" className="font-medium text-muted-foreground">
+                        Date
+                      </Text>
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+                        {(["24h", "7d", "30d", "all"] as const).map((range) => (
+                          <Button
+                          key={range}
+                          variant={dateRange === range ? "ocean" : "ghost"}
+                          size="sm"
+                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setDateRange(range);
+                            setPage(1);
+                          }}
+                        >
+                            {dateRange === range ? <Check className="h-4 w-4 shrink-0" /> : null}
+                            <span className="truncate">
+                              {range === "24h"
+                                ? "24h"
+                                : range === "7d"
+                                ? "7 days"
+                                : range === "30d"
+                                ? "30 days"
+                                : "All"}
+                            </span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </details>
 
-                            {currentDetails.deletedAt && (
-                              <div className="rounded bg-red-50 p-3 text-sm text-red-700">
-                                Content deleted {formatRelative(currentDetails.deletedAt)}.
-                              </div>
-                            )}
+                <div className="hidden sm:grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <Text variant="small" className="font-medium text-muted-foreground">
+                      Type
+                    </Text>
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["all", "catch", "comment", "profile"] as const).map((type) => (
+                        <Button
+                          key={type}
+                          variant={filter === type ? "ocean" : "outline"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setFilter(type);
+                            setPage(1);
+                          }}
+                        >
+                          {filter === type ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">{type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
 
-                            <div className="flex items-center justify-between rounded bg-gray-50 p-3">
-                              <span className="font-medium">Status:</span>
-                              <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadgeVariants[report.status]}`}>
-                                {report.status.toUpperCase()}
-                              </span>
-                            </div>
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <Text variant="small" className="font-medium text-muted-foreground">
+                      Status
+                    </Text>
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
+                        <Button
+                          key={status}
+                          variant={statusFilter === status ? "ocean" : "outline"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setStatusFilter(status);
+                            setPage(1);
+                          }}
+                        >
+                          {statusFilter === status ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">
+                            {status === "all"
+                              ? "All statuses"
+                              : status.charAt(0).toUpperCase() + status.slice(1)}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
 
-                            <div className="rounded bg-slate-50 p-3 text-sm">
-                              <div className="flex items-center justify-between">
-                                <span>Moderation status</span>
-                                <span className="font-medium capitalize">{currentDetails.moderationStatus}</span>
-                              </div>
-                              {currentDetails.suspensionUntil && (
-                                <div className="mt-1 text-xs text-muted-foreground">
-                                  Suspended until {new Date(currentDetails.suspensionUntil).toLocaleString()}
-                                </div>
-                              )}
-                            </div>
+                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <Text variant="small" className="font-medium text-muted-foreground">
+                      Date
+                    </Text>
+                    <div className="flex flex-wrap gap-2 min-w-0">
+                      {(["24h", "7d", "30d", "all"] as const).map((range) => (
+                        <Button
+                          key={range}
+                          variant={dateRange === range ? "ocean" : "ghost"}
+                          size="sm"
+                          className="min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center gap-2"
+                          onClick={() => {
+                            setDateRange(range);
+                            setPage(1);
+                          }}
+                        >
+                          {dateRange === range ? <Check className="h-4 w-4 shrink-0" /> : null}
+                          <span className="truncate">
+                            {range === "24h"
+                              ? "24h"
+                              : range === "7d"
+                              ? "7 days"
+                              : range === "30d"
+                              ? "30 days"
+                              : "All"}
+                          </span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                </CardContent>
+              </Card>
+            </div>
+          </Section>
 
-                            <div className="space-y-2 rounded bg-blue-50 p-3">
-                              <div className="flex items-center justify-between text-sm">
-                                <span>Prior warnings</span>
-                                <span>
-                                  <strong>{currentDetails.warnCount}</strong>/3
-                                </span>
-                              </div>
-                              {currentDetails.userWarnings.length === 0 ? (
-                                <p className="text-xs text-muted-foreground">No prior warnings.</p>
-                              ) : (
-                                <div className="space-y-1 text-xs text-muted-foreground">
-                                  {currentDetails.userWarnings.map((warning) => (
-                                    <div key={warning.id} className="rounded border border-blue-200 bg-white/60 p-2">
-                                      <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-blue-700">
-                                        <span>{warning.severity.replace("_", " ")}</span>
-                                        <span>{formatRelative(warning.created_at)}</span>
-                                      </div>
-                                      <div className="mt-1 text-[13px] text-foreground">{warning.reason}</div>
-                                      {warning.duration_hours && (
-                                        <div className="text-[11px] text-muted-foreground">
-                                          Duration: {warning.duration_hours}h
-                                        </div>
-                                      )}
-                                      {warning.admin && (
-                                        <div className="text-[11px] text-muted-foreground">
-                                          By {warning.admin.username ?? warning.admin.id ?? "admin"}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+          <Section>
+            <Card className="w-full">
+              <CardHeader className="sticky top-[calc(4rem+16px)] z-10 bg-card/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between min-w-0">
+                  <Heading as="h2" size="md" className="text-foreground">
+                    Reports
+                  </Heading>
+                  <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:items-center min-w-0">
+                    <Text variant="small" className="text-muted-foreground min-w-0">Sort</Text>
+                    <div className="grid grid-cols-2 gap-2 sm:flex sm:rounded-md sm:border sm:border-border/70 sm:overflow-hidden">
+                      {(["newest", "oldest"] as const).map((order) => (
+                        <Button
+                          key={order}
+                          variant={sortOrder === order ? "ocean" : "ghost"}
+                          size="sm"
+                          className="w-full sm:w-auto sm:rounded-none min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                          onClick={() => {
+                            setSortOrder(order);
+                            setPage(1);
+                          }}
+                        >
+                          {order === "newest" ? "Newest first" : "Oldest first"}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <div className="border-t border-border/60" />
+              <CardContent className="space-y-3 pt-4">
+                {isLoading ? (
+                  <Text variant="muted" className="text-sm">
+                    Loading reports…
+                  </Text>
+                ) : filteredReports.length === 0 ? (
+                  <div className="rounded-md border border-dashed border-border/70 bg-muted/40 p-4">
+                    <Text variant="muted" className="text-sm">
+                      {filteredUserId
+                        ? `No reports about ${filteredUsername ? `@${filteredUsername}` : "this user"} match these filters.`
+                        : "No reports match these filters right now."}
+                    </Text>
+                    <div className="mt-3">
+                      <Button variant="outline" size="sm" onClick={resetFilters}>
+                        Reset filters
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  filteredReports.map((report) => {
+                    const isSelected = selectedReport?.id === report.id;
+                    const currentDetails = isSelected ? details : null;
+                    const isStatusUpdating = updatingId === report.id;
+                    const canDelete =
+                      isSelected &&
+                      currentDetails &&
+                      !currentDetails.targetMissing &&
+                      ["catch", "comment"].includes(report.target_type);
+                    const canWarn = Boolean(currentDetails?.targetUserId);
+                    const canRestore =
+                      isSelected &&
+                      currentDetails &&
+                      Boolean(currentDetails.deletedAt) &&
+                      ["catch", "comment"].includes(report.target_type);
 
-                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                              {canDelete && (
-                                <Button
-                                  onClick={() => setShowDeleteConfirm(true)}
-                                  disabled={isProcessingAction || isStatusUpdating}
-                                  className="px-3 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
-                                >
-                                  Delete {report.target_type === "catch" ? "post" : "comment"}
-                                </Button>
-                              )}
+                    return (
+                      <div key={report.id} className="rounded-lg border border-border/60 bg-card/70 p-3 space-y-3">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 text-sm min-w-0">
+                            <Badge variant="secondary" className="uppercase tracking-wide">
+                              {report.target_type}
+                            </Badge>
+                            <Select
+                              value={report.status}
+                              onValueChange={(value) => handleUpdateStatus(report.id, value as ReportStatus)}
+                              disabled={isStatusUpdating}
+                            >
+                              <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
+                                <SelectValue placeholder={report.status} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(["open", "resolved", "dismissed"] as const).map((status) => (
+                                  <SelectItem key={status} value={status}>
+                                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <span className="text-xs text-muted-foreground">·</span>
+                            <span className="text-xs text-muted-foreground">
+                              {formatRelative(report.created_at)}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center sm:gap-2 w-full sm:w-auto">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-primary w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
+                              onClick={() => void handleViewTarget(report, currentDetails?.parentCatchId)}
+                            >
+                              <span className="truncate">View target</span>
+                            </Button>
+                            {isSelected ? (
                               <Button
-                                onClick={() => setShowWarnDialog(true)}
-                                disabled={!canWarn || isProcessingAction || isStatusUpdating}
-                                className="px-3 py-2 bg-orange-600 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50"
+                                variant="ghost"
+                                size="sm"
+                                className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
+                                onClick={handleCloseDetails}
                               >
-                                Warn user
+                                <span className="truncate">Close</span>
                               </Button>
-                            </div>
-
-                            {canRestore && (
+                            ) : (
                               <Button
-                                onClick={() => void handleRestoreContent()}
-                                disabled={isProcessingAction}
-                                className="w-full px-3 py-2 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
+                                onClick={() => void handleSelectReport(report)}
                               >
-                                Restore {report.target_type === "catch" ? "post" : "comment"}
+                                <span className="truncate">Actions</span>
                               </Button>
                             )}
+                          </div>
+                        </div>
+                        <Text className="text-sm text-foreground whitespace-pre-wrap">{report.reason}</Text>
+                        <Text variant="muted" className="text-xs">
+                          Reported by {report.reporter?.username ?? report.reporter?.id ?? "Unknown"}
+                        </Text>
 
-                            <details className="rounded bg-gray-50 p-3">
-                              <summary className="cursor-pointer font-medium">Moderation history</summary>
-                              <div className="mt-3 space-y-2 text-sm">
-                                {currentDetails.modHistory.length === 0 ? (
-                                  <p className="text-xs text-muted-foreground">No moderation actions recorded.</p>
-                                ) : (
-                                  currentDetails.modHistory.map((entry) => (
-                                    <div key={entry.id} className="border-l-2 border-gray-300 pl-3">
-                                      <div className="font-medium">
-                                        {entry.admin?.username ?? entry.admin?.id ?? "Unknown admin"} – {entry.action}
-                                      </div>
-                                      <div className="text-gray-600">{entry.reason}</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {formatRelative(entry.created_at)}
-                                      </div>
-                                    </div>
-                                  ))
+                        {isSelected && (
+                          <div className="mt-3 space-y-3">
+                            {detailsLoading ? (
+                              <Text variant="muted" className="text-sm">
+                                Loading moderation context…
+                              </Text>
+                            ) : currentDetails ? (
+                              <>
+                                {currentDetails.targetProfile?.id ? (
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between text-sm text-muted-foreground min-w-0">
+                                    <Text className="truncate">
+                                      Target user: {currentDetails.targetProfile.username ?? currentDetails.targetProfile.id}
+                                    </Text>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="text-primary w-full sm:w-auto"
+                                      onClick={() =>
+                                        navigate(`/admin/users/${currentDetails.targetProfile?.id}/moderation`, {
+                                          state: { from: "reports" },
+                                        })
+                                      }
+                                    >
+                                      View moderation history
+                                    </Button>
+                                  </div>
+                                ) : null}
+
+                                {currentDetails.targetMissing && (
+                                  <div className="rounded border border-dashed border-destructive/60 bg-destructive/10 p-3 text-sm text-destructive">
+                                    The reported content is no longer available.
+                                  </div>
                                 )}
-                              </div>
-                            </details>
-                          </>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Unable to load moderation context.</p>
+
+                                {currentDetails.deletedAt && (
+                                  <div className="rounded bg-red-50 p-3 text-sm text-red-700">
+                                    Content deleted {formatRelative(currentDetails.deletedAt)}.
+                                  </div>
+                                )}
+
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded bg-gray-50 p-3 min-w-0">
+                                  <Text className="font-medium">Status:</Text>
+                                  <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadgeVariants[report.status]}`}>
+                                    {report.status.toUpperCase()}
+                                  </span>
+                                </div>
+
+                                <div className="rounded bg-slate-50 p-3 text-sm space-y-1">
+                                  <div className="flex items-center justify-between gap-3">
+                                    <Text>Moderation status</Text>
+                                    <Text className="font-medium capitalize text-right truncate">
+                                      {currentDetails.moderationStatus}
+                                    </Text>
+                                  </div>
+                                  {currentDetails.suspensionUntil && (
+                                    <Text variant="muted" className="mt-1 text-xs">
+                                      Suspended until {new Date(currentDetails.suspensionUntil).toLocaleString()}
+                                    </Text>
+                                  )}
+                                </div>
+
+                                <div className="space-y-2 rounded bg-blue-50 p-3">
+                                  <div className="flex items-center justify-between text-sm">
+                                    <Text>Prior warnings</Text>
+                                    <span>
+                                      <strong>{currentDetails.warnCount}</strong>/3
+                                    </span>
+                                  </div>
+                                  {currentDetails.userWarnings.length === 0 ? (
+                                    <Text variant="muted" className="text-xs">
+                                      No prior warnings.
+                                    </Text>
+                                  ) : (
+                                    <div className="space-y-1 text-xs text-muted-foreground">
+                                      {currentDetails.userWarnings.map((warning) => (
+                                        <div key={warning.id} className="rounded border border-blue-200 bg-white/60 p-2">
+                                          <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-blue-700">
+                                            <span>{warning.severity.replace("_", " ")}</span>
+                                            <span>{formatRelative(warning.created_at)}</span>
+                                          </div>
+                                          <Text className="mt-1 text-[13px] text-foreground">{warning.reason}</Text>
+                                          {warning.duration_hours && (
+                                            <Text variant="muted" className="text-[11px]">
+                                              Duration: {warning.duration_hours}h
+                                            </Text>
+                                          )}
+                                          {warning.admin && (
+                                            <Text variant="muted" className="text-[11px]">
+                                              By {warning.admin.username ?? warning.admin.id ?? "admin"}
+                                            </Text>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                  {canDelete && (
+                                    <Button
+                                      onClick={() => setShowDeleteConfirm(true)}
+                                      disabled={isProcessingAction || isStatusUpdating}
+                                      className="px-3 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                    >
+                                      Delete {report.target_type === "catch" ? "post" : "comment"}
+                                    </Button>
+                                  )}
+                                  <Button
+                                    onClick={() => setShowWarnDialog(true)}
+                                    disabled={!canWarn || isProcessingAction || isStatusUpdating}
+                                    className="px-3 py-2 bg-orange-600 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50"
+                                  >
+                                    Warn user
+                                  </Button>
+                                </div>
+
+                                {canRestore && (
+                                  <Button
+                                    onClick={() => void handleRestoreContent()}
+                                    disabled={isProcessingAction}
+                                    className="w-full px-3 py-2 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                                  >
+                                    Restore {report.target_type === "catch" ? "post" : "comment"}
+                                  </Button>
+                                )}
+
+                                <details className="rounded bg-gray-50 p-3">
+                                  <summary className="cursor-pointer font-medium">Moderation history</summary>
+                                  <div className="mt-3 space-y-3 text-sm">
+                                    {currentDetails.modHistory.length === 0 ? (
+                                      <Text variant="muted" className="text-xs">
+                                        No moderation actions recorded.
+                                      </Text>
+                                    ) : (
+                                      <div className="space-y-3 border-l-2 border-border/60 pl-3">
+                                        {currentDetails.modHistory.map((entry) => (
+                                          <div key={entry.id} className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                              <span className="h-2 w-2 rounded-full bg-border" />
+                                              <Text className="font-medium truncate">
+                                                {entry.admin?.username ?? entry.admin?.id ?? "Unknown admin"} – {entry.action}
+                                              </Text>
+                                            </div>
+                                            <Text className="text-gray-600">{entry.reason}</Text>
+                                            <Text variant="muted" className="text-xs">
+                                              {formatRelative(entry.created_at)}
+                                            </Text>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                </details>
+                              </>
+                            ) : (
+                              <Text variant="muted" className="text-sm">
+                                Unable to load moderation context.
+                              </Text>
+                            )}
+                          </div>
                         )}
                       </div>
-                    )}
+                    );
+                  })
+                )}
+                {!isLoading && filteredReports.length > 0 && (
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
+                    <Text variant="muted" className="text-xs">
+                      {`Showing ${filteredReports.length} report${filteredReports.length === 1 ? "" : "s"}`}
+                    </Text>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                        disabled={page === 1 || isLoading}
+                        className="w-full sm:w-auto"
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (canLoadMore) {
+                            setPage((prev) => prev + 1);
+                          }
+                        }}
+                        disabled={!canLoadMore || isLoading}
+                        className="w-full sm:w-auto"
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
-                );
-              })
-            )}
-            {!isLoading && filteredReports.length > 0 && (
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
-                <p className="text-xs text-muted-foreground">
-                  {`Showing ${filteredReports.length} report${filteredReports.length === 1 ? "" : "s"}`}
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                    disabled={page === 1 || isLoading}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      if (canLoadMore) {
-                        setPage((prev) => prev + 1);
-                      }
-                    }}
-                    disabled={!canLoadMore || isLoading}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+                )}
+              </CardContent>
+            </Card>
+          </Section>
+        </div>
+      </PageContainer>
 
       <AlertDialog open={showDeleteConfirm} onOpenChange={(open) => !isProcessingAction && setShowDeleteConfirm(open)}>
         <AlertDialogContent>

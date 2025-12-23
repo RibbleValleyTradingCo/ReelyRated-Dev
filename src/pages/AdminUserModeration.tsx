@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/components/AuthProvider";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +22,12 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { getProfilePath } from "@/lib/profile";
+import PageContainer from "@/components/layout/PageContainer";
+import Section from "@/components/layout/Section";
+import SectionHeader from "@/components/layout/SectionHeader";
+import Heading from "@/components/typography/Heading";
+import Text from "@/components/typography/Text";
+import Eyebrow from "@/components/typography/Eyebrow";
 
 type WarningRow = {
   id: string;
@@ -207,8 +213,13 @@ const AdminUserModeration = () => {
           </TableBody>
         </Table>
         {warningsHasMore && (
-          <div className="mt-3 text-right">
-            <Button variant="outline" size="sm" onClick={() => setWarningsPage((prev) => prev + 1)}>
+          <div className="mt-3 flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setWarningsPage((prev) => prev + 1)}
+              className="w-full sm:w-auto"
+            >
               Load more warnings
             </Button>
           </div>
@@ -286,8 +297,13 @@ const AdminUserModeration = () => {
           </TableBody>
         </Table>
         {logHasMore && (
-          <div className="mt-3 text-right">
-            <Button variant="outline" size="sm" onClick={() => setLogPage((prev) => prev + 1)}>
+          <div className="mt-3 flex justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLogPage((prev) => prev + 1)}
+              className="w-full sm:w-auto"
+            >
               Load more history
             </Button>
           </div>
@@ -397,8 +413,10 @@ const AdminUserModeration = () => {
 
   if (adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted">
+        <PageContainer className="flex items-center justify-center py-16">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </PageContainer>
       </div>
     );
   }
@@ -438,338 +456,380 @@ const AdminUserModeration = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
-      <div className="container mx-auto max-w-5xl px-4 py-8 space-y-6">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Admin</p>
-            <h1 className="text-3xl font-bold text-foreground">Moderation for {displayName}</h1>
-            <p className="text-sm text-muted-foreground">
-              Moderation overview and actions for this user.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(backDestination)}>
-              Back
-            </Button>
-            <Button variant="ghost" onClick={() => window.location.reload()} disabled={isLoading}>
-              Refresh
-            </Button>
-          </div>
+      <PageContainer className="w-full px-4 sm:px-6 md:mx-auto md:max-w-5xl py-8 md:py-10 overflow-x-hidden">
+        <div className="space-y-6 min-w-0">
+          <Section>
+            <SectionHeader
+              eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
+              title={`Moderation for ${displayName}`}
+              subtitle="Moderation overview and actions for this user."
+              actions={
+                <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
+                  <Button variant="outline" onClick={() => navigate(backDestination)} className="w-full sm:w-auto">
+                    Back
+                  </Button>
+                  <Button variant="ghost" onClick={() => window.location.reload()} disabled={isLoading} className="w-full sm:w-auto">
+                    Refresh
+                  </Button>
+                </div>
+              }
+            />
+          </Section>
+
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardContent className="flex flex-col gap-4 p-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <Avatar className="h-12 w-12 shrink-0">
+                      <AvatarImage src={avatarUrl ?? ""} alt={displayName} />
+                      <AvatarFallback>{profileStatus?.username?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-2 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 text-lg font-semibold text-foreground">
+                        <span className="truncate">{profileStatus?.username ?? "Unknown user"}</span>
+                        <span className="text-xs font-normal text-muted-foreground truncate">
+                          ({userId ?? "user"})
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                            (profileStatus?.moderation_status ?? "active") === "active"
+                              ? "bg-muted text-foreground"
+                              : (profileStatus?.moderation_status ?? "active") === "warned"
+                              ? "bg-amber-50 text-amber-700"
+                              : (profileStatus?.moderation_status ?? "active") === "suspended"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-destructive/10 text-destructive"
+                          }`}
+                        >
+                          {moderationStatusLabel}
+                        </span>
+                        <span className="whitespace-nowrap">Warnings: {profileStatus?.warn_count ?? 0}/3</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-col gap-3 sm:w-auto">
+                    <div className="flex flex-wrap gap-2">
+                      {profileStatus?.username || userId ? (
+                        <Button variant="outline" size="sm" asChild className="w-full sm:w-auto">
+                          <Link to={getProfilePath({ username: profileStatus?.username ?? null, id: userId ?? undefined })}>
+                            View profile
+                          </Link>
+                        </Button>
+                      ) : null}
+                      {userId ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto"
+                          onClick={() =>
+                            navigate(`/admin/reports?reportedUserId=${userId}`, {
+                              state: { filterUserId: userId, filterUsername: profileStatus?.username ?? null },
+                            })
+                          }
+                        >
+                          View reports about this user
+                        </Button>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Moderation actions</span>
+                      <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
+                        {canApplyStandardActions ? (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => setShowWarnDialog(true)}
+                              disabled={actionLoading || isLoading || !userId}
+                              className="w-full sm:w-auto"
+                            >
+                              Warn user
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowSuspendDialog(true)}
+                              disabled={actionLoading || isLoading || !userId}
+                              className="w-full sm:w-auto"
+                            >
+                              Temporary suspension
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setShowBanDialog(true)}
+                              disabled={actionLoading || isLoading || !userId}
+                              className="w-full sm:w-auto"
+                            >
+                              Ban user
+                            </Button>
+                          </>
+                        ) : null}
+                        {isSuspended ? (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => setShowBanDialog(true)}
+                              disabled={actionLoading || isLoading || !userId}
+                              className="w-full sm:w-auto"
+                            >
+                              Escalate to ban
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setShowLiftDialog(true)}
+                              disabled={actionLoading || isLoading || !userId}
+                              className="w-full sm:w-auto"
+                            >
+                              Lift restrictions
+                            </Button>
+                          </>
+                        ) : null}
+                        {isBanned ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowLiftDialog(true)}
+                            disabled={actionLoading || isLoading || !userId}
+                            className="w-full sm:w-auto"
+                          >
+                            Lift restrictions
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="sm" className="text-foreground">
+                  Current status
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Live moderation state for this account.
+                </Text>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {isLoading ? (
+                  <Text variant="muted">Loading…</Text>
+                ) : profileStatus ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <Text variant="muted">User</Text>
+                      <Text className="font-medium text-right truncate">{profileStatus.username ?? userId}</Text>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <Text variant="muted">Moderation status</Text>
+                      <Text className="font-semibold capitalize text-right truncate">{profileStatus.moderation_status}</Text>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <Text variant="muted">Warnings</Text>
+                      <Text className="font-semibold text-right">{profileStatus.warn_count}</Text>
+                    </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <Text variant="muted">Suspension until</Text>
+                      <Text className="font-semibold text-right truncate">
+                        {profileStatus.suspension_until ? new Date(profileStatus.suspension_until).toLocaleString() : "—"}
+                      </Text>
+                    </div>
+                  </div>
+                ) : (
+                  <Text className="text-destructive">User not found.</Text>
+                )}
+              </CardContent>
+            </Card>
+          </Section>
+
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="sm" className="text-foreground">
+                  Warnings
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Recorded warnings for this user.
+                </Text>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Text variant="muted" className="text-sm">
+                    Loading…
+                  </Text>
+                ) : (
+                  warningsTable
+                )}
+              </CardContent>
+            </Card>
+          </Section>
+
+          <Section>
+            <Card className="w-full border-border/70">
+              <CardHeader className="space-y-1">
+                <Heading as="h2" size="sm" className="text-foreground">
+                  Moderation history
+                </Heading>
+                <Text variant="muted" className="text-sm">
+                  Logged actions taken on this account.
+                </Text>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <Text variant="muted" className="text-sm">
+                    Loading…
+                  </Text>
+                ) : (
+                  logTable
+                )}
+              </CardContent>
+            </Card>
+          </Section>
         </div>
+      </PageContainer>
 
-        <Card>
-          <CardContent className="flex flex-wrap items-center gap-4 p-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={avatarUrl ?? ""} alt={displayName} />
-              <AvatarFallback>{profileStatus?.username?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-[200px]">
-              <div className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                <span>{profileStatus?.username ?? "Unknown user"}</span>
-                <span className="text-xs font-normal text-muted-foreground">({userId})</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span
-                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                    (profileStatus?.moderation_status ?? "active") === "active"
-                      ? "bg-muted text-foreground"
-                      : (profileStatus?.moderation_status ?? "active") === "warned"
-                      ? "bg-amber-50 text-amber-700"
-                      : (profileStatus?.moderation_status ?? "active") === "suspended"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-destructive/10 text-destructive"
-                  }`}
-                >
-                  {moderationStatusLabel}
-                </span>
-                <span>Warnings: {profileStatus?.warn_count ?? 0}/3</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-wrap gap-2">
-                {profileStatus?.username || userId ? (
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={getProfilePath({ username: profileStatus?.username ?? null, id: userId ?? undefined })}>
-                      View profile
-                    </Link>
-                  </Button>
-                ) : null}
-                {userId ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() =>
-                      navigate(`/admin/reports?reportedUserId=${userId}`, {
-                        state: { filterUserId: userId, filterUsername: profileStatus?.username ?? null },
-                      })
-                    }
-                  >
-                    View reports about this user
-                  </Button>
-                ) : null}
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-[11px] uppercase tracking-wide text-muted-foreground">Moderation actions</span>
-                <div className="flex flex-wrap gap-2">
-                  {canApplyStandardActions ? (
-                    <>
-                      <Button
-                        size="sm"
-                        onClick={() => setShowWarnDialog(true)}
-                        disabled={actionLoading || isLoading || !userId}
-                      >
-                        Warn user
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setShowSuspendDialog(true)}
-                        disabled={actionLoading || isLoading || !userId}
-                      >
-                        Temporary suspension
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setShowBanDialog(true)}
-                        disabled={actionLoading || isLoading || !userId}
-                      >
-                        Ban user
-                      </Button>
-                    </>
-                  ) : null}
-                  {isSuspended ? (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => setShowBanDialog(true)}
-                        disabled={actionLoading || isLoading || !userId}
-                      >
-                        Escalate to ban
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setShowLiftDialog(true)}
-                        disabled={actionLoading || isLoading || !userId}
-                      >
-                        Lift restrictions
-                      </Button>
-                    </>
-                  ) : null}
-                  {isBanned ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowLiftDialog(true)}
-                      disabled={actionLoading || isLoading || !userId}
-                    >
-                      Lift restrictions
-                    </Button>
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <Dialog open={showWarnDialog} onOpenChange={(open) => !actionLoading && setShowWarnDialog(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Warn user</DialogTitle>
+            <DialogDescription>Send a warning to this user with a brief reason.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="warn-reason">Reason</Label>
+            <Textarea
+              id="warn-reason"
+              value={warnReason}
+              onChange={(event) => setWarnReason(event.target.value)}
+              rows={3}
+              placeholder="Explain why this warning is being issued"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowWarnDialog(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void applyModerationAction({ severity: "warning", reason: warnReason })}
+              disabled={actionLoading}
+            >
+              Send warning
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Current status</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            {isLoading ? (
-              <p className="text-muted-foreground">Loading…</p>
-            ) : profileStatus ? (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">User</span>
-                  <span className="font-medium">{profileStatus.username ?? userId}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Moderation status</span>
-                  <span className="font-semibold capitalize">{profileStatus.moderation_status}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Warnings</span>
-                  <span className="font-semibold">{profileStatus.warn_count}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Suspension until</span>
-                  <span className="font-semibold">
-                    {profileStatus.suspension_until ? new Date(profileStatus.suspension_until).toLocaleString() : "—"}
-                  </span>
-                </div>
-              </>
-            ) : (
-              <p className="text-destructive">User not found.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Warnings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : (
-              warningsTable
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Moderation history</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">Loading…</p>
-            ) : (
-              logTable
-            )}
-          </CardContent>
-        </Card>
-
-        <Dialog open={showWarnDialog} onOpenChange={(open) => !actionLoading && setShowWarnDialog(open)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Warn user</DialogTitle>
-              <DialogDescription>Send a warning to this user with a brief reason.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Label htmlFor="warn-reason">Reason</Label>
+      <Dialog open={showSuspendDialog} onOpenChange={(open) => !actionLoading && setShowSuspendDialog(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Temporary suspension</DialogTitle>
+            <DialogDescription>Temporarily suspend this user for a set number of hours.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="suspend-reason">Reason</Label>
               <Textarea
-                id="warn-reason"
-                value={warnReason}
-                onChange={(event) => setWarnReason(event.target.value)}
+                id="suspend-reason"
+                value={suspendReason}
+                onChange={(event) => setSuspendReason(event.target.value)}
                 rows={3}
-                placeholder="Explain why this warning is being issued"
+                placeholder="Explain why this suspension is being applied"
               />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowWarnDialog(false)} disabled={actionLoading}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() => void applyModerationAction({ severity: "warning", reason: warnReason })}
-                disabled={actionLoading}
-              >
-                Send warning
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={showSuspendDialog} onOpenChange={(open) => !actionLoading && setShowSuspendDialog(open)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Temporary suspension</DialogTitle>
-              <DialogDescription>Temporarily suspend this user for a set number of hours.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="suspend-reason">Reason</Label>
-                <Textarea
-                  id="suspend-reason"
-                  value={suspendReason}
-                  onChange={(event) => setSuspendReason(event.target.value)}
-                  rows={3}
-                  placeholder="Explain why this suspension is being applied"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="suspend-duration">Duration (hours)</Label>
-                <Input
-                  id="suspend-duration"
-                  type="number"
-                  min={1}
-                  value={suspendDuration}
-                  onChange={(event) => setSuspendDuration(event.target.value)}
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSuspendDialog(false)} disabled={actionLoading}>
-                Cancel
-              </Button>
-              <Button
-                onClick={() =>
-                  void applyModerationAction({
-                    severity: "temporary_suspension",
-                    reason: suspendReason,
-                    durationHours: parseInt(suspendDuration, 10),
-                  })
-                }
-                disabled={actionLoading}
-              >
-                Apply suspension
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={showBanDialog} onOpenChange={(open) => !actionLoading && setShowBanDialog(open)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Ban user</DialogTitle>
-              <DialogDescription>Permanently ban this user.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Label htmlFor="ban-reason">Reason</Label>
-              <Textarea
-                id="ban-reason"
-                value={banReason}
-                onChange={(event) => setBanReason(event.target.value)}
-                rows={3}
-                placeholder="Explain why this ban is being applied"
+            <div className="space-y-2">
+              <Label htmlFor="suspend-duration">Duration (hours)</Label>
+              <Input
+                id="suspend-duration"
+                type="number"
+                min={1}
+                value={suspendDuration}
+                onChange={(event) => setSuspendDuration(event.target.value)}
               />
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowBanDialog(false)} disabled={actionLoading}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => void applyModerationAction({ severity: "permanent_ban", reason: banReason })}
-                disabled={actionLoading}
-              >
-                Ban user
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSuspendDialog(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                void applyModerationAction({
+                  severity: "temporary_suspension",
+                  reason: suspendReason,
+                  durationHours: parseInt(suspendDuration, 10),
+                })
+              }
+              disabled={actionLoading}
+            >
+              Apply suspension
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        <Dialog open={showLiftDialog} onOpenChange={(open) => !actionLoading && setShowLiftDialog(open)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Lift restrictions</DialogTitle>
-              <DialogDescription>Clear the current suspension or ban and return the user to active status.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-3">
-              <Label htmlFor="lift-reason">Reason</Label>
-              <Textarea
-                id="lift-reason"
-                value={liftReason}
-                onChange={(event) => setLiftReason(event.target.value)}
-                rows={3}
-                placeholder="Add a short note for the moderation log"
-              />
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowLiftDialog(false)} disabled={actionLoading}>
-                Cancel
-              </Button>
-              <Button onClick={() => void handleLiftRestrictions()} disabled={actionLoading}>
-                Confirm lift
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+      <Dialog open={showBanDialog} onOpenChange={(open) => !actionLoading && setShowBanDialog(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ban user</DialogTitle>
+            <DialogDescription>Permanently ban this user.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="ban-reason">Reason</Label>
+            <Textarea
+              id="ban-reason"
+              value={banReason}
+              onChange={(event) => setBanReason(event.target.value)}
+              rows={3}
+              placeholder="Explain why this ban is being applied"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBanDialog(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => void applyModerationAction({ severity: "permanent_ban", reason: banReason })}
+              disabled={actionLoading}
+            >
+              Ban user
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLiftDialog} onOpenChange={(open) => !actionLoading && setShowLiftDialog(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Lift restrictions</DialogTitle>
+            <DialogDescription>Clear the current suspension or ban and return the user to active status.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label htmlFor="lift-reason">Reason</Label>
+            <Textarea
+              id="lift-reason"
+              value={liftReason}
+              onChange={(event) => setLiftReason(event.target.value)}
+              rows={3}
+              placeholder="Add a short note for the moderation log"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLiftDialog(false)} disabled={actionLoading}>
+              Cancel
+            </Button>
+            <Button onClick={() => void handleLiftRestrictions()} disabled={actionLoading}>
+              Confirm lift
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
