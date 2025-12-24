@@ -110,14 +110,3 @@ export type VenueEvent = {
   created_at: string;
   updated_at: string;
 };
-
-export type TopAngler = {
-  user_id: string;
-  username: string | null;
-  avatar_path: string | null;
-  avatar_url: string | null;
-  catch_count: number;
-  best_weight: number | null;
-  best_weight_unit: string | null;
-  last_catch_at: string | null;
-};

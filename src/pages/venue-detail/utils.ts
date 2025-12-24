@@ -1,3 +1,4 @@
+import { getPublicAssetUrl } from "@/lib/storage";
 import type { CatchRow } from "./types";
 
 export const normalizeCatchRow = (row: CatchRow): CatchRow => ({
@@ -47,6 +48,16 @@ export const getDisplayPriceFrom = (raw: string | null | undefined) => {
 };
 
 export const normalizeTag = (value: string) => value.trim().toLowerCase();
+
+export const resolveAvatarUrl = (
+  avatarPath?: string | null,
+  avatarUrl?: string | null
+) => {
+  if (avatarPath) {
+    return getPublicAssetUrl(avatarPath);
+  }
+  return avatarUrl ?? null;
+};
 
 export const formatEventDate = (startsAt: string, endsAt: string | null) => {
   const start = new Date(startsAt);

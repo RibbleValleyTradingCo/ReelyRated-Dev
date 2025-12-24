@@ -4,7 +4,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CatchRow } from "@/pages/venue-detail/types";
-import { humanizeSpecies, sanitizeCatchTitle } from "@/pages/venue-detail/utils";
+import {
+  humanizeSpecies,
+  resolveAvatarUrl,
+  sanitizeCatchTitle,
+} from "@/pages/venue-detail/utils";
 import { Link } from "react-router-dom";
 
 type RecentCatchesSectionProps = {
@@ -90,9 +94,10 @@ const RecentCatchesSection = ({
                         <Avatar className="h-8 w-8">
                           <AvatarImage
                             src={
-                              catchItem.profiles?.avatar_path
-                                ? undefined
-                                : catchItem.profiles?.avatar_url ?? undefined
+                              resolveAvatarUrl(
+                                catchItem.profiles?.avatar_path,
+                                catchItem.profiles?.avatar_url
+                              ) ?? undefined
                             }
                           />
                           <AvatarFallback>

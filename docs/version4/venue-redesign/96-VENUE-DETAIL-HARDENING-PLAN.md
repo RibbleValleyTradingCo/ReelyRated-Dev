@@ -133,6 +133,8 @@
 
 ## C) Phase 2 (optional)
 
+✅ **Phase 2 complete (Steps 1–4)** — Venue detail data orchestration now lives in `src/pages/venue-detail/hooks/useVenueDetailData.ts` (React Query for venue + rating + operational reads, plus infinite queries for recent catches/past events).
+
 ### Option 1 — React Query migration
 - **Approach:** Introduce a single `useVenueDetailQuery(slug)` with stable query key.
 - **Config:** `staleTime: 60s+`, `keepPreviousData: true`, `refetchOnWindowFocus: false`.
