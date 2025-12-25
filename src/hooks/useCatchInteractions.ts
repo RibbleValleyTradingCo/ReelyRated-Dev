@@ -1,14 +1,15 @@
-import { useCallback, RefObject, useState } from "react";
+import { useCallback, RefObject } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createNotification } from "@/lib/notifications";
-import html2canvas from "html2canvas";
-import { formatSpecies, formatWeight, formatSlugLabel } from "@/lib/catch-formatting";
-import type { CatchData } from "./useCatchData";
+import { formatSpecies, formatWeight } from "@/lib/catch-formatting";
+import type { CatchData, CatchRatingSummary } from "./useCatchData";
 import { logger } from "@/lib/logger";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
 import { deleteCatch } from "@/lib/supabase-queries";
 import { supabase } from "@/integrations/supabase/client";
+import { qk } from "@/lib/queryKeys";
 
 const extractPgError = (
   error: unknown,
@@ -33,10 +34,6 @@ interface UseCatchInteractionsParams {
   hasRated: boolean;
   isFollowing: boolean;
   userHasReacted: boolean;
-  setIsFollowing: (value: boolean) => void;
-  setReactionCount: (updater: number | ((prev: number) => number)) => void;
-  setUserHasReacted: (value: boolean) => void;
-  setHasRated: (value: boolean) => void;
   setFollowLoading: (value: boolean) => void;
   setReactionLoading: (value: boolean) => void;
   setDeleteLoading: (value: boolean) => void;
@@ -44,7 +41,6 @@ interface UseCatchInteractionsParams {
   setShareCopied: (value: boolean) => void;
   setDownloadLoading: (value: boolean) => void;
   shareCardRef: RefObject<HTMLDivElement>;
-  fetchRatings: () => void;
 }
 
 export const useCatchInteractions = ({
@@ -57,10 +53,6 @@ export const useCatchInteractions = ({
   hasRated,
   isFollowing,
   userHasReacted,
-  setIsFollowing,
-  setReactionCount,
-  setUserHasReacted,
-  setHasRated,
   setFollowLoading,
   setReactionLoading,
   setDeleteLoading,
@@ -68,10 +60,90 @@ export const useCatchInteractions = ({
   setShareCopied,
   setDownloadLoading,
   shareCardRef,
-  fetchRatings,
 }: UseCatchInteractionsParams) => {
   const navigate = useNavigate();
-  const [ratingLoading, setRatingLoading] = useState(false);
+  const queryClient = useQueryClient();
+
+  const followMutation = useMutation({
+    mutationFn: async (action: "follow" | "unfollow") => {
+      if (!userId || !catchData) {
+        throw new Error("AUTH_REQUIRED");
+      }
+
+      if (action === "unfollow") {
+        const { error } = await supabase
+          .from("profile_follows")
+          .delete()
+          .eq("follower_id", userId)
+          .eq("following_id", catchData.user_id);
+
+        if (error) throw error;
+        return action;
+      }
+
+      const { error } = await supabase.rpc("follow_profile_with_rate_limit", {
+        p_following_id: catchData.user_id,
+      });
+
+      if (error) throw error;
+      return action;
+    },
+    retry: false,
+  });
+
+  const reactionMutation = useMutation({
+    mutationFn: async (action: "add" | "remove") => {
+      if (!userId || !catchData) {
+        throw new Error("AUTH_REQUIRED");
+      }
+
+      if (action === "remove") {
+        const { error } = await supabase
+          .from("catch_reactions")
+          .delete()
+          .eq("catch_id", catchData.id)
+          .eq("user_id", userId);
+
+        if (error) throw error;
+        return action;
+      }
+
+      const { error } = await supabase.rpc("react_to_catch_with_rate_limit", {
+        p_catch_id: catchData.id,
+        p_reaction: "like",
+      });
+
+      if (error) throw error;
+      return action;
+    },
+    retry: false,
+  });
+
+  const ratingMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId || !catchData) {
+        throw new Error("AUTH_REQUIRED");
+      }
+      const { error } = await supabase.rpc("rate_catch_with_rate_limit", {
+        p_catch_id: catchId,
+        p_rating: userRating,
+      });
+      if (error) throw error;
+      return true;
+    },
+    retry: false,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!userId || !catchData) {
+        throw new Error("AUTH_REQUIRED");
+      }
+      await deleteCatch(catchData.id, userId);
+      return true;
+    },
+    retry: false,
+  });
 
   const handleDeleteCatch = useCallback(async () => {
     if (!userId || !catchData) {
@@ -81,17 +153,28 @@ export const useCatchInteractions = ({
 
     setDeleteLoading(true);
     try {
-      await deleteCatch(catchData.id, userId);
+      await deleteMutation.mutateAsync();
       toast.success("Catch removed");
       setDeleteDialogOpen(false);
       setDeleteLoading(false);
+      queryClient.removeQueries({ queryKey: qk.catchById(catchData.id) });
+      queryClient.removeQueries({ queryKey: qk.catchComments(catchData.id) });
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
       navigate("/feed");
     } catch (error) {
       toast.error("Failed to delete catch");
       logger.error("Failed to delete catch", error, { catchId: catchData.id, userId });
       setDeleteLoading(false);
     }
-  }, [catchData, navigate, userId, setDeleteLoading, setDeleteDialogOpen]);
+  }, [
+    catchData,
+    deleteMutation,
+    navigate,
+    queryClient,
+    userId,
+    setDeleteLoading,
+    setDeleteDialogOpen,
+  ]);
 
   const handleToggleFollow = async () => {
     if (!userId || !catchData) {
@@ -104,34 +187,15 @@ export const useCatchInteractions = ({
 
     setFollowLoading(true);
 
-    if (isFollowing) {
-      const { error } = await supabase
-        .from("profile_follows")
-        .delete()
-        .eq("follower_id", userId)
-        .eq("following_id", catchData.user_id);
+    const action: "follow" | "unfollow" = isFollowing ? "unfollow" : "follow";
+    try {
+      await followMutation.mutateAsync(action);
+      queryClient.setQueryData(
+        qk.catchFollowStatus(userId, catchData.user_id),
+        action === "follow"
+      );
 
-      if (error) {
-        toast.error("Failed to unfollow");
-        logger.error("Failed to unfollow", error, { userId, ownerId: catchData.user_id });
-      } else {
-        setIsFollowing(false);
-        toast.success("Unfollowed angler");
-      }
-    } else {
-      const { error } = await supabase.rpc("follow_profile_with_rate_limit", {
-        p_following_id: catchData.user_id,
-      });
-
-      if (error) {
-        if (isRateLimitError(error)) {
-          toast.error(getRateLimitMessage(error));
-        } else {
-          toast.error("Failed to follow angler");
-        }
-        logger.error("Failed to follow angler", error, { userId, ownerId: catchData.user_id });
-      } else {
-        setIsFollowing(true);
+      if (action === "follow") {
         toast.success("Following angler");
         const actorName = username ?? userEmail ?? "Someone";
         void createNotification({
@@ -145,7 +209,17 @@ export const useCatchInteractions = ({
             },
           },
         });
+      } else {
+        toast.success("Unfollowed angler");
       }
+    } catch (error) {
+      if (isRateLimitError(error)) {
+        toast.error(getRateLimitMessage(error));
+      } else {
+        const message = action === "follow" ? "Failed to follow angler" : "Failed to unfollow";
+        toast.error(message);
+      }
+      logger.error("Failed to toggle follow", error, { userId, ownerId: catchData.user_id });
     }
 
     setFollowLoading(false);
@@ -163,66 +237,48 @@ export const useCatchInteractions = ({
 
     setReactionLoading(true);
 
-    if (userHasReacted) {
-      const { error } = await supabase
-        .from("catch_reactions")
-        .delete()
-        .eq("catch_id", catchData.id)
-        .eq("user_id", userId);
-
-      if (!error) {
-        setReactionCount((count) => Math.max(0, count - 1));
-        setUserHasReacted(false);
-      } else {
-        toast.error("Couldn't remove reaction");
-        logger.error("Couldn't remove reaction", error, { catchId: catchData.id, userId });
-      }
-    } else {
-      const { error } = await supabase.rpc("react_to_catch_with_rate_limit", {
-        p_catch_id: catchData.id,
-        p_reaction: "like",
+    const action: "add" | "remove" = userHasReacted ? "remove" : "add";
+    try {
+      await reactionMutation.mutateAsync(action);
+      queryClient.setQueryData(qk.catchReactions(catchData.id, userId), (prev?: { count: number; userHasReacted: boolean }) => {
+        const current = prev ?? { count: 0, userHasReacted: false };
+        const nextCount = action === "add" ? current.count + 1 : Math.max(0, current.count - 1);
+        return { count: nextCount, userHasReacted: action === "add" };
       });
 
-      if (error) {
-        const { code, message } = extractPgError(error);
-
-        if (isRateLimitError(error)) {
-          toast.error(getRateLimitMessage(error));
-          setReactionLoading(false);
-          return;
-        }
-
-        if (code === "23505") {
-          setUserHasReacted(true);
-        } else {
-          toast.error("Couldn't add reaction");
-          logger.error("Couldn't add reaction", error, {
+      if (action === "add" && catchData.user_id !== userId) {
+        const actorName = username ?? userEmail ?? "Someone";
+        void createNotification({
+          userId: catchData.user_id,
+          actorId: userId,
+          type: "new_reaction",
+          payload: {
+            message: `${actorName} liked your catch \"${catchData.title}\".`,
             catchId: catchData.id,
-            userId,
-            code,
-            message,
-          });
-          setReactionLoading(false);
-          return;
-        }
-      } else {
-        setReactionCount((count) => count + 1);
-        setUserHasReacted(true);
-        if (catchData.user_id !== userId) {
-          const actorName = username ?? userEmail ?? "Someone";
-          void createNotification({
-            userId: catchData.user_id,
-            actorId: userId,
-            type: "new_reaction",
-            payload: {
-              message: `${actorName} liked your catch "${catchData.title}".`,
-              catchId: catchData.id,
-              extraData: {
-                catch_title: catchData.title,
-              },
+            extraData: {
+              catch_title: catchData.title,
             },
-          });
-        }
+          },
+        });
+      }
+    } catch (error) {
+      const { code, message } = extractPgError(error);
+
+      if (isRateLimitError(error)) {
+        toast.error(getRateLimitMessage(error));
+      } else if (code === "23505") {
+        queryClient.setQueryData(qk.catchReactions(catchData.id, userId), (prev?: { count: number; userHasReacted: boolean }) => ({
+          count: prev?.count ?? 0,
+          userHasReacted: true,
+        }));
+      } else {
+        toast.error(action === "add" ? "Couldn't add reaction" : "Couldn't remove reaction");
+        logger.error("Couldn't toggle reaction", error, {
+          catchId: catchData.id,
+          userId,
+          code,
+          message,
+        });
       }
     }
 
@@ -272,9 +328,57 @@ export const useCatchInteractions = ({
     if (!catchData || !shareCardRef.current) return;
     setDownloadLoading(true);
     try {
-      const canvas = await html2canvas(shareCardRef.current, {
-        backgroundColor: null,
-        scale: window.devicePixelRatio > 1 ? window.devicePixelRatio : 2,
+      const isDebugShare =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).has("debugShareImage");
+      const shareRoot = shareCardRef.current;
+
+      // Ensure fonts + images are ready before capture to avoid blank renders.
+      if (document?.fonts?.ready) {
+        await document.fonts.ready;
+      }
+
+      const shareImages = Array.from(shareRoot.querySelectorAll("img"));
+      await Promise.all(
+        shareImages.map(async (img) => {
+          if (img.complete && img.naturalWidth > 0) return;
+          if ("decode" in img) {
+            try {
+              await img.decode();
+              return;
+            } catch {
+              // fall through to load/error listeners
+            }
+          }
+          await new Promise<void>((resolve) => {
+            const cleanup = () => {
+              img.removeEventListener("load", cleanup);
+              img.removeEventListener("error", cleanup);
+              resolve();
+            };
+            img.addEventListener("load", cleanup, { once: true });
+            img.addEventListener("error", cleanup, { once: true });
+          });
+        })
+      );
+
+      if (isDebugShare) {
+        const rect = shareRoot.getBoundingClientRect();
+        const readyCount = shareImages.filter((img) => img.complete && img.naturalWidth > 0).length;
+        logger.info("Share image debug", {
+          rect: { width: rect.width, height: rect.height },
+          totalImages: shareImages.length,
+          readyImages: readyCount,
+        });
+      }
+
+      const { default: html2canvas } = await import("html2canvas");
+      const canvas = await html2canvas(shareRoot, {
+        backgroundColor: "#ffffff",
+        scale: Math.min(2, window.devicePixelRatio || 1),
+        useCORS: true,
+        allowTaint: false,
+        logging: isDebugShare,
       });
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
@@ -282,6 +386,12 @@ export const useCatchInteractions = ({
       link.href = dataUrl;
       link.download = `${safeTitle || "catch"}-share.png`;
       link.click();
+      if (isDebugShare) {
+        logger.info("Share image canvas", {
+          width: canvas.width,
+          height: canvas.height,
+        });
+      }
       toast.success("Share image saved");
     } catch (error) {
       logger.error("Failed to generate share image", error, { catchId: catchData?.id });
@@ -292,7 +402,7 @@ export const useCatchInteractions = ({
   };
 
   const handleAddRating = async () => {
-    if (ratingLoading) return;
+    if (ratingMutation.isPending) return;
     if (!userId || hasRated) return;
     if (!catchData || catchData.allow_ratings === false) {
       toast.error("Ratings are disabled for this catch");
@@ -303,13 +413,28 @@ export const useCatchInteractions = ({
       return;
     }
 
-    setRatingLoading(true);
-    const { error } = await supabase.rpc("rate_catch_with_rate_limit", {
-      p_catch_id: catchId,
-      p_rating: userRating,
-    });
-
-    if (error) {
+    try {
+      await ratingMutation.mutateAsync();
+      queryClient.setQueryData(qk.catchRatingSummary(catchId, userId), (prev?: { summary: CatchRatingSummary | null; accessError: boolean; error: boolean }) => {
+        const existing = prev?.summary;
+        const prevCount = existing?.rating_count ?? 0;
+        const prevAvg = existing?.average_rating ?? 0;
+        const nextCount = prevCount + 1;
+        const nextAvg = prevCount > 0 ? ((prevAvg * prevCount + userRating) / nextCount) : userRating;
+        return {
+          summary: {
+            catch_id: catchId ?? "",
+            rating_count: nextCount,
+            average_rating: nextAvg,
+            your_rating: userRating,
+          },
+          accessError: false,
+          error: false,
+        };
+      });
+      toast.success("Rating added!");
+      void queryClient.invalidateQueries({ queryKey: qk.catchRatingSummary(catchId, userId) });
+    } catch (error) {
       const { message } = extractPgError(error);
 
       if (isRateLimitError(error)) {
@@ -327,13 +452,10 @@ export const useCatchInteractions = ({
       } else {
         toast.error("Failed to add rating");
       }
-    } else {
-      toast.success("Rating added!");
-      setHasRated(true);
-      fetchRatings();
     }
-    setRatingLoading(false);
   };
+
+  const ratingLoading = ratingMutation.isPending;
 
   return {
     handleDeleteCatch,

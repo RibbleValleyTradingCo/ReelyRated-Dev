@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { qk } from "@/lib/queryKeys";
 
 export interface CatchComment {
   id: string;
@@ -140,126 +142,95 @@ const buildThread = (flat: CatchComment[]): ThreadedComment[] => {
 };
 
 export const useCatchComments = (catchId: string | undefined) => {
-  const [comments, setComments] = useState<CatchComment[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const hasLoadedOnceRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mentionCandidates, setMentionCandidates] = useState<MentionCandidate[]>([]);
-  const [refreshToken, setRefreshToken] = useState(0);
+  const queryClient = useQueryClient();
 
-  const replaceIfChanged = useCallback((next: CatchComment[]) => {
-    setComments((prev) => {
-      if (prev.length === next.length) {
-        const prevById = new Map(prev.map((c) => [c.id, c]));
-        const changed = next.some((n) => {
-          const p = prevById.get(n.id);
-          if (!p) return true;
-      const profileChanged =
-        (p.profiles?.username ?? null) !== (n.profiles?.username ?? null) ||
-        (p.profiles?.avatar_path ?? null) !== (n.profiles?.avatar_path ?? null) ||
-        (p.profiles?.avatar_url ?? null) !== (n.profiles?.avatar_url ?? null);
-      return (
-        p.body !== n.body ||
-        p.deleted_at !== n.deleted_at ||
-        p.updated_at !== n.updated_at ||
-        p.parent_comment_id !== n.parent_comment_id ||
-        p.user_id !== n.user_id ||
-        p.catch_id !== n.catch_id ||
-        p.created_at !== n.created_at ||
-        profileChanged ||
-        (p.is_admin_author ?? false) !== (n.is_admin_author ?? false)
-      );
-    });
-    if (!changed) return prev;
-  }
-  return next;
-    });
-  }, []);
+  const commentsQuery = useQuery<CatchComment[]>({
+    queryKey: qk.catchComments(catchId),
+    enabled: Boolean(catchId),
+    queryFn: async () => {
+      const { data, error: fetchError } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from("catch_comments_with_admin" as any)
+        .select(
+          "id, catch_id, user_id, body, parent_comment_id, created_at, updated_at, deleted_at, is_admin_author, profiles:user_id (id, username, avatar_path, avatar_url)"
+        )
+        .eq("catch_id", catchId)
+        .order("created_at", { ascending: true });
 
-  const fetchComments = useCallback(async () => {
-    if (!catchId) return;
-    const isInitial = !hasLoadedOnceRef.current;
-    if (isInitial) {
-      setIsLoading(true);
-    }
-    setError(null);
+      if (fetchError) {
+        throw fetchError;
+      }
 
-    // Load comments from the view
-    const { data, error: fetchError } = await supabase
-      // Views are not in the generated Database types, so we treat the table name as any
-      // and cast the result to our local CatchCommentRow interface below.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from("catch_comments_with_admin" as any)
-      .select(
-        "id, catch_id, user_id, body, parent_comment_id, created_at, updated_at, deleted_at, is_admin_author, profiles:user_id (id, username, avatar_path, avatar_url)"
-      )
-      .eq("catch_id", catchId)
-      .order("created_at", { ascending: true });
-
-    // Load mention candidates from the view
-    const { data: mentionDataRaw } = await supabase
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .from("catch_mention_candidates" as any)
-      .select("catch_id, user_id, username, avatar_path, avatar_url, last_interacted_at")
-      .eq("catch_id", catchId)
-      .order("last_interacted_at", { ascending: false, nullsFirst: false })
-      .order("username", { ascending: true })
-      .limit(50);
-
-    if (fetchError) {
-      setError("Failed to load comments");
-      toast.error("Failed to load comments");
-    } else {
-      // Cast the raw data into our local row type and map to CatchComment
-      // Cast the raw data into our local row type and map to CatchComment
       const rows = (data ?? []) as unknown as CatchCommentRow[];
-      const mapped = rows.map(mapRowToCatchComment);
-      replaceIfChanged(mapped);
+      return rows.map(mapRowToCatchComment);
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
-      // Cast mention rows and map into MentionCandidate
+  const mentionsQuery = useQuery<MentionCandidate[]>({
+    queryKey: qk.catchMentionCandidates(catchId),
+    enabled: Boolean(catchId),
+    queryFn: async () => {
+      const { data: mentionDataRaw } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .from("catch_mention_candidates" as any)
+        .select("catch_id, user_id, username, avatar_path, avatar_url, last_interacted_at")
+        .eq("catch_id", catchId)
+        .order("last_interacted_at", { ascending: false, nullsFirst: false })
+        .order("username", { ascending: true })
+        .limit(50);
+
       const mentionRows = (mentionDataRaw ?? []) as unknown as MentionRow[];
-      const mappedMentions: MentionCandidate[] = mentionRows.map((row) => ({
+      return mentionRows.map((row) => ({
         userId: row.user_id,
         username: row.username,
         avatarPath: row.avatar_path,
         avatarUrl: row.avatar_url,
         lastInteractedAt: row.last_interacted_at,
       }));
-      setMentionCandidates(mappedMentions);
-    }
-
-    if (isInitial) {
-      setIsLoading(false);
-    }
-    hasLoadedOnceRef.current = true;
-  }, [catchId, replaceIfChanged]);
+    },
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+    retry: false,
+  });
 
   useEffect(() => {
-    void fetchComments();
-  }, [fetchComments, refreshToken]);
+    if (commentsQuery.error) {
+      toast.error("Failed to load comments");
+    }
+  }, [commentsQuery.error]);
 
   const addLocalComment = useCallback((comment: CatchComment) => {
-    setComments((prev) => {
-      // Avoid duplicates by id
+    if (!catchId) return;
+    queryClient.setQueryData<CatchComment[]>(qk.catchComments(catchId), (prev = []) => {
       if (prev.some((c) => c.id === comment.id)) return prev;
       return [...prev, comment];
     });
-  }, []);
+  }, [catchId, queryClient]);
 
   const markLocalCommentDeleted = useCallback((commentId: string) => {
-    setComments((prev) =>
+    if (!catchId) return;
+    queryClient.setQueryData<CatchComment[]>(qk.catchComments(catchId), (prev = []) =>
       prev.map((c) => (c.id === commentId ? { ...c, deleted_at: c.deleted_at ?? new Date().toISOString() } : c))
     );
-  }, []);
+  }, [catchId, queryClient]);
 
+  const comments = commentsQuery.data ?? [];
   const tree = useMemo(() => buildThread(comments), [comments]);
+  const mentionCandidates = mentionsQuery.data ?? [];
 
   return {
     comments,
     commentsTree: tree,
-    isLoading,
-    error,
-    refetch: () => setRefreshToken((prev) => prev + 1),
+    isLoading: commentsQuery.isLoading,
+    error: commentsQuery.error ? "Failed to load comments" : null,
+    refetch: () => {
+      if (!catchId) return;
+      void queryClient.invalidateQueries({ queryKey: qk.catchComments(catchId) });
+      void queryClient.invalidateQueries({ queryKey: qk.catchMentionCandidates(catchId) });
+    },
     addLocalComment,
     markLocalCommentDeleted,
     mentionCandidates,

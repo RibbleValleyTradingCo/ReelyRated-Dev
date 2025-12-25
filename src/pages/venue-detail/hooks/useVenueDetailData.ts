@@ -1,6 +1,7 @@
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminUser } from "@/lib/admin";
+import { qk } from "@/lib/queryKeys";
 import { getVenueRatingCache, setVenueRatingCache } from "@/lib/venueCache";
 import {
   keepPreviousData,
@@ -73,7 +74,7 @@ export const useVenueDetailData = (
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("debugVenue");
   const venueQuery = useQuery<Venue | null>({
-    queryKey: ["venueBySlug", slug],
+    queryKey: qk.venueBySlug(slug),
     enabled: Boolean(slug),
     queryFn: async () => {
       if (!slug) return null;
@@ -130,7 +131,7 @@ export const useVenueDetailData = (
     venue?.rating_count ?? null
   );
   const ratingQuery = useQuery<number | null>({
-    queryKey: ["venueRating", userId, venueId],
+    queryKey: qk.venueRating(userId, venueId),
     enabled: Boolean(userId && venueId),
     queryFn: async () => {
       if (!venueId) return null;
@@ -155,7 +156,7 @@ export const useVenueDetailData = (
   const userRating = ratingQuery.data ?? null;
   const userRatingResolved = Boolean(userId && venueId && ratingQuery.isFetched);
   const openingHoursQuery = useQuery<VenueOpeningHour[]>({
-    queryKey: ["venueOpeningHours", venueId],
+    queryKey: qk.venueOpeningHours(venueId),
     enabled: Boolean(venueId),
     queryFn: async () => {
       if (!venueId) return [];
@@ -179,7 +180,7 @@ export const useVenueDetailData = (
     placeholderData: [],
   });
   const pricingTiersQuery = useQuery<VenuePricingTier[]>({
-    queryKey: ["venuePricingTiers", venueId],
+    queryKey: qk.venuePricingTiers(venueId),
     enabled: Boolean(venueId),
     queryFn: async () => {
       if (!venueId) return [];
@@ -203,7 +204,7 @@ export const useVenueDetailData = (
     placeholderData: [],
   });
   const rulesQuery = useQuery<string | null>({
-    queryKey: ["venueRules", venueId],
+    queryKey: qk.venueRules(venueId),
     enabled: Boolean(venueId),
     queryFn: async () => {
       if (!venueId) return null;
@@ -295,7 +296,7 @@ export const useVenueDetailData = (
 
   const RECENT_LIMIT = 12;
   const recentCatchesQuery = useInfiniteQuery<CatchRow[]>({
-    queryKey: ["venueRecentCatches", venueId],
+    queryKey: qk.venueRecentCatches(venueId),
     enabled: Boolean(venueId),
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
@@ -331,7 +332,7 @@ export const useVenueDetailData = (
 
   const PAST_LIMIT = 10;
   const pastEventsQuery = useInfiniteQuery<VenueEvent[]>({
-    queryKey: ["venuePastEvents", venueId],
+    queryKey: qk.venuePastEvents(venueId),
     enabled: Boolean(venueId),
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
@@ -471,11 +472,7 @@ export const useVenueDetailData = (
       const prevCount = ratingCount;
       const prevLastAvg = lastKnownAvg;
       const prevLastCount = lastKnownCount;
-      const ratingQueryKey: [string, string | null, string | null] = [
-        "venueRating",
-        userId,
-        venueId,
-      ];
+      const ratingQueryKey = qk.venueRating(userId, venueId);
       queryClient.setQueryData(ratingQueryKey, rating);
       if (ratingCacheKey) {
         setVenueRatingCache(ratingCacheKey, {

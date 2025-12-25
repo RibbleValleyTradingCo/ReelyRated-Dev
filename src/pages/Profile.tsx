@@ -1,18 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Star, Trophy, Fish, BarChart3, AlertTriangle } from "lucide-react";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
-import { createNotification } from "@/lib/notifications";
-import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
-import { isUuid } from "@/lib/profile";
 import { resolveAvatarUrl } from "@/lib/storage";
 import { ProfileNotificationsSection } from "@/components/ProfileNotificationsSection";
 import ProfileNotFound from "@/components/ProfileNotFound";
-import { isAdminUser } from "@/lib/admin";
-import { toast } from "sonner";
 import ProfileHero from "@/components/profile/ProfileHero";
 import ProfileAdminModerationTools from "@/components/profile/ProfileAdminModerationTools";
 import ProfileAboutStaffCard from "@/components/profile/ProfileAboutStaffCard";
@@ -25,44 +19,8 @@ import PageSpinner from "@/components/loading/PageSpinner";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import Text from "@/components/typography/Text";
-
-interface Profile {
-  id: string;
-  username: string;
-  avatar_path: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-  is_private: boolean;
-  is_deleted?: boolean;
-}
-
-interface Catch {
-  id: string;
-  user_id?: string;
-  location?: string | null;
-  hide_exact_spot?: boolean | null;
-  visibility?: string | null;
-  title: string;
-  image_url: string;
-  ratings: { rating: number }[];
-  weight: number | null;
-  weight_unit: string | null;
-  species: string | null;
-  created_at: string;
-  venues?: {
-    id: string;
-    slug: string;
-    name: string;
-  } | null;
-}
-
-interface FollowingProfile {
-  id: string;
-  username: string;
-  avatar_path: string | null;
-  avatar_url: string | null;
-  bio: string | null;
-}
+import { useProfileData } from "@/pages/profile/hooks/useProfileData";
+import type { Catch } from "@/pages/profile/types";
 
 const PROFILE_STATUS_PLACEHOLDER = "No intro yet. Tell others where you fish and what you target.";
 
@@ -119,25 +77,40 @@ const Profile = () => {
   const { slug } = useParams<{ slug?: string }>();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [catches, setCatches] = useState<Catch[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editedBio, setEditedBio] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isNotFound, setIsNotFound] = useState(false);
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingProfiles, setFollowingProfiles] = useState<FollowingProfile[]>([]);
-  const [isAdminViewer, setIsAdminViewer] = useState(false);
-  const [isAdminProfileOwner, setIsAdminProfileOwner] = useState(false);
   const [bioExpanded, setBioExpanded] = useState(false);
-  const [isBlockedByMe, setIsBlockedByMe] = useState(false);
-  const [blockLoading, setBlockLoading] = useState(false);
-  const [isViewerBlockedByProfileOwner, setIsViewerBlockedByProfileOwner] = useState(false);
-  const [blockStatusLoading, setBlockStatusLoading] = useState(true);
 
-  const profileId = profile?.id ?? null;
+  const {
+    profile,
+    profileId,
+    catches,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+    followersCount,
+    followingProfiles,
+    isFollowing,
+    followLoading,
+    isAdminViewer,
+    isAdminProfileOwner,
+    isBlockedByMe,
+    isViewerBlockedByProfileOwner,
+    blockStatusLoading,
+    blockLoading,
+    isLoading,
+    isNotFound,
+    toggleFollow,
+    updateBio,
+    blockProfile,
+    unblockProfile,
+  } = useProfileData({
+    slug,
+    viewerId: user?.id,
+    viewerEmail: user?.email,
+    viewerUsername: user?.user_metadata?.username,
+  });
+
   const isOwnProfile = user?.id === profileId;
   const isDeleted = !!profile?.is_deleted;
 
@@ -147,265 +120,15 @@ const Profile = () => {
   );
 
   useEffect(() => {
-    let active = true;
-    const checkAdmin = async () => {
-      if (!user) {
-        setIsAdminViewer(false);
-        return;
-      }
-      const result = await isAdminUser(user.id);
-      if (active) {
-        setIsAdminViewer(result);
-      }
-    };
-    void checkAdmin();
-    return () => {
-      active = false;
-    };
-  }, [user]);
-
-  useEffect(() => {
-    let active = true;
-    const checkProfileAdmin = async () => {
-      if (!profileId) {
-        setIsAdminProfileOwner(false);
-        return;
-      }
-      const result = await isAdminUser(profileId);
-      if (active) {
-        setIsAdminProfileOwner(result);
-      }
-    };
-    void checkProfileAdmin();
-    return () => {
-      active = false;
-    };
-  }, [profileId]);
-
-  useEffect(() => {
-    const checkBlockStatus = async () => {
-      setBlockStatusLoading(true);
-      if (!user || !profileId) {
-        setIsBlockedByMe(false);
-        setIsViewerBlockedByProfileOwner(false);
-        setBlockStatusLoading(false);
-        return;
-      }
-      const { data, error } = await supabase
-        .from("profile_blocks")
-        .select("blocker_id, blocked_id")
-        .eq("blocker_id", user.id)
-        .eq("blocked_id", profileId)
-        .maybeSingle();
-      setIsBlockedByMe(!error && !!data);
-
-      const { data: blockedViewerRow, error: blockedViewerError } = await supabase
-        .from("profile_blocks")
-        .select("blocker_id, blocked_id")
-        .eq("blocker_id", profileId)
-        .eq("blocked_id", user.id)
-        .maybeSingle();
-      setIsViewerBlockedByProfileOwner(!blockedViewerError && !!blockedViewerRow);
-      setBlockStatusLoading(false);
-    };
-    void checkBlockStatus();
-  }, [profileId, user]);
-
-  const fetchProfile = useCallback(async () => {
-    if (!slug) {
-      setIsLoading(false);
-      setIsNotFound(true);
-      setProfile(null);
-      setCatches([]);
-      setFollowersCount(0);
-      setFollowingProfiles([]);
-      return;
-    }
-    setIsLoading(true);
-    const slugIsUuid = isUuid(slug);
-    let query = supabase
-      .from("profiles")
-      .select("id, username, avatar_path, avatar_url, bio, is_private, is_deleted")
-      .limit(1);
-
-    query = slugIsUuid ? query.eq("id", slug) : query.eq("username", slug);
-
-    const { data, error } = await query.maybeSingle();
-
-    if (error || !data) {
-      setIsLoading(false);
-      setIsNotFound(true);
-      setProfile(null);
-      setCatches([]);
-      setFollowersCount(0);
-      setFollowingProfiles([]);
-      return;
-    }
-
-    const profileRow = data as Profile;
-    setIsNotFound(false);
-    setProfile(profileRow);
-    setEditedBio(profileRow.bio || "");
-    setIsLoading(false);
-
-    if ((slugIsUuid || profileRow.username !== slug) && profileRow.username) {
-      navigate(`/profile/${profileRow.username}`, { replace: true });
-    }
-  }, [navigate, slug]);
-
-  const fetchUserCatches = useCallback(async () => {
-    if (!profileId) return;
-    const { data, error } = await supabase
-      .from("catches")
-      .select(
-        "id, user_id, location, hide_exact_spot, visibility, title, image_url, weight, weight_unit, species, created_at, ratings (rating), venues:venue_id (id, slug, name)"
-      )
-      .eq("user_id", profileId)
-      .is("deleted_at", null)
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setCatches(data);
-    }
-  }, [profileId]);
-
-  const fetchFollowerCount = useCallback(async () => {
-    if (!profileId) return;
-    const { data, error } = await supabase.rpc("get_follower_count", {
-      p_profile_id: profileId,
-    });
-
-    if (error) {
-      console.error("Failed to load follower count", error);
-      return;
-    }
-
-    setFollowersCount(data ?? 0);
-  }, [profileId]);
-
-  const fetchFollowingProfiles = useCallback(async () => {
-    if (!profileId) return;
-    const { data, error } = await supabase
-      .from("profile_follows")
-      .select(
-        `
-          followed_profile:profiles!profile_follows_following_id_fkey (
-            id,
-            username,
-            avatar_path,
-            avatar_url,
-            bio
-          )
-        `
-      )
-      .eq("follower_id", profileId);
-
-    if (!error && data) {
-      const parsed = (data as { followed_profile: FollowingProfile | null }[])
-        .map((row) => row.followed_profile)
-        .filter((profileRow): profileRow is FollowingProfile => !!profileRow);
-      setFollowingProfiles(parsed);
-    }
-  }, [profileId]);
-
-  const fetchFollowStatus = useCallback(async () => {
-    if (!profileId || !user || user.id === profileId) return;
-    const { data, error } = await supabase
-      .from("profile_follows")
-      .select("id")
-      .eq("follower_id", user.id)
-      .eq("following_id", profileId)
-      .maybeSingle();
-
-    if (!error) {
-      setIsFollowing(!!data);
-    }
-  }, [profileId, user]);
-
-  useEffect(() => {
-    void fetchProfile();
-  }, [fetchProfile]);
-
-  useEffect(() => {
-    if (!profileId) return;
-    void fetchUserCatches();
-    void fetchFollowerCount();
-    void fetchFollowingProfiles();
-  }, [profileId, fetchFollowerCount, fetchFollowingProfiles, fetchUserCatches]);
-
-  useEffect(() => {
-    if (!profileId || !user || user.id === profileId) {
-      setIsFollowing(false);
-      return;
-    }
-    void fetchFollowStatus();
-  }, [profileId, user, fetchFollowStatus]);
-
-  const handleToggleFollow = async () => {
-    if (!user || !profileId) {
-      toast.error("Sign in to follow anglers");
-      navigate("/auth");
-      return;
-    }
-    if (user.id === profileId) return;
-
-    setFollowLoading(true);
-
-    if (isFollowing) {
-      const { error } = await supabase
-        .from("profile_follows")
-        .delete()
-        .eq("follower_id", user.id)
-        .eq("following_id", profileId);
-
-      if (error) {
-        toast.error("Failed to unfollow");
-      } else {
-        setIsFollowing(false);
-        await fetchFollowerCount();
-      }
-    } else {
-      const { error } = await supabase.rpc("follow_profile_with_rate_limit", {
-        p_following_id: profileId,
-      });
-
-      if (error) {
-        if (isRateLimitError(error)) {
-          toast.error(getRateLimitMessage(error));
-        } else {
-          toast.error("Failed to follow");
-        }
-      } else {
-        setIsFollowing(true);
-        await fetchFollowerCount();
-        void createNotification({
-          userId: profileId,
-          actorId: user.id,
-          type: "new_follower",
-          payload: {
-            message: `${user.user_metadata?.username ?? user.email ?? "Someone"} started following you.`,
-          },
-        });
-      }
-    }
-
-    setFollowLoading(false);
-  };
+    if (!profile) return;
+    setEditedBio(profile.bio || "");
+  }, [profile?.bio, profile?.id]);
 
   const handleUpdateBio = async () => {
     if (!user || !isOwnProfile) return;
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ bio: editedBio })
-      .eq("id", user.id);
-
-    if (error) {
-      toast.error("Failed to update bio");
-    } else {
-      toast.success("Bio updated!");
+    const didUpdate = await updateBio(editedBio);
+    if (didUpdate) {
       setIsEditing(false);
-      fetchProfile();
     }
   };
 
@@ -503,48 +226,11 @@ const Profile = () => {
   }
 
   const handleBlock = async () => {
-    if (!profileId || !user) return;
-    try {
-      setBlockLoading(true);
-      const { error } = await supabase.rpc("block_profile", {
-        p_blocked_id: profileId,
-        p_reason: null,
-      });
-      if (error) {
-        console.error("Failed to block user", error);
-        toast.error("We couldn’t block this user. Please try again.");
-        return;
-      }
-      toast.success("User blocked. You won’t see their catches or comments.");
-      setIsBlockedByMe(true);
-    } catch (err) {
-      console.error("Error blocking user", err);
-      toast.error("Something went wrong blocking this user.");
-    } finally {
-      setBlockLoading(false);
-    }
+    await blockProfile();
   };
 
   const handleUnblock = async () => {
-    if (!profileId || !user) return;
-    try {
-      setBlockLoading(true);
-      const { error } = await supabase.rpc("unblock_profile", {
-        p_blocked_id: profileId,
-      });
-      if (error) {
-        console.error("Failed to unblock user", error);
-        toast.error("We couldn’t unblock this user. Please try again.");
-        return;
-      }
-      toast.success("User unblocked. Their content will reappear based on privacy settings.");
-      setIsBlockedByMe(false);
-    } catch (err) {
-      console.error("Error unblocking user", err);
-      toast.error("Something went wrong unblocking this user.");
-    } finally {
-      setBlockLoading(false);
-    }
+    await unblockProfile();
   };
 
   const showStatusPill = !isAdminProfile;
@@ -642,7 +328,7 @@ const Profile = () => {
               onModeration={profileId ? handleNavigateToModeration : undefined}
               onReports={handleNavigateToReports}
               onAuditLog={handleNavigateToAuditLog}
-              onToggleFollow={handleToggleFollow}
+              onToggleFollow={toggleFollow}
               onBlockToggle={isBlockedByMe ? handleUnblock : handleBlock}
               isFollowing={isFollowing}
               followLoading={followLoading}
@@ -694,6 +380,9 @@ const Profile = () => {
                 onLogCatch={handleNavigateToAddCatch}
                 onViewFeed={handleNavigateToFeed}
                 onOpenCatch={handleOpenCatch}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
+                onLoadMore={() => void fetchNextPage()}
                 formatWeight={formatWeight}
                 formatSpecies={formatSpecies}
               />

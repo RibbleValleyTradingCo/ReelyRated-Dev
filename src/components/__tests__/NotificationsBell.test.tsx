@@ -27,27 +27,15 @@ const markOneMock = vi.fn();
 const markAllMock = vi.fn();
 const clearAllMock = vi.fn();
 const refreshMock = vi.fn();
-const setNotificationsMock = vi.fn();
-
-type SupabaseMocks = {
-  channelOnMock: ReturnType<typeof vi.fn>;
-  channelSubscribeMock: ReturnType<typeof vi.fn>;
-  channelUnsubscribeMock: ReturnType<typeof vi.fn>;
-  removeChannelMock: ReturnType<typeof vi.fn>;
-  channel: ReturnType<typeof vi.fn>;
-};
-
-let supabaseMocks: SupabaseMocks;
 
 vi.mock("@/components/AuthProvider", () => ({
   useAuth: () => ({ user: { id: "user-1" }, loading: false }),
 }));
 
-vi.mock("@/hooks/useNotifications", () => ({
-  useNotifications: () => ({
+vi.mock("@/hooks/useNotificationsData", () => ({
+  useNotificationsData: () => ({
     notifications: [createNotification()],
-    setNotifications: setNotificationsMock,
-    loading: false,
+    isLoading: false,
     refresh: refreshMock,
     markOne: markOneMock,
     markAll: markAllMock,
@@ -75,51 +63,12 @@ vi.mock("@/components/ui/popover", () => {
   return { Popover, PopoverTrigger, PopoverContent };
 });
 
-vi.mock("@/integrations/supabase/client", () => {
-  const channelOnMock = vi.fn().mockReturnThis();
-  const channelSubscribeMock = vi.fn().mockReturnThis();
-  const channelUnsubscribeMock = vi.fn().mockReturnThis();
-  const removeChannelMock = vi.fn();
-
-  const channel = vi.fn(() => ({
-    on: channelOnMock,
-    subscribe: channelSubscribeMock,
-    unsubscribe: channelUnsubscribeMock,
-  }));
-
-  (globalThis as any).__notificationsSupabaseMocks = {
-    channelOnMock,
-    channelSubscribeMock,
-    channelUnsubscribeMock,
-    removeChannelMock,
-    channel,
-  };
-
-  return {
-    supabase: {
-      channel,
-      removeChannel: removeChannelMock,
-    },
-  };
-});
-
 describe("NotificationsBell", () => {
   beforeEach(() => {
-    supabaseMocks = (globalThis as any).__notificationsSupabaseMocks;
-    if (!supabaseMocks) {
-      throw new Error("__notificationsSupabaseMocks not initialised");
-    }
-
     markOneMock.mockClear();
     markAllMock.mockClear();
     clearAllMock.mockClear();
     refreshMock.mockClear();
-    setNotificationsMock.mockClear();
-    supabaseMocks.channelOnMock.mockClear();
-    supabaseMocks.channelSubscribeMock.mockClear();
-    supabaseMocks.channelUnsubscribeMock.mockClear();
-    supabaseMocks.removeChannelMock.mockClear();
-    supabaseMocks.channel.mockClear();
   });
 
   afterEach(() => {
@@ -151,10 +100,7 @@ describe("NotificationsBell", () => {
     });
     await waitFor(() => expect(clearAllMock).toHaveBeenCalled());
 
-    expect(supabaseMocks.channelSubscribeMock).toHaveBeenCalled();
-
     unmount();
-    expect(supabaseMocks.removeChannelMock).toHaveBeenCalled();
   });
 
   it("marks a single notification as read", async () => {

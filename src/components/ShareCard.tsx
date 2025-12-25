@@ -28,6 +28,9 @@ export const ShareCard = memo(({
           src={photoUrl}
           alt={species ? `${species} catch` : "Fishing catch"}
           className="h-full w-full object-cover"
+          crossOrigin="anonymous"
+          loading="eager"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/20 to-transparent" />
         <div className="absolute bottom-6 left-6 right-6 flex flex-col gap-3">

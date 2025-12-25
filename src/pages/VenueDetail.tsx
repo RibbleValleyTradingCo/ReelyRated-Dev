@@ -10,15 +10,18 @@ import HeroStatsStrip from "@/pages/venue-detail/components/HeroStatsStrip";
 import LeaderboardSection from "@/pages/venue-detail/components/LeaderboardSection";
 import LocationMapSection from "@/pages/venue-detail/components/LocationMapSection";
 import PlanYourVisitSection from "@/pages/venue-detail/components/PlanYourVisitSection";
-import RatingModal from "@/pages/venue-detail/components/RatingModal";
 import RecentCatchesSection from "@/pages/venue-detail/components/RecentCatchesSection";
 import VenueCarouselSection from "@/pages/venue-detail/components/VenueCarouselSection";
 import VenueHero from "@/pages/venue-detail/components/VenueHero";
 import { useVenueDetailData } from "@/pages/venue-detail/hooks/useVenueDetailData";
 import type { Venue } from "@/pages/venue-detail/types";
 import { buildVenueDetailViewModel } from "@/pages/venue-detail/viewModel";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
+const LazyRatingModal = lazy(
+  () => import("@/pages/venue-detail/components/RatingModal")
+);
 
 const VenueDetail = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -573,17 +576,27 @@ const VenueDetail = () => {
         contactPhone={contactPhone}
         stickyCtaOffset={0}
       />
-      <RatingModal
-        open={ratingModalOpen}
-        onClose={closeRatingModal}
-        pendingRating={pendingRating}
-        onPendingRatingChange={setPendingRating}
-        onSubmit={handleRatingSelect}
-        loading={ratingLoading}
-        ratingSummaryText={ratingSummaryText}
-        venueName={venue.name}
-        triggerRef={ratingTriggerRef}
-      />
+      {ratingModalOpen ? (
+        <Suspense
+          fallback={
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 px-4 py-6">
+              <div className="h-40 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" />
+            </div>
+          }
+        >
+          <LazyRatingModal
+            open={ratingModalOpen}
+            onClose={closeRatingModal}
+            pendingRating={pendingRating}
+            onPendingRatingChange={setPendingRating}
+            onSubmit={handleRatingSelect}
+            loading={ratingLoading}
+            ratingSummaryText={ratingSummaryText}
+            venueName={venue.name}
+            triggerRef={ratingTriggerRef}
+          />
+        </Suspense>
+      ) : null}
       {showStickyActions ? (
         <div
           ref={stickyCtaRef}

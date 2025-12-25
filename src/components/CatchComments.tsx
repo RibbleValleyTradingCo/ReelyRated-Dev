@@ -3,6 +3,7 @@ import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,6 +25,12 @@ interface CatchCommentsProps {
   currentUserId?: string | null;
   isAdmin?: boolean;
   targetCommentId?: string;
+}
+
+type CatchCommentsData = ReturnType<typeof useCatchComments>;
+
+interface CatchCommentsBodyProps extends CatchCommentsProps {
+  commentsData: CatchCommentsData;
 }
 
 const INITIAL_VISIBLE_ROOTS = 10;
@@ -314,8 +321,16 @@ function flattenReplies(root: ThreadedComment): FlatReply[] {
   return flat;
 }
 
-export const CatchComments = memo(
-  ({ catchId, catchOwnerId, catchTitle, currentUserId, isAdmin = false, targetCommentId }: CatchCommentsProps) => {
+const CatchCommentsBody = memo(
+  ({
+    catchId,
+    catchOwnerId,
+    catchTitle,
+    currentUserId,
+    isAdmin = false,
+    targetCommentId,
+    commentsData,
+  }: CatchCommentsBodyProps) => {
     const [reportedComments, setReportedComments] = useState<Record<string, boolean>>({});
 
     const { user } = useAuth();
@@ -326,7 +341,7 @@ export const CatchComments = memo(
       addLocalComment,
       markLocalCommentDeleted,
       mentionCandidates,
-    } = useCatchComments(catchId);
+    } = commentsData;
     const [newComment, setNewComment] = useState("");
     const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
     const [activeReply, setActiveReply] = useState<string | null>(null);
@@ -375,6 +390,31 @@ export const CatchComments = memo(
     const TOP_MENTION_KEY = "top-level";
     const topMentionState = mentionController.getState(TOP_MENTION_KEY);
 
+    const createCommentMutation = useMutation({
+      mutationFn: async (payload: { body: string; parentCommentId: string | null }) => {
+        const { data, error } = await supabase.rpc("create_comment_with_rate_limit", {
+          p_catch_id: catchId,
+          p_body: payload.body,
+          p_parent_comment_id: payload.parentCommentId,
+        });
+
+        if (error) throw error;
+        return data as string | null;
+      },
+      retry: false,
+    });
+
+    const deleteCommentMutation = useMutation({
+      mutationFn: async (commentId: string) => {
+        const { error } = await supabase.rpc("soft_delete_comment", {
+          p_comment_id: commentId,
+        });
+        if (error) throw error;
+        return true;
+      },
+      retry: false,
+    });
+
     const handleCreateComment = useCallback(
       async (body: string, parentCommentId: string | null) => {
         if (!currentUserId) {
@@ -395,13 +435,13 @@ export const CatchComments = memo(
         }
 
         setIsPosting(true);
-        const { data: insertedCommentId, error } = await supabase.rpc("create_comment_with_rate_limit", {
-          p_catch_id: catchId,
-          p_body: trimmed,
-          p_parent_comment_id: parentCommentId,
-        });
-
-        if (error) {
+        let insertedCommentId: string | null = null;
+        try {
+          insertedCommentId = await createCommentMutation.mutateAsync({
+            body: trimmed,
+            parentCommentId,
+          });
+        } catch (error) {
           const moderation = mapModerationError(error);
           if (moderation.type === "suspended") {
             const untilText =
@@ -465,24 +505,32 @@ export const CatchComments = memo(
         setIsPosting(false);
         return true;
       },
-      [addLocalComment, catchId, checkLimit, currentUserId, isAdmin, refetch, user]
+      [
+        addLocalComment,
+        catchId,
+        checkLimit,
+        createCommentMutation,
+        currentUserId,
+        isAdmin,
+        refetch,
+        user,
+      ]
     );
 
     const handleDelete = useCallback(
       async (commentId: string) => {
         setDeleteLoadingId(commentId);
-        const { error } = await supabase.rpc("soft_delete_comment", {
-          p_comment_id: commentId,
-        });
-        if (error) {
-          toast.error("Failed to delete comment");
-        } else {
+        try {
+          await deleteCommentMutation.mutateAsync(commentId);
           markLocalCommentDeleted(commentId);
           void refetch();
+        } catch (error) {
+          toast.error("Failed to delete comment");
+        } finally {
+          setDeleteLoadingId(null);
         }
-        setDeleteLoadingId(null);
       },
-      [markLocalCommentDeleted, refetch]
+      [deleteCommentMutation, markLocalCommentDeleted, refetch]
     );
 
     const topLevelSubmit = async () => {
@@ -1026,4 +1074,12 @@ export const CatchComments = memo(
   }
 );
 
+export const CatchComments = memo((props: CatchCommentsProps) => {
+  const commentsData = useCatchComments(props.catchId);
+  return <CatchCommentsBody {...props} commentsData={commentsData} />;
+});
+
+CatchCommentsBody.displayName = "CatchCommentsBody";
 CatchComments.displayName = "CatchComments";
+
+export { CatchCommentsBody };

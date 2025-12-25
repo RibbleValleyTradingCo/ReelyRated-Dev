@@ -1,11 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bell, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useNavigate } from "react-router-dom";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationsData } from "@/hooks/useNotificationsData";
 import { NotificationListItem } from "@/components/notifications/NotificationListItem";
 import { resolveNotificationPath } from "@/lib/notifications-utils";
 import { isAdminUser } from "@/lib/admin";
@@ -27,23 +26,20 @@ export const NotificationsBell = ({
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isAdminViewer, setIsAdminViewer] = useState(false);
-  const limit = 25;
+  const listLimit = 50;
+  const displayLimit = 25;
 
   const {
     notifications,
-    setNotifications,
     loading: isLoading,
     refresh,
     markOne,
     markAll,
     clearAll,
-  } = useNotifications(user?.id ?? null, limit);
-
-  useEffect(() => {
-    if (!authLoading && user) {
-      void refresh();
-    }
-  }, [authLoading, refresh, user]);
+  } = useNotificationsData(user?.id ?? null, {
+    limit: listLimit,
+    enableRealtime: true,
+  });
 
   useEffect(() => {
     let isActive = true;
@@ -63,38 +59,14 @@ export const NotificationsBell = ({
     };
   }, [user]);
 
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel(`notifications:user:${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as NotificationRow;
-          setNotifications((prev) => {
-            const existingIds = new Set(prev.map((item) => item.id));
-            if (existingIds.has(newNotification.id)) return prev;
-            return [newNotification, ...prev].slice(0, limit);
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
-    };
-  }, [limit, setNotifications, user]);
+  const visibleNotifications = useMemo(
+    () => notifications.slice(0, displayLimit),
+    [notifications, displayLimit]
+  );
 
   const unreadCount = useMemo(
-    () => notifications.filter((notification) => !notification.is_read).length,
-    [notifications]
+    () => visibleNotifications.filter((notification) => !notification.is_read).length,
+    [visibleNotifications]
   );
 
   const [markAllLoading, setMarkAllLoading] = useState(false);
@@ -224,7 +196,7 @@ export const NotificationsBell = ({
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Loading…
             </div>
-          ) : notifications.length === 0 ? (
+          ) : visibleNotifications.length === 0 ? (
             <div className="py-6 text-center text-sm text-muted-foreground space-y-1">
               <div>You’re all caught up!</div>
               <div className="text-xs text-muted-foreground">
@@ -234,7 +206,7 @@ export const NotificationsBell = ({
           ) : (
             <div className="max-h-[60vh] overflow-y-auto pr-2">
               <div className="space-y-3">
-                {notifications.map((notification) => (
+                {visibleNotifications.map((notification) => (
                   <NotificationListItem
                     key={notification.id}
                     notification={notification}

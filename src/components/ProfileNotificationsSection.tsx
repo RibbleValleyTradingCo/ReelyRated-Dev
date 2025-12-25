@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { NotificationListItem } from "@/components/notifications/NotificationListItem";
-import { useNotifications } from "@/hooks/useNotifications";
+import { useNotificationsData } from "@/hooks/useNotificationsData";
 import { useNavigate } from "react-router-dom";
 import { resolveNotificationPath } from "@/lib/notifications-utils";
 import { isAdminUser } from "@/lib/admin";
@@ -18,12 +18,12 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
   const { user } = useAuth();
   const {
     notifications,
-    loading,
+    isLoading,
     refresh,
     markOne,
     markAll,
     clearAll,
-  } = useNotifications(userId, 50);
+  } = useNotificationsData(userId, { limit: 50 });
   const navigate = useNavigate();
   const [isAdminViewer, setIsAdminViewer] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
@@ -32,11 +32,6 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
     warn_count: number;
     suspension_until: string | null;
   } | null>(null);
-
-  useEffect(() => {
-    if (!userId) return;
-    void refresh();
-  }, [refresh, userId]);
 
   useEffect(() => {
     let active = true;
@@ -171,9 +166,9 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
               onClick={() => {
                 void refresh();
               }}
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? (
+              {isLoading ? (
                 <>
                   <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" /> Refreshing
                 </>
@@ -207,7 +202,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
           </div>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading notifications…
             </div>

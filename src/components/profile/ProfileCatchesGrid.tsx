@@ -33,6 +33,9 @@ interface ProfileCatchesGridProps {
   onLogCatch: () => void;
   onViewFeed: () => void;
   onOpenCatch: (id: string) => void;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  onLoadMore?: () => void;
   formatWeight: (weight: number | null, unit: string | null) => string;
   formatSpecies: (species: string | null) => string;
 }
@@ -45,6 +48,9 @@ const ProfileCatchesGrid = ({
   onLogCatch,
   onViewFeed,
   onOpenCatch,
+  hasNextPage = false,
+  isFetchingNextPage = false,
+  onLoadMore,
   formatWeight,
   formatSpecies,
 }: ProfileCatchesGridProps) => {
@@ -89,38 +95,52 @@ const ProfileCatchesGrid = ({
           )}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {catches.map((catchItem) => (
-            <Card
-              key={catchItem.id}
-              className="overflow-hidden border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-              onClick={() => onOpenCatch(catchItem.id)}
-            >
-              <CardContent className="p-0">
-                <img src={catchItem.image_url} alt={catchItem.title} className="h-48 w-full object-cover" />
-                <div className="space-y-3 p-4">
-                  <p className="truncate text-sm font-semibold text-slate-900">{catchItem.title}</p>
-                  <p className="truncate text-xs text-slate-500">
-                    {catchItem.species ? formatSpecies(catchItem.species) : "Species unknown"}
-                  </p>
-                  {catchItem.venues ? (
-                    <Link
-                      to={`/venues/${catchItem.venues.slug}`}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <MapPin className="h-3 w-3" />
-                      <span className="truncate">{catchItem.venues.name}</span>
-                    </Link>
-                  ) : null}
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{new Date(catchItem.created_at).toLocaleDateString("en-GB")}</span>
-                    <span>{formatWeight(catchItem.weight, catchItem.weight_unit)}</span>
+        <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {catches.map((catchItem) => (
+              <Card
+                key={catchItem.id}
+                className="overflow-hidden border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                onClick={() => onOpenCatch(catchItem.id)}
+              >
+                <CardContent className="p-0">
+                  <img src={catchItem.image_url} alt={catchItem.title} className="h-48 w-full object-cover" />
+                  <div className="space-y-3 p-4">
+                    <p className="truncate text-sm font-semibold text-slate-900">{catchItem.title}</p>
+                    <p className="truncate text-xs text-slate-500">
+                      {catchItem.species ? formatSpecies(catchItem.species) : "Species unknown"}
+                    </p>
+                    {catchItem.venues ? (
+                      <Link
+                        to={`/venues/${catchItem.venues.slug}`}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MapPin className="h-3 w-3" />
+                        <span className="truncate">{catchItem.venues.name}</span>
+                      </Link>
+                    ) : null}
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>{new Date(catchItem.created_at).toLocaleDateString("en-GB")}</span>
+                      <span>{formatWeight(catchItem.weight, catchItem.weight_unit)}</span>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {hasNextPage && onLoadMore ? (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                className="h-10 rounded-full px-5 text-sm font-semibold"
+                onClick={onLoadMore}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? "Loading…" : "Load more"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       )}
     </section>

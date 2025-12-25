@@ -3,14 +3,13 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import MarkdownContent from "@/components/typography/MarkdownContent";
 import { normalizeExternalUrl } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import type {
   VenueOpeningHour,
   VenuePricingTier,
 } from "@/pages/venue-detail/types";
-import { useState } from "react";
+import { Suspense, lazy, useState } from "react";
 import {
   Anchor,
   Car,
@@ -51,6 +50,10 @@ type PlanYourVisitSectionProps = {
   mapsUrl: string;
   venueName?: string;
 };
+
+const LazyMarkdownContent = lazy(
+  () => import("@/components/typography/MarkdownContent")
+);
 
 const PlanYourVisitSection = ({
   hasPlanContent,
@@ -141,6 +144,13 @@ const PlanYourVisitSection = ({
 
   const SkeletonLine = ({ className }: { className?: string }) => (
     <div className={cn("h-3 w-full rounded-full bg-slate-100 animate-pulse", className)} />
+  );
+  const MarkdownFallback = (
+    <div className="space-y-2">
+      <SkeletonLine />
+      <SkeletonLine className="w-5/6" />
+      <SkeletonLine className="w-2/3" />
+    </div>
   );
 
   const pricingDetails = isOperationalLoading && !hasPricingContent ? (
@@ -326,7 +336,9 @@ const PlanYourVisitSection = ({
       <SkeletonLine className="w-2/3" />
     </div>
   ) : hasRulesText ? (
-    <MarkdownContent content={rulesText ?? ""} className="text-sm text-slate-700" />
+    <Suspense fallback={MarkdownFallback}>
+      <LazyMarkdownContent content={rulesText ?? ""} className="text-sm text-slate-700" />
+    </Suspense>
   ) : (
     <p className="text-sm text-slate-500">No rules posted yet.</p>
   );
@@ -346,7 +358,9 @@ const PlanYourVisitSection = ({
           !rulesExpanded && rulesNeedsClamp && "line-clamp-6"
         )}
       >
-        <MarkdownContent content={rulesText ?? ""} />
+        <Suspense fallback={MarkdownFallback}>
+          <LazyMarkdownContent content={rulesText ?? ""} />
+        </Suspense>
       </div>
       {rulesNeedsClamp ? (
         <button

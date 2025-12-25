@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import { useAuthUser } from "@/components/AuthProvider";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -54,20 +54,16 @@ import {
 import { format } from "date-fns";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
 import { formatWeight, formatSpecies, formatEnum, formatSlugLabel } from "@/lib/catch-formatting";
-import { CatchComments } from "@/components/CatchComments";
-import { useCatchData } from "@/hooks/useCatchData";
-import type { CatchData, Rating } from "@/hooks/useCatchData";
+import { CatchCommentsBody } from "@/components/CatchComments";
+import { useCatchDetailData } from "@/pages/catch-detail/hooks/useCatchDetailData";
 import { useCatchInteractions } from "@/hooks/useCatchInteractions";
-import { createNotification } from "@/lib/notifications";
 import { getProfilePath } from "@/lib/profile";
 import { resolveAvatarUrl } from "@/lib/storage";
-import { canViewCatch, shouldShowExactLocation } from "@/lib/visibility";
-import type { Database } from "@/integrations/supabase/types";
+import { shouldShowExactLocation } from "@/lib/visibility";
 import { updateCatchFields } from "@/lib/supabase-queries";
-import html2canvas from "html2canvas";
+import { logger } from "@/lib/logger";
 import ShareCard from "@/components/ShareCard";
 import ReportButton from "@/components/ReportButton";
-import { isAdminUser } from "@/lib/admin";
 import { useSearchParams } from "react-router-dom";
 
 const CatchDetail = () => {
@@ -88,34 +84,36 @@ const CatchDetail = () => {
   const [editDescription, setEditDescription] = useState<string>("");
   const [editTagsInput, setEditTagsInput] = useState<string>("");
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminChecked, setAdminChecked] = useState(false);
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const reportTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   const {
     catchData,
-    ratings,
     hasRated,
     isLoading,
     reactionCount,
     userHasReacted,
     isFollowing,
-    followStatusLoaded,
-    setHasRated,
-    setRatings,
-    setReactionCount,
-    setUserHasReacted,
-    setIsFollowing,
-    fetchReactions,
-    fetchRatings,
-    fetchCatchData,
     ratingSummary,
     ratingSummaryAccessError,
     ratingSummaryError,
-  } = useCatchData({
+    isAdmin,
+    refetchCatch,
+    commentsData,
+  } = useCatchDetailData({
     catchId,
     userId: user?.id,
+  });
+
+  const updateCatchMutation = useMutation({
+    mutationFn: async (updates: { description?: string | null; tags?: string[] | null }) => {
+      if (!catchData) {
+        throw new Error("CATCH_NOT_READY");
+      }
+      await updateCatchFields(catchData.id, updates);
+      return true;
+    },
+    retry: false,
   });
 
   const ownerId = catchData?.user_id ?? null;
@@ -130,7 +128,6 @@ const CatchDetail = () => {
     handleDownloadShareImage,
     handleAddRating,
     ratingLoading,
-    catchUrl,
   } = useCatchInteractions({
     catchId,
     catchData,
@@ -141,10 +138,6 @@ const CatchDetail = () => {
     hasRated,
     isFollowing,
     userHasReacted,
-    setIsFollowing,
-    setReactionCount,
-    setUserHasReacted,
-    setHasRated,
     setFollowLoading,
     setReactionLoading,
     setDeleteLoading,
@@ -152,7 +145,6 @@ const CatchDetail = () => {
     setShareCopied,
     setDownloadLoading,
     shareCardRef,
-    fetchRatings,
   });
 
   useEffect(() => {
@@ -160,33 +152,6 @@ const CatchDetail = () => {
       navigate("/add-catch");
     }
   }, [id, navigate]);
-
-  useEffect(() => {
-    let active = true;
-    const loadAdmin = async () => {
-      if (!user?.id) {
-        setIsAdmin(false);
-        setAdminChecked(true);
-        return;
-      }
-      try {
-        const status = await isAdminUser(user.id);
-        if (active) {
-          setIsAdmin(status);
-          setAdminChecked(true);
-        }
-      } catch {
-        if (active) {
-          setIsAdmin(false);
-          setAdminChecked(true);
-        }
-      }
-    };
-    void loadAdmin();
-    return () => {
-      active = false;
-    };
-  }, [user?.id]);
 
   const ownerAvatarUrl = useMemo(
     () =>
@@ -268,7 +233,11 @@ const CatchDetail = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <PageContainer className="max-w-5xl py-8">
-        <div className="pointer-events-none fixed -top-[2000px] left-0 opacity-0" ref={shareCardRef}>
+        <div
+          className="pointer-events-none fixed left-0 top-0 -z-10 opacity-0"
+          ref={shareCardRef}
+          aria-hidden="true"
+        >
           <ShareCard
             photoUrl={catchData.image_url}
             species={shareSpecies ?? undefined}
@@ -468,13 +437,14 @@ const CatchDetail = () => {
               </Card>
             )}
 
-              <CatchComments
+              <CatchCommentsBody
                 catchId={catchData.id}
                 catchOwnerId={catchData.user_id}
                 catchTitle={catchData.title}
                 currentUserId={user?.id ?? null}
                 isAdmin={isAdmin}
                 targetCommentId={targetCommentId ?? undefined}
+                commentsData={commentsData}
               />
             </div>
 
@@ -840,11 +810,11 @@ const CatchDetail = () => {
                       .map((tag) => tag.trim())
                       .filter((tag) => tag.length > 0);
                     try {
-                      await updateCatchFields(catchData.id, {
+                      await updateCatchMutation.mutateAsync({
                         description: editDescription.trim() === "" ? null : editDescription,
                         tags: nextTags.length > 0 ? nextTags : null,
                       });
-                      await fetchCatchData();
+                      await refetchCatch();
                       setEditDialogOpen(false);
                     } catch (error) {
                       toast.error("Failed to update catch");

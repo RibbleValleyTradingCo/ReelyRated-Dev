@@ -1,9 +1,13 @@
 import Section from "@/components/layout/Section";
 import Text from "@/components/typography/Text";
-import MarkdownContent from "@/components/typography/MarkdownContent";
+import { Suspense, lazy } from "react";
 import type { CatchRow } from "@/pages/venue-detail/types";
 import { humanizeSpecies } from "@/pages/venue-detail/utils";
 import VenueRecordCard from "@/pages/venue-detail/components/VenueRecordCard";
+
+const LazyMarkdownContent = lazy(
+  () => import("@/components/typography/MarkdownContent")
+);
 
 type AboutSectionProps = {
   aboutText: string;
@@ -47,12 +51,22 @@ const AboutSection = ({
               What to expect when visiting this venue.
             </p>
           </div>
-          <MarkdownContent
-            content={aboutText}
-            className={`text-lg text-slate-800 ${
-              aboutExpanded ? "" : "line-clamp-4"
-            }`}
-          />
+          <Suspense
+            fallback={
+              <div className="space-y-2">
+                <div className="h-3 w-full rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-5/6 rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-2/3 rounded-full bg-slate-100 animate-pulse" />
+              </div>
+            }
+          >
+            <LazyMarkdownContent
+              content={aboutText}
+              className={`text-lg text-slate-800 ${
+                aboutExpanded ? "" : "line-clamp-4"
+              }`}
+            />
+          </Suspense>
           {aboutText && aboutText.length > 220 ? (
             <button
               type="button"
