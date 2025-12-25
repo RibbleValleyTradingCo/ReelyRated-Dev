@@ -55,9 +55,6 @@ export default defineConfig(({ mode }) => {
         // Simpler chunk splitting that won't break React
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return;
-          if (id.includes("react-dom") || id.match(/node_modules\/react(\/|$)/)) {
-            return "vendor-react";
-          }
           if (id.includes("react-router")) {
             return "vendor-router";
           }
