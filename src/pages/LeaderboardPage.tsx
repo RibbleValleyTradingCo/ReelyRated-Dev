@@ -6,20 +6,13 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
-import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
+import { formatLeaderboardSpeciesLabel } from "@/lib/leaderboard-format";
 import { getProfilePath } from "@/lib/profile";
 import { Crown } from "lucide-react";
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
 
 const dateFormatter = new Intl.DateTimeFormat("en-GB", { dateStyle: "medium" });
-
-const formatSpeciesLabel = (species: string | null, custom?: string | null) => {
-  if (custom) return custom;
-  if (!species) return "Unknown";
-  if (species === "other") return "Other";
-  return getFreshwaterSpeciesLabel(species) ?? species.replace(/_/g, " ");
-};
 
 const formatWeight = (weight: number | null, unit: string | null) => {
   if (weight === null || weight === undefined) return "—";
@@ -40,49 +33,32 @@ const formatDate = (iso: string | null) => {
   return dateFormatter.format(date);
 };
 
-const getThumbnail = (gallery: string[] | null, fallback?: string | null) => {
-  if (gallery && gallery.length > 0) return gallery[0];
+const getThumbnail = (fallback?: string | null) => {
   if (fallback) return fallback;
   return heroFish;
 };
 
-const parseConditions = (conditions: unknown) => {
-  if (!conditions || typeof conditions !== "object") return {};
-  const data = conditions as Record<string, unknown>;
-  const customFields = (data.customFields as Record<string, unknown> | undefined) ?? {};
-  return {
-    customSpecies:
-      typeof customFields.species === "string" ? (customFields.species as string) : null,
-    customMethod:
-      typeof customFields.method === "string" ? (customFields.method as string) : null,
-    customLocationLabel:
-      typeof (data.gps as Record<string, unknown> | undefined)?.label === "string"
-        ? ((data.gps as Record<string, unknown>).label as string)
-        : null,
-  };
-};
-
 const LeaderboardPage = () => {
-  const { entries, loading, error } = useLeaderboardRealtime(null, 100);
+  // Public leaderboard refreshes periodically to avoid chatty realtime updates.
+  const { entries, loading, error } = useLeaderboardRealtime(null, 100, {
+    enableRealtime: false,
+    refreshIntervalMs: 120_000,
+  });
 
   const rows = useMemo(() => {
     return entries.map((entry, index) => {
-      const { customSpecies, customMethod, customLocationLabel } = parseConditions(
-        entry.conditions,
-      );
-
       const speciesSlugOrRaw = entry.species_slug ?? entry.species ?? null;
-      const locationLabel = customLocationLabel ?? entry.location_label ?? "—";
-      const methodLabel = customMethod ?? entry.method_tag ?? entry.method ?? "—";
+      const locationLabel = entry.location_label ?? "—";
+      const methodLabel = entry.method_tag ?? entry.method ?? "—";
 
       return {
         rank: index + 1,
         id: entry.id,
         catchTitle: entry.title ?? "Untitled catch",
-        thumbnail: getThumbnail(entry.gallery_photos, entry.image_url),
+        thumbnail: getThumbnail(entry.image_url),
         anglerUsername: entry.owner_username,
         anglerId: entry.user_id,
-        species: formatSpeciesLabel(speciesSlugOrRaw, customSpecies),
+        species: formatLeaderboardSpeciesLabel(speciesSlugOrRaw),
         weight: formatWeight(entry.weight, entry.weight_unit),
         length: formatLength(entry.length, entry.length_unit),
         location: locationLabel,
@@ -109,6 +85,7 @@ const LeaderboardPage = () => {
             }
             title="The most complete catches across the community"
             subtitle="Scores blend weight, ratings, evidence, and logbook completeness. Explore the top 100 catches and jump into the details behind every standout moment on the water."
+            titleAs="h1"
           />
         </Section>
 
@@ -128,6 +105,7 @@ const LeaderboardPage = () => {
           ) : (
             <div className="leaderboard-table-wrapper leaderboard-table-wrapper--wide">
               <table className="leaderboard-table text-sm">
+                <caption className="sr-only">Leaderboard of top catches</caption>
                 <thead>
                   <tr>
                     <th>Rank</th>

@@ -147,6 +147,7 @@ export const HeroLeaderboardSpotlight = () => {
           .select(
             "id, user_id, title, species_slug, weight, weight_unit, image_url, total_score, avg_rating, rating_count, created_at",
           )
+          .eq("is_blocked_from_viewer", false)
           .order("total_score", { ascending: false })
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })

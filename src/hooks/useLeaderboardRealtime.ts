@@ -8,6 +8,7 @@ interface LeaderboardEntry {
   owner_username: string | null;
   title: string | null;
   species_slug: string | null;
+  species: string | null;
   weight: number | null;
   weight_unit: string | null;
   length: number | null;
@@ -16,19 +17,10 @@ interface LeaderboardEntry {
   total_score: number | null;
   avg_rating: number | null;
   rating_count: number | null;
-  created_at: string | null;
   location_label: string | null;
   method_tag: string | null;
-  water_type_code: string | null;
-  description: string | null;
-  gallery_photos: string[] | null;
-  tags: string[] | null;
-  video_url: string | null;
-  conditions: unknown;
+  method: string | null;
   caught_at: string | null;
-  species?: string | null;
-  location?: string | null;
-  method?: string | null;
 }
 
 const toNumber = (value: unknown): number | null => {
@@ -79,8 +71,9 @@ export function useLeaderboardRealtime(
         let query = supabase
           .from("leaderboard_scores_detailed")
           .select(
-            "id, user_id, owner_username, title, species_slug, species, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, created_at, location_label, location, method_tag, method, water_type_code, description, gallery_photos, tags, video_url, conditions, caught_at",
+            "id, user_id, owner_username, title, species_slug, species, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, location_label, method_tag, method, caught_at",
           )
+          .eq("is_blocked_from_viewer", false)
           .order("total_score", { ascending: false })
           .order("created_at", { ascending: true })
           .order("id", { ascending: true })
@@ -159,12 +152,39 @@ export function useLeaderboardRealtime(
   useEffect(() => {
     if (enableRealtime || !refreshIntervalMs) return;
 
-    const interval = window.setInterval(() => {
+    let interval: number | null = null;
+
+    const startInterval = () => {
+      if (interval !== null) return;
+      interval = window.setInterval(() => {
+        void fetchLeaderboard(true);
+      }, refreshIntervalMs);
+    };
+
+    const stopInterval = () => {
+      if (interval === null) return;
+      window.clearInterval(interval);
+      interval = null;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        stopInterval();
+        return;
+      }
+      startInterval();
       void fetchLeaderboard(true);
-    }, refreshIntervalMs);
+    };
+
+    if (document.visibilityState !== "hidden") {
+      startInterval();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.clearInterval(interval);
+      stopInterval();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [fetchLeaderboard, enableRealtime, refreshIntervalMs]);
 

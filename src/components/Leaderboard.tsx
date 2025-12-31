@@ -1,6 +1,6 @@
 import heroFish from "@/assets/hero-fish.jpg";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
-import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
+import { formatLeaderboardSpeciesLabel } from "@/lib/leaderboard-format";
 import { Crown } from "lucide-react";
 import {
   memo,
@@ -14,12 +14,6 @@ import { FeedSelect } from "@/components/feed/FeedSelect";
 import { useSpeciesOptions } from "@/hooks/useSpeciesOptions";
 
 import "./Leaderboard.css";
-
-const formatSpeciesLabel = (species: string | null) => {
-  if (!species) return "Unknown";
-  if (species === "other") return "Other";
-  return getFreshwaterSpeciesLabel(species) ?? species.replace(/_/g, " ");
-};
 
 const formatWeight = (weight: number | null, unit: string | null) => {
   if (weight === null || weight === undefined) return "—";
@@ -125,10 +119,7 @@ const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
               </thead>
               <tbody>
                 {entries.map((entry, index) => {
-                  const thumbnail =
-                    (entry.gallery_photos && entry.gallery_photos[0]) ||
-                    entry.image_url ||
-                    heroFish;
+                  const thumbnail = entry.image_url || heroFish;
                   const isLeader = index === 0;
 
                   return (
@@ -161,7 +152,9 @@ const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
                           <span className="catch-title">{entry.title ?? "Untitled catch"}</span>
                         </Link>
                       </td>
-                      <td className="species-col">{formatSpeciesLabel(entry.species_slug)}</td>
+                      <td className="species-col">
+                        {formatLeaderboardSpeciesLabel(entry.species_slug)}
+                      </td>
                       <td className="weight-col hide-md">
                         {formatWeight(entry.weight, entry.weight_unit)}
                       </td>
