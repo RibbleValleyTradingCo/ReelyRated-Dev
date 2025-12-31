@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
@@ -35,8 +36,13 @@ const NotFound = () => {
                     <Button asChild className="w-full min-h-[44px]">
                       <Link to="/">Go home</Link>
                     </Button>
-                    <Button asChild variant="outline" className="w-full min-h-[44px]">
-                      <Link to="/venues">Browse venues</Link>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full min-h-[44px]"
+                      onClick={() => navigate(-1)}
+                    >
+                      Back
                     </Button>
                   </div>
                 </div>

@@ -5,11 +5,10 @@ import { Button } from "@/components/ui/button";
 import { PulsingDot } from "@/components/PulsingDot";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { shouldShowExactLocation } from "@/lib/visibility";
 import { Activity, Camera, Compass, Fish, MapPin, MoveRight, NotebookPen, Star, Users, Waves } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCountUp } from "@/hooks/useCountUp";
 import { isAdminUser } from "@/lib/admin";
 import PageContainer from "@/components/layout/PageContainer";
@@ -57,36 +56,36 @@ const featureHighlights: FeatureHighlight[] = [
 
 const featureAccents = [
   {
-    tile: "bg-gradient-to-br from-blue-500 via-cyan-500 to-emerald-500",
-    hoverBorder: "hover:border-cyan-400/60",
-    hoverShadow: "hover:shadow-[0_32px_64px_-28px_rgba(14,165,233,0.55)]",
-    headingHover: "group-hover:text-cyan-600",
-    linkColor: "text-cyan-600 hover:text-cyan-500",
-    glow: "bg-gradient-to-br from-blue-500/14 via-cyan-500/10 to-emerald-500/8",
+    tile: "bg-gradient-to-br from-primary via-secondary to-accent",
+    hoverBorder: "hover:border-primary/40",
+    hoverShadow: "hover:shadow-glow",
+    headingHover: "group-hover:text-primary",
+    linkColor: "text-primary hover:text-primary/80",
+    glow: "bg-gradient-to-br from-primary/15 via-secondary/10 to-accent/10",
   },
   {
-    tile: "bg-gradient-to-br from-indigo-500 via-blue-500 to-purple-500",
-    hoverBorder: "hover:border-indigo-400/60",
-    hoverShadow: "hover:shadow-[0_32px_64px_-28px_rgba(99,102,241,0.55)]",
-    headingHover: "group-hover:text-indigo-600",
-    linkColor: "text-indigo-600 hover:text-indigo-500",
-    glow: "bg-gradient-to-br from-indigo-500/14 via-blue-500/10 to-purple-500/8",
+    tile: "bg-gradient-to-br from-secondary via-primary to-accent",
+    hoverBorder: "hover:border-secondary/40",
+    hoverShadow: "hover:shadow-glow",
+    headingHover: "group-hover:text-secondary",
+    linkColor: "text-secondary hover:text-secondary/80",
+    glow: "bg-gradient-to-br from-secondary/15 via-primary/10 to-accent/10",
   },
   {
-    tile: "bg-gradient-to-br from-teal-500 via-emerald-500 to-lime-500",
-    hoverBorder: "hover:border-emerald-400/60",
-    hoverShadow: "hover:shadow-[0_32px_64px_-28px_rgba(16,185,129,0.5)]",
-    headingHover: "group-hover:text-emerald-600",
-    linkColor: "text-emerald-600 hover:text-emerald-500",
-    glow: "bg-gradient-to-br from-teal-500/14 via-emerald-500/10 to-lime-500/8",
+    tile: "bg-gradient-to-br from-accent via-secondary to-primary",
+    hoverBorder: "hover:border-accent/40",
+    hoverShadow: "hover:shadow-glow",
+    headingHover: "group-hover:text-accent",
+    linkColor: "text-accent hover:text-accent/80",
+    glow: "bg-gradient-to-br from-accent/15 via-secondary/10 to-primary/10",
   },
   {
-    tile: "bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500",
-    hoverBorder: "hover:border-sky-400/60",
-    hoverShadow: "hover:shadow-[0_32px_64px_-28px_rgba(59,130,246,0.5)]",
-    headingHover: "group-hover:text-sky-600",
-    linkColor: "text-sky-600 hover:text-sky-500",
-    glow: "bg-gradient-to-br from-sky-500/14 via-cyan-500/10 to-blue-500/8",
+    tile: "bg-gradient-to-br from-primary via-secondary to-accent",
+    hoverBorder: "hover:border-primary/40",
+    hoverShadow: "hover:shadow-glow",
+    headingHover: "group-hover:text-primary",
+    linkColor: "text-primary hover:text-primary/80",
+    glow: "bg-gradient-to-br from-primary/15 via-secondary/10 to-accent/10",
   },
 ] as const;
 const workflowSteps = [
@@ -115,16 +114,16 @@ const workflowSteps = [
 
 const stepAccents = [
   {
-    badge: "text-blue-600",
-    iconBg: "bg-gradient-to-br from-blue-500 to-blue-400 text-white",
+    badge: "text-primary",
+    iconBg: "bg-gradient-to-br from-primary to-secondary text-inverse",
   },
   {
-    badge: "text-cyan-600",
-    iconBg: "bg-gradient-to-br from-cyan-500 to-teal-400 text-white",
+    badge: "text-secondary",
+    iconBg: "bg-gradient-to-br from-secondary to-accent text-inverse",
   },
   {
-    badge: "text-emerald-600",
-    iconBg: "bg-gradient-to-br from-emerald-500 to-teal-500 text-white",
+    badge: "text-accent",
+    iconBg: "bg-gradient-to-br from-accent to-primary text-inverse",
   },
 ] as const;
 
@@ -140,7 +139,7 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
         as="h2"
         size={compact ? "lg" : "xl"}
         className={cn(
-          "text-gray-900",
+          "text-foreground",
           compact && "text-3xl md:text-4xl",
         )}
       >
@@ -148,7 +147,7 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
       </Heading>
       <Text
         className={cn(
-          "text-lg leading-relaxed text-gray-600",
+          "text-lg leading-relaxed text-muted-foreground",
           compact ? "max-w-xl" : "mx-auto max-w-2xl",
         )}
       >
@@ -172,21 +171,21 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
             <article
               key={title}
               className={cn(
-                "group flex items-start gap-4 rounded-2xl border border-gray-200 bg-white/90 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200/60 hover:shadow-lg lg:p-6",
+                "group flex items-start gap-4 rounded-2xl border border-border bg-card/90 p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover lg:p-6",
                 accent.hoverBorder,
               )}
             >
               <div
                 className={cn(
-                  "flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-white/80 shadow-sm ring-1 ring-slate-100 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110",
+                  "flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-card/80 shadow-card ring-1 ring-border/50 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110",
                   accent.tile,
                 )}
               >
                 <Icon className="h-6 w-6" />
               </div>
               <div className="space-y-2">
-                <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-                <p className="text-sm text-gray-600">{description}</p>
+                <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+                <p className="text-sm text-muted-foreground">{description}</p>
                 {supporting ? (
                   <p className="text-xs font-medium uppercase tracking-wide text-primary/80">
                     {supporting}
@@ -205,7 +204,7 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
           >
             <article
               className={cn(
-                "group relative cursor-pointer overflow-hidden rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-lg transition-all duration-300 ease-out hover:-translate-y-2 sm:p-8",
+                "group relative cursor-pointer overflow-hidden rounded-3xl border border-border bg-card/95 p-6 shadow-card transition-all duration-300 ease-out hover:-translate-y-2 hover:shadow-card-hover sm:p-8",
                 accent.hoverBorder,
                 accent.hoverShadow,
               )}
@@ -214,7 +213,7 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
               <div className="relative space-y-6">
                 <div
                   className={cn(
-                    "flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 shadow-md ring-1 ring-slate-100 transition-transform duration-300 ease-out group-hover:-rotate-3 group-hover:scale-[1.08]",
+                    "flex h-16 w-16 items-center justify-center rounded-2xl bg-card/80 shadow-card ring-1 ring-border/50 transition-transform duration-300 ease-out group-hover:-rotate-3 group-hover:scale-[1.08]",
                     accent.tile,
                   )}
                 >
@@ -223,29 +222,42 @@ const FeatureHighlights = ({ compact = false, isAdmin = false }: { compact?: boo
                 <div className="space-y-4">
                   <h3
                     className={cn(
-                      "text-2xl font-semibold text-gray-900 transition-colors duration-300 md:text-3xl",
+                      "text-2xl font-semibold text-foreground transition-colors duration-300 md:text-3xl",
                       accent.headingHover,
                     )}
                   >
                     {title}
                   </h3>
-                  <p className="text-base leading-relaxed text-gray-600">{description}</p>
+                  <p className="text-base leading-relaxed text-muted-foreground">{description}</p>
                   {supporting ? (
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                       {supporting}
                     </p>
                   ) : null}
                   {resolvedHref ? (
-                    <a
-                      href={resolvedHref}
-                      className={cn(
-                        "group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-                        accent.linkColor,
-                      )}
-                    >
-                      Learn more
-                      <MoveRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" aria-hidden="true" />
-                    </a>
+                    resolvedHref.startsWith("/") ? (
+                      <Link
+                        to={resolvedHref}
+                        className={cn(
+                          "group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                          accent.linkColor,
+                        )}
+                      >
+                        Learn more
+                        <MoveRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" aria-hidden="true" />
+                      </Link>
+                    ) : (
+                      <a
+                        href={resolvedHref}
+                        className={cn(
+                          "group/link inline-flex items-center gap-2 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                          accent.linkColor,
+                        )}
+                      >
+                        Learn more
+                        <MoveRight className="h-4 w-4 transition-transform duration-300 group-hover/link:translate-x-1" aria-hidden="true" />
+                      </a>
+                    )
                   ) : null}
                 </div>
               </div>
@@ -285,20 +297,20 @@ const StatsCard = ({ label, value, helper, isLoading, accentGradient, tileGradie
   return (
     <article
       ref={ref}
-      className="group relative overflow-hidden rounded-3xl border border-transparent bg-white/95 p-8 text-center shadow-[0_20px_45px_-28px_rgba(30,64,175,0.45)] transition-all duration-300 ease-out hover:-translate-y-2 hover:border-blue-200/70 hover:shadow-[0_32px_60px_-32px_rgba(14,116,204,0.6)] md:p-10"
+      className="group relative overflow-hidden rounded-3xl border border-border/60 bg-card/95 p-8 text-center shadow-card transition-all duration-300 ease-out hover:-translate-y-2 hover:border-primary/30 hover:shadow-glow md:p-10"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(120% 120% at 50% 0%, rgba(59,130,246,0.12) 0%, rgba(14,165,233,0.06) 55%, transparent 100%)",
+            "radial-gradient(120% 120% at 50% 0%, hsl(var(--primary) / 0.12) 0%, hsl(var(--secondary) / 0.06) 55%, transparent 100%)",
         }}
       />
       <div className="relative flex flex-col items-center gap-5">
         <div
           className={cn(
-            "flex h-16 w-16 items-center justify-center rounded-2xl text-white shadow-lg transition-transform duration-300 ease-out group-hover:rotate-3 group-hover:scale-110",
+            "flex h-16 w-16 items-center justify-center rounded-2xl text-inverse shadow-glow transition-transform duration-300 ease-out group-hover:rotate-3 group-hover:scale-110",
             tileGradient,
           )}
         >
@@ -307,7 +319,7 @@ const StatsCard = ({ label, value, helper, isLoading, accentGradient, tileGradie
         <div className="space-y-3">
           <div className="min-h-[64px]">
             {isLoading ? (
-              <span className="mx-auto block h-12 w-32 rounded-full bg-slate-200/80 animate-pulse" />
+              <span className="mx-auto block h-12 w-32 rounded-full bg-muted/50 animate-pulse" />
             ) : (
               <span
                 className={cn(
@@ -319,8 +331,8 @@ const StatsCard = ({ label, value, helper, isLoading, accentGradient, tileGradie
               </span>
             )}
           </div>
-          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-slate-400">{label}</p>
-          <p className="text-sm text-slate-500">{helperText}</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.32em] text-muted-foreground">{label}</p>
+          <p className="text-sm text-muted-foreground">{helperText}</p>
         </div>
       </div>
     </article>
@@ -343,8 +355,8 @@ const StatsShowcase = ({ stats, isLoading, dataError }: StatsShowcaseProps) => {
         stats.totalCatches > 0
           ? "Shared publicly across the UK community."
           : "Log your first catch to kick-start the leaderboard.",
-      accentGradient: "from-blue-600 via-cyan-500 to-emerald-400",
-      tileGradient: "bg-gradient-to-br from-blue-500 via-cyan-500 to-emerald-500",
+      accentGradient: "from-primary via-secondary to-accent",
+      tileGradient: "bg-gradient-to-br from-primary via-secondary to-accent",
       icon: Fish,
     },
     {
@@ -354,8 +366,8 @@ const StatsShowcase = ({ stats, isLoading, dataError }: StatsShowcaseProps) => {
         stats.activeAnglers > 0
           ? "Anglers trading tips, scores, and sessions."
           : "Invite your crew and start scoring each other.",
-      accentGradient: "from-emerald-500 via-teal-400 to-cyan-400",
-      tileGradient: "bg-gradient-to-br from-emerald-500 via-teal-400 to-cyan-400",
+      accentGradient: "from-secondary via-accent to-primary",
+      tileGradient: "bg-gradient-to-br from-secondary via-accent to-primary",
       icon: Compass,
     },
     {
@@ -365,8 +377,8 @@ const StatsShowcase = ({ stats, isLoading, dataError }: StatsShowcaseProps) => {
         stats.waterways > 0
           ? "Waterways logged across the community."
           : "Add venues to build the national map.",
-      accentGradient: "from-sky-500 via-blue-500 to-indigo-500",
-      tileGradient: "bg-gradient-to-br from-sky-500 via-blue-500 to-indigo-500",
+      accentGradient: "from-accent via-primary to-secondary",
+      tileGradient: "bg-gradient-to-br from-accent via-primary to-secondary",
       icon: Waves,
     },
   ];
@@ -374,14 +386,14 @@ const StatsShowcase = ({ stats, isLoading, dataError }: StatsShowcaseProps) => {
   return (
     <div className="space-y-12 md:space-y-16">
       <div className="space-y-6 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500 px-5 py-2 text-xs font-extrabold uppercase tracking-[0.36em] text-white shadow-[0_12px_30px_-18px_rgba(14,165,233,0.7)]">
+        <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary via-secondary to-accent px-5 py-2 text-xs font-extrabold uppercase tracking-[0.36em] text-inverse shadow-glow">
           <PulsingDot />
           Live Community Pulse
         </span>
-        <h2 className="text-4xl font-black text-gray-900 md:text-5xl">
+        <h2 className="text-4xl font-black text-foreground md:text-5xl">
           Fueled by anglers across the UK
         </h2>
-        <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
+        <p className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
           These numbers refresh as the community logs more catches, recruits new crews, and charts new waters.
         </p>
       </div>
@@ -399,7 +411,7 @@ const StatsShowcase = ({ stats, isLoading, dataError }: StatsShowcaseProps) => {
       </div>
 
       {dataError && !isLoading ? (
-        <p className="text-center text-sm text-red-600" role="status">
+        <p className="text-center text-sm text-destructive" role="status">
           {dataError}
         </p>
       ) : null}
@@ -435,11 +447,11 @@ const HeroLeft = ({
       <Heading
         as="h1"
         size="xl"
-        className="text-balance text-4xl font-black leading-[1.12] tracking-[-0.045em] text-gray-950 md:text-6xl md:leading-[1.12] lg:text-7xl lg:leading-[1.08]"
+        className="text-balance text-4xl font-black leading-[1.12] tracking-[-0.045em] text-foreground md:text-6xl md:leading-[1.12] lg:text-7xl lg:leading-[1.08]"
       >
         {heading}
       </Heading>
-      <Text className="max-w-xl text-lg leading-relaxed text-gray-600 md:text-xl motion-safe:animate-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-500 motion-safe:delay-100">
+      <Text className="max-w-xl text-lg leading-relaxed text-muted-foreground md:text-xl motion-safe:animate-in motion-safe:slide-in-from-bottom-6 motion-safe:duration-500 motion-safe:delay-100">
         {subheading}
       </Text>
     </div>
@@ -447,7 +459,7 @@ const HeroLeft = ({
       <Button
         variant="ocean"
         size="lg"
-        className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500 px-8 py-[1.15rem] text-base font-bold uppercase tracking-wider text-white shadow-[0_18px_38px_-18px_rgba(14,116,204,0.65)] transition-all duration-300 ease-out before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-white/0 before:via-white/40 before:to-white/0 before:opacity-0 before:transition before:duration-500 hover:scale-[1.02] hover:shadow-[0_26px_54px_-22px_rgba(14,116,204,0.7)] hover:before:translate-x-full hover:before:opacity-100 focus-visible:ring-offset-0 sm:w-auto md:text-lg"
+        className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-primary via-secondary to-accent px-8 py-[1.15rem] text-base font-bold uppercase tracking-wider text-inverse shadow-ocean transition-all duration-300 ease-out before:absolute before:inset-0 before:-translate-x-full before:bg-gradient-to-r before:from-inverse/0 before:via-inverse/40 before:to-inverse/0 before:opacity-0 before:transition before:duration-500 hover:scale-[1.02] hover:shadow-glow hover:before:translate-x-full hover:before:opacity-100 focus-visible:ring-offset-0 sm:w-auto md:text-lg"
         onClick={onPrimary}
       >
         {primaryLabel}
@@ -455,7 +467,7 @@ const HeroLeft = ({
       <Button
         variant="outline"
         size="lg"
-        className="w-full rounded-2xl border-gray-200 bg-white/90 text-base font-semibold text-gray-700 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-blue-50/70 hover:text-blue-700 hover:shadow-lg focus-visible:ring-blue-500 sm:w-auto"
+        className="w-full rounded-2xl border-border bg-card/90 text-base font-semibold text-foreground shadow-card transition-all duration-300 hover:border-primary/30 hover:bg-card/70 hover:text-primary hover:shadow-card-hover focus-visible:ring-ring sm:w-auto"
         onClick={onSecondary}
       >
         {secondaryLabel}
@@ -484,43 +496,27 @@ const Index = () => {
       setDataError(null);
 
       try {
-        const catchCountPromise = supabase
-          .from("catches")
-          .select("id", { count: "exact", head: true })
-          .eq("visibility", "public");
-        const catchDetailsPromise = supabase
-          .from("catches")
-          .select("location, hide_exact_spot, visibility, user_id")
-          .eq("visibility", "public");
-        const [catchCountRes, catchDetailsRes] = await Promise.all([
-          catchCountPromise,
-          catchDetailsPromise,
-        ]);
+        const { data, error } = await supabase.rpc("get_community_stats");
 
-        if (catchCountRes.error) throw catchCountRes.error;
-        if (catchDetailsRes.error) throw catchDetailsRes.error;
-
+        if (error) throw error;
         if (!isMounted) return;
 
-        const locationSet = new Set<string>();
-        const anglerSet = new Set<string>();
-        (catchDetailsRes.data ?? []).forEach((row) => {
-          if (row.user_id) {
-            anglerSet.add(row.user_id);
-          }
-          const trimmed = row.location?.trim();
-          if (!trimmed) return;
-          if (
-            shouldShowExactLocation(row.hide_exact_spot, row.user_id, user?.id)
-          ) {
-            locationSet.add(trimmed);
-          }
-        });
+        const row = Array.isArray(data) ? data[0] : data;
+        if (!row) {
+          throw new Error("Community stats unavailable");
+        }
+
+        const toNumber = (value: unknown) => {
+          if (value === null || value === undefined) return 0;
+          if (typeof value === "number") return value;
+          const parsed = Number(value);
+          return Number.isFinite(parsed) ? parsed : 0;
+        };
 
         setStats({
-          totalCatches: catchCountRes.count ?? 0,
-          activeAnglers: anglerSet.size,
-          waterways: locationSet.size,
+          totalCatches: toNumber(row.total_catches),
+          activeAnglers: toNumber(row.active_anglers),
+          waterways: toNumber(row.waterways),
         });
       } catch (error) {
         console.error("Failed to load homepage data", error);
@@ -538,6 +534,12 @@ const Index = () => {
 
     void loadHomepageData();
 
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
     const loadAdmin = async () => {
       if (!user) {
         setIsAdmin(false);
@@ -552,10 +554,6 @@ const Index = () => {
     };
 
     void loadAdmin();
-
-    return () => {
-      isMounted = false;
-    };
   }, [user]);
 
   const isSignedIn = Boolean(user);
@@ -585,7 +583,7 @@ const Index = () => {
   const heroHeading = (
   <>
     Turn every catch into a{" "}
-    <span className="relative inline-block bg-gradient-to-br from-blue-500 via-cyan-400 to-emerald-500 bg-clip-text pb-1 font-black text-transparent drop-shadow-[0_8px_20px_rgba(34,197,233,0.35)]">
+    <span className="relative inline-block bg-gradient-to-br from-primary via-secondary to-accent bg-clip-text pb-1 font-black text-transparent drop-shadow-[0_8px_20px_hsl(var(--primary)/0.35)]">
       story worth scoring
     </span>
   </>
@@ -600,7 +598,7 @@ const Index = () => {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <PageContainer className="w-full max-w-none px-0">
         <main className="relative isolate pt-20 md:pt-24 lg:pt-28">
         <div className="absolute inset-x-0 -top-40 -z-10 flex justify-center blur-3xl">
@@ -628,29 +626,29 @@ const Index = () => {
         </Section>
 
         <div className="mt-10 flex flex-col gap-10 md:mt-12">
-          <Section className="section bg-gradient-to-br from-blue-50 via-sky-50/60 to-white border-y border-blue-200/50 py-12 md:py-16 space-y-0">
+          <Section className="section bg-gradient-to-br from-background via-muted/40 to-card border-y border-border/50 py-12 md:py-16 space-y-0">
             <HomeLayout>
               <StatsShowcase stats={stats} isLoading={isLoadingData} dataError={dataError} />
             </HomeLayout>
           </Section>
 
-          <Section className="section bg-white py-12 md:py-16 space-y-0">
+          <Section className="section bg-card py-12 md:py-16 space-y-0">
             <LeaderboardSection limit={6} />
           </Section>
 
-          <Section className="section bg-gray-50/40 py-12 md:py-16 space-y-0">
+          <Section className="section bg-muted/40 py-12 md:py-16 space-y-0">
             <HomeLayout>
               <FeatureHighlights isAdmin={isAdmin} />
             </HomeLayout>
           </Section>
 
-          <Section className="section bg-gradient-to-br from-emerald-50 via-teal-50/40 to-cyan-50/30 py-10 md:py-14 space-y-0">
+          <Section className="section bg-gradient-to-br from-background via-muted/30 to-card/80 py-10 md:py-14 space-y-0">
             <HomeLayout>
               <div className="mx-auto max-w-4xl space-y-4 text-center">
-                <Heading as="h2" size="xl" className="text-gray-900">
+                <Heading as="h2" size="xl" className="text-foreground">
                   From first bite to bragging rights in three clean steps
                 </Heading>
-                <Text className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 md:text-lg">
+                <Text className="mx-auto max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
                   Log your catch on the bank, let the community rate it, and use the data to plan your next session.
                 </Text>
               </div>
@@ -663,13 +661,13 @@ const Index = () => {
                       return (
                         <div
                           key={step.title}
-                          className="group relative z-10 overflow-hidden rounded-3xl border border-slate-200/80 bg-white/95 p-5 shadow-[0_18px_38px_-26px_rgba(15,118,110,0.28)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_26px_54px_-28px_rgba(6,148,162,0.35)] motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 md:p-6"
+                          className="group relative z-10 overflow-hidden rounded-3xl border border-border/60 bg-card/95 p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-card-hover motion-safe:animate-in motion-safe:fade-in-50 motion-safe:slide-in-from-bottom-4 motion-safe:duration-500 md:p-6"
                           style={{ animationDelay: `${index * 80}ms` }}
                         >
                           <div className="relative flex items-start gap-4 md:gap-5">
                             <div
                               className={cn(
-                                "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110 md:h-14 md:w-14",
+                                "flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl text-inverse shadow-glow transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110 md:h-14 md:w-14",
                                 accent.iconBg,
                               )}
                             >
@@ -677,14 +675,14 @@ const Index = () => {
                             </div>
                             <div className="flex flex-col gap-2 text-left">
                               <div className="inline-flex items-center gap-2">
-                                <Eyebrow className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
+                                <Eyebrow className="rounded-full bg-muted/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                                   Step {index + 1}
                                 </Eyebrow>
                               </div>
-                              <Heading as="h3" size="md" className="text-gray-900 md:text-2xl">
+                              <Heading as="h3" size="md" className="text-foreground md:text-2xl">
                                 {step.title}
                               </Heading>
-                              <Text className="text-sm text-gray-600">{step.description}</Text>
+                              <Text className="text-sm text-muted-foreground">{step.description}</Text>
                               {step.supporting ? (
                                 <Text className="text-xs font-medium uppercase tracking-wide text-primary/80">
                                   {step.supporting}
@@ -704,8 +702,8 @@ const Index = () => {
           {!user && (
             <Section className="section space-y-0">
               <HomeLayout>
-                <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary to-secondary px-6 py-12 text-primary-foreground shadow-xl md:px-8 md:py-16">
-                  <div className="absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-2xl" />
+                <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-r from-primary to-secondary px-6 py-12 text-primary-foreground shadow-glow md:px-8 md:py-16">
+                  <div className="absolute left-1/2 top-0 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-inverse/10 blur-2xl" />
                   <div className="relative mx-auto max-w-3xl space-y-6 text-center">
                     <Heading as="h2" size="lg">
                       Join the UK's most dedicated fishing leaderboard
@@ -718,7 +716,7 @@ const Index = () => {
                       <Button
                         variant="outline"
                         size="lg"
-                        className="border-white bg-white text-primary hover:bg-white/90"
+                        className="border-inverse bg-inverse text-primary hover:bg-inverse/90"
                         onClick={() => navigate("/auth")}
                       >
                         Claim Your Profile
@@ -740,7 +738,7 @@ const Index = () => {
         </div>
       </main>
 
-      <footer className="border-t border-gray-200 bg-white/80 py-8 text-center text-gray-500">
+      <footer className="border-t border-border bg-card/80 py-8 text-center text-muted-foreground">
         <HomeLayout>
           <p className="text-sm">ReelyRated • Built for UK Anglers</p>
         </HomeLayout>

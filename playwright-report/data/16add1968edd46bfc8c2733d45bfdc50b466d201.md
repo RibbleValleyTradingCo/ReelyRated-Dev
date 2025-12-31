@@ -1,0 +1,172 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "ReelyRated Freshwater Social" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e10]
+          - generic [ref=e14]:
+            - generic [ref=e15]: ReelyRated
+            - generic [ref=e16]: Freshwater Social
+        - navigation [ref=e17]:
+          - link "Feed" [ref=e18] [cursor=pointer]:
+            - /url: /feed
+          - link "Venues" [ref=e19] [cursor=pointer]:
+            - /url: /venues
+          - link "Leaderboard" [ref=e20] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Sessions" [ref=e21] [cursor=pointer]:
+            - /url: /sessions
+          - link "Explore" [ref=e22] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=e23]:
+          - button "Open search" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - button "Open notifications" [ref=e28] [cursor=pointer]:
+            - img
+          - button "Toggle theme" [ref=e29] [cursor=pointer]:
+            - img
+          - button "Account menu" [ref=e30] [cursor=pointer]:
+            - generic [ref=e32]: T
+          - button "Toggle navigation menu" [ref=e33] [cursor=pointer]:
+            - img [ref=e34]
+    - main [ref=e35]:
+      - generic [ref=e38]:
+        - generic [ref=e42]:
+          - heading "Log a new catch" [level=2] [ref=e43]
+          - paragraph [ref=e44]: Capture the details that actually help you catch more next time.
+        - generic [ref=e48]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - generic [ref=e52]:
+                - img [ref=e53]
+                - generic [ref=e56]: Catch basics
+              - generic [ref=e57]:
+                - heading "Catch Basics" [level=3] [ref=e58]
+                - generic [ref=e59]:
+                  - text: Main Photo *
+                  - generic [ref=e60]:
+                    - img "Preview" [ref=e61]
+                    - button "Main Photo *" [ref=e62]
+                - generic [ref=e63]:
+                  - text: Title *
+                  - textbox "Title *" [ref=e64]:
+                    - /placeholder: e.g., Beautiful 20lb Mirror Carp
+                    - text: E2E Test Catch
+                - generic [ref=e65]:
+                  - text: Species *
+                  - combobox "Species * Common Carp" [ref=e66] [cursor=pointer]:
+                    - text: Common Carp
+                    - img
+                - generic [ref=e67]:
+                  - generic [ref=e68]:
+                    - text: Weight
+                    - spinbutton "Weight" [ref=e69]
+                  - generic [ref=e70]:
+                    - text: Unit
+                    - combobox "Unit" [ref=e71] [cursor=pointer]:
+                      - generic: lb/oz
+                      - img [ref=e72]
+                    - combobox [ref=e74]
+                - generic [ref=e75]:
+                  - generic [ref=e76]:
+                    - text: Length (optional)
+                    - spinbutton "Length (optional)" [ref=e77]
+                  - generic [ref=e78]:
+                    - text: Unit
+                    - combobox "Unit" [ref=e79] [cursor=pointer]:
+                      - generic: cm
+                      - img [ref=e80]
+                    - combobox [ref=e82]
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - img [ref=e85]
+                - generic [ref=e88]: Location & session
+              - generic [ref=e89]:
+                - heading "Location & Session" [level=3] [ref=e90]
+                - generic [ref=e91]:
+                  - generic [ref=e92]:
+                    - text: Fishery / Venue *
+                    - combobox "Fishery / Venue * Farlows Lake, Buckinghamshire" [active] [ref=e93] [cursor=pointer]:
+                      - text: Farlows Lake, Buckinghamshire
+                      - img
+                  - generic [ref=e94]:
+                    - button "Drop a Google pin" [ref=e95] [cursor=pointer]
+                    - generic [ref=e96]: Prefer to pick from the list? No problem—GPS is optional.
+                - generic [ref=e97]:
+                  - text: Peg / Swim (optional)
+                  - textbox "Peg / Swim (optional)" [ref=e98]:
+                    - /placeholder: e.g., Peg 14
+                - generic [ref=e99]:
+                  - generic [ref=e100]:
+                    - text: Date Caught
+                    - textbox "Date Caught" [ref=e101]: 2025-12-30
+                  - generic [ref=e102]:
+                    - text: Time of Day
+                    - combobox "Time of Day" [ref=e103] [cursor=pointer]:
+                      - generic: Select time
+                      - img [ref=e104]
+                    - combobox [ref=e106]
+                - generic [ref=e107]:
+                  - text: Water Type
+                  - combobox [ref=e108] [cursor=pointer]:
+                    - text: Select water type
+                    - img
+                - generic [ref=e109]:
+                  - text: Fishing Session
+                  - combobox "Fishing Session" [ref=e110] [cursor=pointer]:
+                    - generic: No session
+                    - img [ref=e111]
+                  - combobox [ref=e113]
+          - generic [ref=e117]: More details (optional)
+          - generic [ref=e120]:
+            - heading "Tactics & notes Method, bait, kit, and notes." [level=3] [ref=e122]:
+              - button "Tactics & notes Method, bait, kit, and notes." [ref=e123] [cursor=pointer]:
+                - generic [ref=e124]:
+                  - img [ref=e125]
+                  - generic [ref=e128]:
+                    - heading "Tactics & notes" [level=4] [ref=e129]
+                    - paragraph [ref=e130]: Method, bait, kit, and notes.
+                - img [ref=e131]
+            - heading "Your story Tell the story behind this catch." [level=3] [ref=e134]:
+              - button "Your story Tell the story behind this catch." [ref=e135] [cursor=pointer]:
+                - generic [ref=e136]:
+                  - img [ref=e137]
+                  - generic [ref=e140]:
+                    - heading "Your story" [level=4] [ref=e141]
+                    - paragraph [ref=e142]: Tell the story behind this catch.
+                - img [ref=e143]
+            - heading "Conditions Weather and water details." [level=3] [ref=e146]:
+              - button "Conditions Weather and water details." [ref=e147] [cursor=pointer]:
+                - generic [ref=e148]:
+                  - img [ref=e149]
+                  - generic [ref=e154]:
+                    - heading "Conditions" [level=4] [ref=e155]
+                    - paragraph [ref=e156]: Weather and water details.
+                - img [ref=e157]
+            - heading "Media Extra photos or a video link." [level=3] [ref=e160]:
+              - button "Media Extra photos or a video link." [ref=e161] [cursor=pointer]:
+                - generic [ref=e162]:
+                  - img [ref=e163]
+                  - generic [ref=e168]:
+                    - heading "Media" [level=4] [ref=e169]
+                    - paragraph [ref=e170]: Extra photos or a video link.
+                - img [ref=e171]
+            - heading "Tags & privacy Visibility, tags, and ratings." [level=3] [ref=e174]:
+              - button "Tags & privacy Visibility, tags, and ratings." [ref=e175] [cursor=pointer]:
+                - generic [ref=e176]:
+                  - img [ref=e177]
+                  - generic [ref=e180]:
+                    - heading "Tags & privacy" [level=4] [ref=e181]
+                    - paragraph [ref=e182]: Visibility, tags, and ratings.
+                - img [ref=e183]
+          - generic [ref=e186]:
+            - paragraph [ref=e187]: You can log up to 10 catches per hour. We’ll save this to your logbook and update your rankings.
+            - button "Log this catch" [ref=e188] [cursor=pointer]
+```

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,18 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const resetParam = searchParams.get("reset_password") === "1";
   const [authView, setAuthView] = useState<"auth" | "forgot" | "reset">(resetParam ? "reset" : "auth");
+  const idPrefix = useId();
+  const signInEmailErrorId = `${idPrefix}-signin-email-error`;
+  const signInPasswordErrorId = `${idPrefix}-signin-password-error`;
+  const signUpUsernameErrorId = `${idPrefix}-signup-username-error`;
+  const signUpEmailErrorId = `${idPrefix}-signup-email-error`;
+  const signUpPasswordErrorId = `${idPrefix}-signup-password-error`;
+  const resetEmailErrorId = `${idPrefix}-reset-email-error`;
+  const newPasswordErrorId = `${idPrefix}-new-password-error`;
+  const confirmPasswordErrorId = `${idPrefix}-confirm-password-error`;
+  const genericResetMessage = "If an account exists for that email, we've sent a reset link.";
+  const genericSignInMessage = "Unable to sign in. Please check your details and try again.";
+  const genericSignUpMessage = "Unable to create an account. Please check your details and try again.";
 
   // Sign In Form
   const signInForm = useForm<SignInFormData>({
@@ -73,7 +85,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(genericSignInMessage);
       return;
     }
 
@@ -110,7 +122,7 @@ const Auth = () => {
       console.error('Error checking email:', emailCheckError);
       // Continue anyway - better to allow signup than block it
     } else if (emailExists) {
-      toast.error('This email is already registered. Please sign in instead.');
+      toast.error(genericSignUpMessage);
       return;
     }
 
@@ -122,7 +134,7 @@ const Auth = () => {
       .maybeSingle();
 
     if (existingUsername) {
-      toast.error('This username is already taken. Please choose another.');
+      toast.error(genericSignUpMessage);
       return;
     }
 
@@ -139,7 +151,7 @@ const Auth = () => {
     });
 
     if (error) {
-      toast.error(error.message);
+      toast.error(genericSignUpMessage);
     } else {
       toast.success("Account created! Check your email to verify!");
     }
@@ -148,9 +160,10 @@ const Auth = () => {
   const handleResetRequest = async (data: { email: string }) => {
     const email = data.email.trim();
     if (!email) {
-      toast.error("Please enter an email address.");
+      resetRequestForm.setError("email", { message: "Please enter an email address." });
       return;
     }
+    resetRequestForm.clearErrors("email");
     try {
       const redirectTo = `${import.meta.env.VITE_APP_URL || window.location.origin}/auth?reset_password=1`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -159,13 +172,13 @@ const Auth = () => {
       if (error) {
         throw error;
       }
-      toast.success("Check your inbox for a link to reset your password.");
+      toast.success(genericResetMessage);
       resetRequestForm.reset();
       setAuthView("auth");
       navigate("/auth", { replace: true });
     } catch (error) {
       console.error("Failed to send reset link", error);
-      toast.success("Check your inbox for a link to reset your password."); // Generic to avoid email enumeration
+      toast.success(genericResetMessage); // Generic to avoid email enumeration
     }
   };
 
@@ -174,16 +187,21 @@ const Auth = () => {
       toast.error("This link has expired or is invalid. Please request a new reset email.");
       return;
     }
+    resetPasswordForm.clearErrors();
     const trimmedNew = data.newPassword.trim();
     const trimmedConfirm = data.confirmPassword.trim();
 
     if (!trimmedNew || trimmedNew.length < 8) {
-      toast.error("Use at least 8 characters for your new password.");
+      resetPasswordForm.setError("newPassword", {
+        message: "Use at least 8 characters for your new password.",
+      });
       return;
     }
 
     if (trimmedNew !== trimmedConfirm) {
-      toast.error("Passwords do not match.");
+      resetPasswordForm.setError("confirmPassword", {
+        message: "Passwords do not match.",
+      });
       return;
     }
 
@@ -264,9 +282,12 @@ const Auth = () => {
                             autoComplete="email"
                             {...signInForm.register("email")}
                             aria-invalid={!!signInForm.formState.errors.email}
+                            aria-describedby={
+                              signInForm.formState.errors.email ? signInEmailErrorId : undefined
+                            }
                           />
                           {signInForm.formState.errors.email && (
-                            <p className="text-sm text-destructive">
+                            <p id={signInEmailErrorId} className="text-sm text-destructive" role="alert">
                               {signInForm.formState.errors.email.message}
                             </p>
                           )}
@@ -279,16 +300,19 @@ const Auth = () => {
                             autoComplete="current-password"
                             {...signInForm.register("password")}
                             aria-invalid={!!signInForm.formState.errors.password}
+                            aria-describedby={
+                              signInForm.formState.errors.password ? signInPasswordErrorId : undefined
+                            }
                           />
                           {signInForm.formState.errors.password && (
-                            <p className="text-sm text-destructive">
+                            <p id={signInPasswordErrorId} className="text-sm text-destructive" role="alert">
                               {signInForm.formState.errors.password.message}
                             </p>
                           )}
                           <div className="flex justify-end">
                             <button
                               type="button"
-                              className="text-xs text-sky-600 hover:underline"
+                              className="text-xs font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded-sm"
                               onClick={() => setAuthView("forgot")}
                             >
                               Forgot password?
@@ -324,9 +348,12 @@ const Auth = () => {
                             type="text"
                             {...signUpForm.register("username")}
                             aria-invalid={!!signUpForm.formState.errors.username}
+                            aria-describedby={
+                              signUpForm.formState.errors.username ? signUpUsernameErrorId : undefined
+                            }
                           />
                           {signUpForm.formState.errors.username && (
-                            <p className="text-sm text-destructive">
+                            <p id={signUpUsernameErrorId} className="text-sm text-destructive" role="alert">
                               {signUpForm.formState.errors.username.message}
                             </p>
                           )}
@@ -339,9 +366,12 @@ const Auth = () => {
                             autoComplete="email"
                             {...signUpForm.register("email")}
                             aria-invalid={!!signUpForm.formState.errors.email}
+                            aria-describedby={
+                              signUpForm.formState.errors.email ? signUpEmailErrorId : undefined
+                            }
                           />
                           {signUpForm.formState.errors.email && (
-                            <p className="text-sm text-destructive">
+                            <p id={signUpEmailErrorId} className="text-sm text-destructive" role="alert">
                               {signUpForm.formState.errors.email.message}
                             </p>
                           )}
@@ -354,9 +384,12 @@ const Auth = () => {
                             autoComplete="new-password"
                             {...signUpForm.register("password")}
                             aria-invalid={!!signUpForm.formState.errors.password}
+                            aria-describedby={
+                              signUpForm.formState.errors.password ? signUpPasswordErrorId : undefined
+                            }
                           />
                           {signUpForm.formState.errors.password && (
-                            <p className="text-sm text-destructive">
+                            <p id={signUpPasswordErrorId} className="text-sm text-destructive" role="alert">
                               {signUpForm.formState.errors.password.message}
                             </p>
                           )}
@@ -402,7 +435,15 @@ const Auth = () => {
                           autoComplete="email"
                           {...resetRequestForm.register("email")}
                           aria-invalid={!!resetRequestForm.formState.errors.email}
+                          aria-describedby={
+                            resetRequestForm.formState.errors.email ? resetEmailErrorId : undefined
+                          }
                         />
+                        {resetRequestForm.formState.errors.email && (
+                          <p id={resetEmailErrorId} className="text-sm text-destructive" role="alert">
+                            {resetRequestForm.formState.errors.email.message}
+                          </p>
+                        )}
                       </div>
                       <Button type="submit" className="w-full" disabled={resetRequestForm.formState.isSubmitting}>
                         {resetRequestForm.formState.isSubmitting ? "Sending link…" : "Send reset link"}
@@ -425,7 +466,7 @@ const Auth = () => {
                       </Text>
                     </div>
                     {!session && (
-                      <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                      <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                         This link has expired or is invalid. Please request a new password reset email.
                       </div>
                     )}
@@ -437,7 +478,16 @@ const Auth = () => {
                           type="password"
                           autoComplete="new-password"
                           {...resetPasswordForm.register("newPassword")}
+                          aria-invalid={!!resetPasswordForm.formState.errors.newPassword}
+                          aria-describedby={
+                            resetPasswordForm.formState.errors.newPassword ? newPasswordErrorId : undefined
+                          }
                         />
+                        {resetPasswordForm.formState.errors.newPassword && (
+                          <p id={newPasswordErrorId} className="text-sm text-destructive" role="alert">
+                            {resetPasswordForm.formState.errors.newPassword.message}
+                          </p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="confirm-new-password">Confirm new password</Label>
@@ -446,7 +496,16 @@ const Auth = () => {
                           type="password"
                           autoComplete="new-password"
                           {...resetPasswordForm.register("confirmPassword")}
+                          aria-invalid={!!resetPasswordForm.formState.errors.confirmPassword}
+                          aria-describedby={
+                            resetPasswordForm.formState.errors.confirmPassword ? confirmPasswordErrorId : undefined
+                          }
                         />
+                        {resetPasswordForm.formState.errors.confirmPassword && (
+                          <p id={confirmPasswordErrorId} className="text-sm text-destructive" role="alert">
+                            {resetPasswordForm.formState.errors.confirmPassword.message}
+                          </p>
+                        )}
                       </div>
                       <Button
                         type="submit"

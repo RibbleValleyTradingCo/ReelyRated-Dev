@@ -22,7 +22,6 @@ type Venue = {
   short_tagline: string | null;
   ticket_type: string | null;
   price_from: string | null;
-  best_for_tags: string[] | null;
   facilities: string[] | null;
   total_catches: number | null;
   recent_catches_30d: number | null;
@@ -34,7 +33,7 @@ type VenueThumbnail = { url: string; alt: string } | null;
 
 const VenueThumbnail = ({ venue, thumbnail, ticketType }: { venue: Venue; thumbnail?: VenueThumbnail; ticketType?: string | null }) => {
   return (
-    <div className="relative w-full overflow-hidden rounded-b-none bg-gradient-to-br from-slate-100 to-slate-200 aspect-[4/3]">
+    <div className="relative w-full overflow-hidden rounded-b-none bg-gradient-to-br from-muted/70 to-muted aspect-[4/3]">
       {thumbnail?.url ? (
         <>
           <img
@@ -43,18 +42,18 @@ const VenueThumbnail = ({ venue, thumbnail, ticketType }: { venue: Venue; thumbn
             className="h-full w-full object-cover transition duration-500"
             loading="lazy"
           />
-          <div className="pointer-events-none absolute inset-0 ring-1 ring-slate-200/70" />
+          <div className="pointer-events-none absolute inset-0 ring-1 ring-border/60" />
         </>
       ) : (
-        <div className="absolute inset-0 flex items-center justify-center text-slate-500">
-          <div className="flex items-center gap-2 rounded-xl bg-white/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-slate-600 shadow-sm backdrop-blur">
+        <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+          <div className="flex items-center gap-2 rounded-xl bg-card/70 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground shadow-card backdrop-blur">
             <ImageIcon className="h-4 w-4" />
             <span>Venue photo coming soon</span>
           </div>
         </div>
       )}
       {ticketType ? (
-        <span className="absolute left-3 top-3 inline-flex items-center rounded-md border border-sky-100 bg-sky-50/95 px-3 py-1 text-xs font-semibold text-sky-800 shadow-sm">
+        <span className="absolute left-3 top-3 inline-flex items-center rounded-md border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary shadow-card">
           {ticketType}
         </span>
       ) : null}
@@ -244,7 +243,7 @@ const VenuesIndex = () => {
       const passesTicket = matchesTicketType(venue);
       const passesCarp =
         !carpOnly ||
-        (venue.best_for_tags ?? []).some((tag) => tag?.toLowerCase().includes("carp"));
+        (venue.facilities ?? []).some((tag) => tag?.toLowerCase().includes("carp"));
       return passesTicket && passesCarp;
     });
 
@@ -349,28 +348,24 @@ const VenuesIndex = () => {
           {loading ? (
             <PageSpinner label="Loading venues…" />
           ) : venues.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 text-center text-slate-600 shadow-sm">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 text-slate-500 shadow-inner">
+            <div className="rounded-2xl border border-border bg-card/80 p-8 text-center text-muted-foreground shadow-card">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted/70 text-muted-foreground shadow-card">
                 <Search className="h-5 w-5" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">No venues match your search</h3>
-              <p className="mt-2 text-sm text-slate-600">Try a different name, location, or clear your search.</p>
+              <h3 className="mt-4 text-lg font-semibold text-foreground">No venues match your search</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Try a different name, location, or clear your search.</p>
             </div>
           ) : filteredAndSortedVenues.length === 0 ? (
-            <div className="rounded-2xl border border-slate-200 bg-white/80 p-8 text-center text-slate-600 shadow-sm">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 text-slate-500 shadow-inner">
+            <div className="rounded-2xl border border-border bg-card/80 p-8 text-center text-muted-foreground shadow-card">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted/70 text-muted-foreground shadow-card">
                 <Search className="h-5 w-5" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-slate-900">No venues match these filters</h3>
-              <p className="mt-2 text-sm text-slate-600">Adjust your filters or clear them to see more venues.</p>
+              <h3 className="mt-4 text-lg font-semibold text-foreground">No venues match these filters</h3>
+              <p className="mt-2 text-sm text-muted-foreground">Adjust your filters or clear them to see more venues.</p>
             </div>
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
               {filteredAndSortedVenues.map((venue) => {
-                const bestForChips = (venue.best_for_tags ?? [])
-                  .filter(Boolean)
-                  .map((t) => t.trim())
-                  .filter((t) => t.length > 0);
                 const facilityChips = (venue.facilities ?? [])
                   .filter(Boolean)
                   .map((t) => t.trim())
@@ -383,9 +378,8 @@ const VenuesIndex = () => {
                     seen.add(lower);
                     return true;
                   });
-                const uniqueBestFor = dedupe(bestForChips);
                 const uniqueFacilities = dedupe(facilityChips);
-                const chipDisplay = [...uniqueBestFor.slice(0, 3), ...uniqueFacilities].slice(0, 4);
+                const chipDisplay = uniqueFacilities.slice(0, 4);
                 const total = venue.total_catches ?? 0;
                 const recent = venue.recent_catches_30d ?? 0;
                 const ticketType = venue.ticket_type?.trim();
@@ -407,40 +401,40 @@ const VenuesIndex = () => {
                 return (
                   <Card
                     key={venue.id}
-                    className="flex h-full flex-col overflow-hidden border border-slate-200 bg-white shadow-sm transition hover:-translate-y-px hover:shadow-sm focus-within:shadow-md"
+                    className="flex h-full flex-col overflow-hidden border border-border bg-card shadow-card transition hover:-translate-y-px hover:shadow-card-hover focus-within:shadow-card-hover"
                   >
                     <VenueThumbnail venue={venue} thumbnail={thumbnail} ticketType={ticketType} />
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <CardTitle className="text-lg font-semibold text-slate-900">{venue.name}</CardTitle>
-                          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-slate-500">
-                            <MapPin className="h-4 w-4 text-slate-400" />
+                          <CardTitle className="text-lg font-semibold text-foreground">{venue.name}</CardTitle>
+                          <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                            <MapPin className="h-4 w-4 text-muted-foreground/70" />
                             {location}
                           </p>
                           {hasRatings && formattedAvg ? (
-                            <div className="flex items-center gap-1 text-sm text-slate-700">
+                            <div className="flex items-center gap-1 text-sm text-foreground">
                               <span className="font-semibold">{formattedAvg}</span>
-                              <Star className="h-3 w-3 fill-amber-300 text-amber-300" />
-                              <span className="text-xs text-slate-500">({venue.rating_count})</span>
+                              <Star className="h-3 w-3 fill-accent text-accent" />
+                              <span className="text-xs text-muted-foreground">({venue.rating_count})</span>
                             </div>
                           ) : null}
                         </div>
                       </div>
-                      <p className="text-sm text-slate-600 line-clamp-2">{tagline}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">{tagline}</p>
                     </CardHeader>
                     <CardContent className="flex flex-1 flex-col gap-3 pb-5">
-                      <div className="grid gap-1.5 text-xs text-slate-600">
+                      <div className="grid gap-1.5 text-xs text-muted-foreground">
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Catches logged</p>
-                            <p className="text-sm font-bold text-slate-900">{total}</p>
+                          <div className="rounded-xl border border-border/60 bg-muted/50 px-3 py-2">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Catches logged</p>
+                            <p className="text-sm font-bold text-foreground">{total}</p>
                           </div>
-                          <div className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2">
-                            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">Last 30 days</p>
-                            <p className="flex items-center gap-1 text-sm font-bold text-slate-900">
+                          <div className="rounded-xl border border-border/60 bg-muted/50 px-3 py-2">
+                            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Last 30 days</p>
+                            <p className="flex items-center gap-1 text-sm font-bold text-foreground">
                               {recent}
-                              {isHot ? <Flame className="h-3.5 w-3.5 text-amber-500" /> : null}
+                              {isHot ? <Flame className="h-3.5 w-3.5 text-accent" /> : null}
                             </p>
                           </div>
                         </div>
@@ -450,21 +444,21 @@ const VenuesIndex = () => {
                           {chipDisplay.map((chip) => (
                             <span
                               key={chip}
-                              className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-800"
+                              className="inline-flex items-center rounded-md border border-border bg-muted/60 px-3 py-1 text-xs font-semibold text-foreground"
                             >
                               {chip}
                             </span>
                           ))}
                         </div>
                       ) : null}
-                      <div className="mt-auto flex items-center justify-between gap-3 text-xs text-slate-600">
+                      <div className="mt-auto flex items-center justify-between gap-3 text-xs text-muted-foreground">
                         <div className="flex flex-wrap items-center gap-2">
                           {priceFrom ? (
-                            <span className="text-sm font-semibold text-slate-900">
+                            <span className="text-sm font-semibold text-foreground">
                               {priceFrom.replace(/^from\s*/i, "").trim() || priceFrom}
                             </span>
                           ) : (
-                            <span className="text-xs text-slate-400">Price info not available</span>
+                            <span className="text-xs text-muted-foreground/70">Price info not available</span>
                           )}
                         </div>
                         <Button asChild className="w-full rounded-full text-sm font-semibold">

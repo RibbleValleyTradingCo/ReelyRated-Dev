@@ -42,6 +42,7 @@ const VenueDetail = () => {
     photos,
     openingHours,
     pricingTiers,
+    speciesStock,
     rulesText,
     operationalLoading,
     avgRating,
@@ -102,13 +103,13 @@ const VenueDetail = () => {
     short_tagline: null,
     ticket_type: null,
     price_from: null,
-    best_for_tags: null,
     facilities: null,
     website_url: null,
     booking_url: null,
     booking_enabled: null,
     contact_phone: null,
-    notes_for_rr_team: null,
+    payment_methods: null,
+    payment_notes: null,
     total_catches: 0,
     recent_catches_30d: 0,
     headline_pb_weight: null,
@@ -125,6 +126,7 @@ const VenueDetail = () => {
     topCatches,
     recentCatches,
     photos,
+    speciesStock,
     userId: user?.id ?? null,
     isAdmin,
     isOwner,
@@ -145,12 +147,14 @@ const VenueDetail = () => {
     websiteUrl,
     bookingUrl,
     contactPhone,
+    paymentMethods,
+    paymentNotes,
     totalCatches,
     recentWindow,
     displayPriceFrom,
     hasPlanContent,
     facilitiesList,
-    bestForTags,
+    speciesStock: viewModelSpeciesStock,
     pricingLines,
     heroTagline,
     aboutText,
@@ -163,6 +167,7 @@ const VenueDetail = () => {
     hasEvents,
     activeAnglers,
     recordWeightLabel,
+    statsRecordWeightLabel,
     recordSpeciesLabel,
     topSpeciesLabel,
     featuredCatchTitle,
@@ -312,7 +317,7 @@ const VenueDetail = () => {
     return (
       <div className="bg-gradient-to-b from-background to-muted">
         <PageContainer className="space-y-6 pb-16 pt-8 md:pt-10 lg:pb-20">
-          <Card className="border border-slate-200 bg-white shadow-sm">
+          <Card className="border border-border bg-card shadow-card">
             <CardHeader>
               <CardTitle>Venue not found</CardTitle>
             </CardHeader>
@@ -329,109 +334,6 @@ const VenueDetail = () => {
       </div>
     );
   }
-
-  const BookingCtaBanner = () => {
-    const safeBookingUrl = normalizeExternalUrl(bookingUrl);
-    const safeWebsiteUrl = normalizeExternalUrl(websiteUrl);
-    const safeMapsUrl = normalizeExternalUrl(mapsUrl);
-    const hasBookingUrl = Boolean(safeBookingUrl);
-    const bannerPrimaryLabel = hasBookingUrl
-      ? "Book your session"
-      : "Visit website";
-    const bannerPrimaryUrl =
-      hasBookingUrl && !bookingEnabled
-        ? null
-        : safeBookingUrl || safeWebsiteUrl;
-    const bannerSecondaryLabel = safeWebsiteUrl
-      ? "Check availability"
-      : "Get directions";
-    const bannerSecondaryUrl = safeWebsiteUrl || safeMapsUrl;
-    const bannerSubtextParts = [
-      activeAnglers > 0
-        ? `See ${activeAnglers} leaderboard entr${
-            activeAnglers === 1 ? "y" : "ies"
-          }.`
-        : "",
-      displayPriceFrom ? `${displayPriceFrom} day tickets.` : "",
-    ].filter(Boolean);
-    const bannerSubtext = bannerSubtextParts.length
-      ? bannerSubtextParts.join(" ")
-      : "Book your next session directly with the venue.";
-
-    return (
-      <div className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 px-6 py-10 text-white shadow-2xl md:px-10">
-        <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-          {recentWindow > 0 ? (
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              High demand last 30 days
-            </div>
-          ) : null}
-          <h2 className="text-3xl font-bold text-white md:text-4xl">
-            Ready to land your next PB?
-          </h2>
-          <p className="mt-3 text-base text-blue-100 md:text-lg">
-            {bannerSubtext}
-          </p>
-          <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-            {bannerPrimaryUrl ? (
-              <Button
-                asChild
-                className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg transition hover:bg-slate-100 sm:w-auto"
-              >
-                <a
-                  href={bannerPrimaryUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {bannerPrimaryLabel}
-                </a>
-              </Button>
-            ) : (
-              <Button
-                disabled
-                className="h-12 w-full rounded-xl bg-white text-blue-700 shadow-lg sm:w-auto"
-              >
-                {bannerPrimaryLabel}
-              </Button>
-            )}
-            {bannerSecondaryUrl ? (
-              <Button
-                asChild
-                className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm hover:bg-white/20 sm:w-auto"
-              >
-                <a
-                  href={bannerSecondaryUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {bannerSecondaryLabel}
-                </a>
-              </Button>
-            ) : (
-              <Button
-                disabled
-                className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm sm:w-auto"
-              >
-                {bannerSecondaryLabel}
-              </Button>
-            )}
-          </div>
-          {!bookingEnabled && hasBookingUrl ? (
-            <p className="mt-3 text-xs text-blue-100">
-              Bookings currently closed.
-            </p>
-          ) : null}
-          <p className="mt-4 text-xs text-blue-100">
-            {ticketType || "Day tickets available"}
-            {recentWindow > 0
-              ? ` • ${recentWindow} catches in the last 30 days`
-              : ""}
-          </p>
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div
@@ -470,10 +372,10 @@ const VenueDetail = () => {
           <HeroStatsStrip
             totalCatches={totalCatches}
             recentWindow={recentWindow}
-            recordWeightLabel={recordWeightLabel}
+            recordWeightLabel={statsRecordWeightLabel}
             topSpeciesLabel={topSpeciesLabel}
           />
-          <div className="-mx-4 bg-white md:-mx-6 lg:-mx-8">
+          <div className="-mx-4 bg-background md:-mx-6 lg:-mx-8">
             <div className="px-4 md:px-6 lg:px-8">
               <AboutSection
                 aboutText={aboutText}
@@ -487,7 +389,7 @@ const VenueDetail = () => {
               />
             </div>
           </div>
-          <div className="-mx-4 bg-slate-50 md:-mx-6 lg:-mx-8">
+          <div className="-mx-4 bg-muted/40 md:-mx-6 lg:-mx-8">
             <div className="px-4 md:px-6 lg:px-8">
               <VenueCarouselSection
                 items={carouselItems}
@@ -500,7 +402,7 @@ const VenueDetail = () => {
               />
             </div>
           </div>
-          <div className="-mx-4 bg-white py-16 md:-mx-6 md:py-20 lg:-mx-8">
+          <div className="-mx-4 bg-background py-16 md:-mx-6 md:py-20 lg:-mx-8">
             <div className="px-4 md:px-6 lg:px-8">
               <RecentCatchesSection
                 recentCatches={recentCatches}
@@ -514,7 +416,7 @@ const VenueDetail = () => {
               />
             </div>
           </div>
-          <div className="-mx-4 bg-[#F8FAFC] md:-mx-6 lg:-mx-8">
+          <div className="-mx-4 bg-muted/30 md:-mx-6 lg:-mx-8">
             <div className="px-4 md:px-6 lg:px-8">
               <PlanYourVisitSection
                 hasPlanContent={planHasContent}
@@ -524,9 +426,9 @@ const VenueDetail = () => {
                 ticketType={ticketType}
                 contactPhone={contactPhone}
                 facilitiesList={facilitiesList}
-                bestForTags={bestForTags}
                 openingHours={openingHours}
                 pricingTiers={pricingTiers}
+                speciesStock={viewModelSpeciesStock}
                 rulesText={rulesText}
                 bookingEnabled={bookingEnabled}
                 isOperationalLoading={operationalLoading}
@@ -534,16 +436,16 @@ const VenueDetail = () => {
                 websiteUrl={websiteUrl}
                 mapsUrl={mapsUrl}
                 venueName={venue.name}
+                recentWindow={recentWindow}
+                displayPriceFrom={displayPriceFrom}
+                activeAnglers={activeAnglers}
+                paymentMethods={paymentMethods}
+                paymentNotes={paymentNotes}
               />
             </div>
           </div>
-          <div className="-mx-4 py-16 md:-mx-6 md:py-20 lg:-mx-8">
-            <div className="px-4 md:px-6 lg:px-8">
-              <BookingCtaBanner />
-            </div>
-          </div>
           {hasEvents ? (
-            <div className="-mx-4 bg-blue-50 py-16 md:-mx-6 md:py-20 lg:-mx-8">
+            <div className="-mx-4 bg-primary/5 py-16 md:-mx-6 md:py-20 lg:-mx-8">
               <div className="px-4 md:px-6 lg:px-8">
                 <EventsSection
                   upcomingEvents={upcomingEvents}
@@ -558,11 +460,12 @@ const VenueDetail = () => {
               </div>
             </div>
           ) : null}
-          <div className="-mx-4 bg-white md:-mx-6 lg:-mx-8">
+          <div className="-mx-4 bg-background md:-mx-6 lg:-mx-8">
             <div className="px-4 md:px-6 lg:px-8">
               <LeaderboardSection
                 topCatches={topCatches}
                 topLoading={topLoading}
+                venueSlug={venue.slug}
               />
             </div>
           </div>
@@ -579,8 +482,8 @@ const VenueDetail = () => {
       {ratingModalOpen ? (
         <Suspense
           fallback={
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 px-4 py-6">
-              <div className="h-40 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" />
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-overlay/70 px-4 py-6">
+              <div className="h-40 w-full max-w-md rounded-2xl bg-card p-6 shadow-overlay" />
             </div>
           }
         >
@@ -600,12 +503,12 @@ const VenueDetail = () => {
       {showStickyActions ? (
         <div
           ref={stickyCtaRef}
-          className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/90 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-2xl backdrop-blur md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/90 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] shadow-overlay backdrop-blur md:hidden"
         >
           <div className="mx-auto flex w-full max-w-5xl items-center gap-3">
             <Button
               asChild
-              className="flex-1 h-12 rounded-full bg-primary text-white shadow-lg"
+              className="flex-1 h-12 rounded-full shadow-card"
             >
               <Link
                 to={`/add-catch${venue.slug ? `?venue=${venue.slug}` : ""}`}
@@ -617,7 +520,7 @@ const VenueDetail = () => {
               <Button
                 asChild
                 variant="outline"
-                className="h-12 rounded-full border-slate-200 bg-white"
+                className="h-12 rounded-full"
               >
                 <a href={safeMapsUrl} target="_blank" rel="noreferrer">
                   Maps
@@ -627,7 +530,7 @@ const VenueDetail = () => {
               <Button
                 disabled
                 variant="outline"
-                className="h-12 rounded-full border-slate-200 bg-white"
+                className="h-12 rounded-full"
               >
                 Maps
               </Button>

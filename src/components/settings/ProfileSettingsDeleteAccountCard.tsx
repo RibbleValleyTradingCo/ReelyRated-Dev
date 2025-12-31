@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -34,18 +34,10 @@ const ProfileSettingsDeleteAccountCard = ({
   onDeleteAccount,
 }: ProfileSettingsDeleteAccountCardProps) => {
   return (
-    <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
-      <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
-        <CardTitle className="text-lg">Delete your account</CardTitle>
-        <p className="text-sm text-slate-600">
-          This will immediately delete/close your account. Your profile will be anonymised and your catches/comments
-          hidden from normal surfaces, while some moderation history may be retained for safety. This can’t be undone from
-          the UI.
-        </p>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 px-5 pb-5 md:flex-row md:items-center md:justify-between md:px-8 md:pb-8">
-        <p className="text-sm text-slate-600 md:max-w-lg">
-          You can optionally share why you&apos;re leaving before confirming. Deletion/closure is permanent for this account.
+    <Card className="rounded-xl">
+      <CardContent className="flex min-w-0 flex-col gap-4 px-5 pb-5 pt-5 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-6 md:px-8 md:pb-8 md:pt-6">
+        <p className="text-sm text-muted-foreground md:flex-1 md:min-w-0 md:max-w-none">
+          Delete your account and data permanently.
         </p>
         <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
           <AlertDialogTrigger asChild>
@@ -75,7 +67,7 @@ const ProfileSettingsDeleteAccountCard = ({
               <AlertDialogAction
                 onClick={onDeleteAccount}
                 disabled={isDeletingAccount}
-                className="bg-red-600 text-white hover:bg-red-700"
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 {isDeletingAccount ? (
                   <>

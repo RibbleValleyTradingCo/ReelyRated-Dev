@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useId, useMemo } from "react";
 import { ResponsiveBar } from "@nivo/bar";
 import type { PartialTheme } from "@nivo/theming";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,8 @@ interface DistributionBarChartProps {
   height?: string;
   tickRotation?: number;
   maxItems?: number;
+  ariaLabel?: string;
+  ariaDescription?: string;
 }
 
 export const DistributionBarChart = memo(({
@@ -28,7 +30,10 @@ export const DistributionBarChart = memo(({
   height = "h-64",
   tickRotation = 0,
   maxItems,
+  ariaLabel = "Distribution bar chart",
+  ariaDescription,
 }: DistributionBarChartProps) => {
+  const descriptionId = useId();
   const isHorizontal = layout === "horizontal";
   const trimmedData = useMemo(() => {
     const sliced = maxItems ? data.slice(0, maxItems) : data;
@@ -61,11 +66,15 @@ export const DistributionBarChart = memo(({
   return (
     <div
       className={cn(
-        "w-full overflow-visible pb-6",
+        "w-full overflow-visible rounded-xl border border-border/60 bg-muted/40 pb-6 p-2",
         isHorizontal ? "min-h-[280px]" : "min-h-[260px]",
         height,
       )}
+      role="img"
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescription ? descriptionId : undefined}
     >
+      {ariaDescription ? <span id={descriptionId} className="sr-only">{ariaDescription}</span> : null}
       <ResponsiveBar
         data={isHorizontal ? [...trimmedData].reverse() : trimmedData}
         keys={["catches"]}
@@ -102,9 +111,9 @@ export const DistributionBarChart = memo(({
         label={isHorizontal ? (datum) => `${Math.round(Number(datum.value ?? 0))}` : undefined}
         labelSkipWidth={0}
         labelSkipHeight={0}
-        labelTextColor={isHorizontal ? "#0f172a" : undefined}
+        labelTextColor={isHorizontal ? "hsl(var(--foreground))" : undefined}
         tooltip={({ indexValue, value, data }) => (
-          <div className="rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg">
+          <div className="rounded-md border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-overlay">
             <p className="font-medium">{(data.__fullLabel as string) ?? indexValue}</p>
             <p>{value} catches</p>
           </div>

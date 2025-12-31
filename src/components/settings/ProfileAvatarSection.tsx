@@ -11,6 +11,7 @@ interface ProfileAvatarSectionProps {
   avatarPath: string | null;
   legacyAvatarUrl?: string | null;
   onAvatarChange: (storagePath: string | null) => void;
+  buttonLabel?: string;
 }
 
 const initialsFromName = (name: string) => {
@@ -28,7 +29,9 @@ export const ProfileAvatarSection = ({
   avatarPath,
   legacyAvatarUrl,
   onAvatarChange,
+  buttonLabel,
 }: ProfileAvatarSectionProps) => {
+  const resolvedButtonLabel = buttonLabel || "Upload new photo";
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -81,7 +84,7 @@ export const ProfileAvatarSection = ({
 
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-      <Avatar className="h-24 w-24 border border-slate-200">
+      <Avatar className="h-24 w-24 border border-border">
         {previewUrl ? <AvatarImage src={previewUrl} alt={`${username}'s avatar`} /> : null}
         <AvatarFallback className="bg-muted text-muted-foreground">
           {initialsFromName(username) || <Fish className="h-6 w-6" />}
@@ -111,12 +114,11 @@ export const ProfileAvatarSection = ({
             ) : (
               <>
                 <Upload className="mr-2 h-4 w-4" />
-                Upload new photo
+                {resolvedButtonLabel}
               </>
             )}
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">This photo will appear on your posts.</p>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
     </div>

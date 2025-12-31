@@ -27,18 +27,18 @@ const VenueCarouselSection = ({
     <section className="py-10 md:py-12">
       <div className="px-4 md:px-6 lg:px-8">
         <div className="mb-4 text-center md:mb-6">
-          <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+          <h2 className="text-3xl font-bold text-foreground md:text-4xl">
             {label}
           </h2>
-          <p className="mt-2 text-base text-slate-600 md:text-lg">
+          <p className="mt-2 text-base text-muted-foreground md:text-lg">
             Uploads from the venue and the community.
           </p>
         </div>
       </div>
       <div className="-mx-4 md:-mx-6 lg:-mx-8">
-        <div className="relative overflow-hidden bg-slate-100 rounded-none md:rounded-3xl">
+        <div className="relative overflow-hidden bg-muted/60 rounded-none md:rounded-3xl">
           <div
-            className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100 md:aspect-[3/1] touch-pan-y"
+            className="relative aspect-[16/9] w-full overflow-hidden bg-muted/60 md:aspect-[3/1] touch-pan-y"
             onTouchStart={(event) => {
               swipeStartRef.current = event.touches[0]?.clientX ?? null;
             }}
@@ -67,20 +67,20 @@ const VenueCarouselSection = ({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-sm text-slate-600">
+              <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">
                 No photos yet.
               </div>
             )}
             {hasMultiple ? (
               <>
                 <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-slate-900/35 to-transparent"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-foreground/35 to-transparent"
                   aria-hidden
                 />
                 <button
                   type="button"
                   onClick={onPrev}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-slate-700 shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-2.5 text-foreground shadow-card transition hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label="Previous photo"
                 >
                   <ChevronLeft className="h-5 w-5" />
@@ -88,7 +88,7 @@ const VenueCarouselSection = ({
                 <button
                   type="button"
                   onClick={onNext}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2.5 text-slate-700 shadow-lg transition hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-card/90 p-2.5 text-foreground shadow-card transition hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label="Next photo"
                 >
                   <ChevronRight className="h-5 w-5" />
@@ -100,7 +100,9 @@ const VenueCarouselSection = ({
                       type="button"
                       onClick={() => onIndexChange(idx)}
                       className={`h-2.5 rounded-full transition ${
-                        index === idx ? "w-6 bg-white" : "w-2.5 bg-white/60"
+                        index === idx
+                          ? "w-6 bg-inverse dark:bg-inverse-foreground"
+                          : "w-2.5 bg-inverse/60 dark:bg-inverse-foreground/60"
                       }`}
                       aria-label={`Show photo ${idx + 1}`}
                     />

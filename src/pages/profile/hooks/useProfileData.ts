@@ -231,7 +231,7 @@ export const useProfileData = ({
     queryKey: qk.adminStatus(viewerId ?? null),
     enabled: Boolean(viewerId),
     queryFn: async () => isAdminUser(viewerId),
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
     refetchOnWindowFocus: false,
     retry: false,
   });
@@ -240,7 +240,7 @@ export const useProfileData = ({
     queryKey: qk.adminStatus(profileId),
     enabled: Boolean(profileId),
     queryFn: async () => isAdminUser(profileId),
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
     refetchOnWindowFocus: false,
     retry: false,
   });

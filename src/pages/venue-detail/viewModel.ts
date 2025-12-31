@@ -1,9 +1,8 @@
 import { getPublicAssetUrl } from "@/lib/storage";
-import type { CatchRow, Venue, VenuePhoto } from "./types";
+import type { CatchRow, Venue, VenuePhoto, VenueSpeciesStock } from "./types";
 import {
   getDisplayPriceFrom,
   humanizeSpecies,
-  normalizeTag,
   sanitizeCatchTitle,
 } from "./utils";
 
@@ -12,6 +11,7 @@ type BuildVenueDetailViewModelInput = {
   topCatches: CatchRow[];
   recentCatches: CatchRow[];
   photos: VenuePhoto[];
+  speciesStock: VenueSpeciesStock[];
   userId?: string | null;
   isAdmin: boolean;
   isOwner: boolean;
@@ -33,12 +33,14 @@ export type VenueDetailViewModel = {
   websiteUrl: string;
   bookingUrl: string;
   contactPhone: string;
-  totalCatches: number;
-  recentWindow: number;
+  paymentMethods: string[];
+  paymentNotes: string;
+  totalCatches: number | null;
+  recentWindow: number | null;
   displayPriceFrom: string;
   hasPlanContent: boolean;
   facilitiesList: string[];
-  bestForTags: string[];
+  speciesStock: VenueSpeciesStock[];
   pricingLines: string[];
   heroTagline: string;
   aboutText: string;
@@ -51,6 +53,7 @@ export type VenueDetailViewModel = {
   hasEvents: boolean;
   activeAnglers: number;
   recordWeightLabel: string | null;
+  statsRecordWeightLabel: string | null;
   recordSpeciesLabel: string | null;
   topSpeciesLabel: string | null;
   featuredCatchTitle: string | null;
@@ -65,7 +68,7 @@ export type VenueDetailViewModel = {
   scrimClass: string;
   mapsUrl: string;
   mapEmbedUrl: string | null;
-  viewAllCount: number;
+  viewAllCount: number | null;
   showAboutAdminHint: boolean;
 };
 
@@ -77,6 +80,7 @@ export const buildVenueDetailViewModel = (
     topCatches,
     recentCatches,
     photos,
+    speciesStock,
     userId,
     isAdmin,
     isOwner,
@@ -96,25 +100,26 @@ export const buildVenueDetailViewModel = (
   const websiteUrl = venue.website_url?.trim() ?? "";
   const bookingUrl = venue.booking_url?.trim() ?? "";
   const contactPhone = venue.contact_phone?.trim() ?? "";
-  const totalCatches = venue.total_catches ?? 0;
-  const recentWindow = venue.recent_catches_30d ?? 0;
+  const totalCatches = venue.total_catches ?? null;
+  const recentWindow = venue.recent_catches_30d ?? null;
+  const paymentMethods = (venue.payment_methods ?? []).filter(Boolean);
+  const paymentNotes = venue.payment_notes?.trim() ?? "";
   const facilities = (venue.facilities ?? []).filter(Boolean);
-  const bestForTags = (venue.best_for_tags ?? []).filter(Boolean);
   const hasTicketsContent =
     !!ticketType ||
     !!priceFrom ||
     !!websiteUrl ||
     !!bookingUrl ||
-    !!contactPhone;
+    !!contactPhone ||
+    paymentMethods.length > 0 ||
+    !!paymentNotes;
   const hasFacilities = facilities.length > 0;
-  const bestForSet = new Set(bestForTags.map((tag) => normalizeTag(tag)));
-  const filteredFacilities = facilities.filter(
-    (item) => !bestForSet.has(normalizeTag(item))
-  );
   const displayPriceFrom = getDisplayPriceFrom(venue.price_from);
-  const hasPlanContent = hasTicketsContent || hasFacilities || bestForTags.length > 0;
-  const facilitiesList =
-    filteredFacilities.length > 0 ? filteredFacilities : facilities;
+  const hasPlanContent =
+    hasTicketsContent ||
+    hasFacilities ||
+    speciesStock.length > 0;
+  const facilitiesList = facilities;
   const pricingLines = [displayPriceFrom, ticketType].filter(
     (line): line is string => Boolean(line)
   );
@@ -171,6 +176,11 @@ export const buildVenueDetailViewModel = (
         venue.headline_pb_unit === "kg" ? "kg" : "lb"
       }`
     : null;
+  const statsRecordWeightLabel = venue.headline_pb_weight
+    ? `${venue.headline_pb_weight}${
+        venue.headline_pb_unit === "kg" ? "kg" : "lb"
+      }`
+    : null;
   const recordSpeciesLabel = featuredCatch?.species || venue.headline_pb_species;
   const featuredCatchTitle = sanitizeCatchTitle(featuredCatch?.title);
   const topSpeciesRaw = (venue.top_species ?? []).filter(Boolean)[0];
@@ -178,7 +188,7 @@ export const buildVenueDetailViewModel = (
 
   const showStickyActions = !!userId && !isAdmin;
   const hasEvents = upcomingEventsCount > 0 || pastEventsCount > 0;
-  const activeAnglers = topCatches.length;
+  const activeAnglers = venue.active_anglers_all_time ?? 0;
   const primaryCtaUrl = bookingUrl || websiteUrl;
   const secondaryCtaUrl = websiteUrl;
   const secondaryCtaLabel = displayPriceFrom ? "View Prices" : "Visit Website";
@@ -222,7 +232,7 @@ export const buildVenueDetailViewModel = (
       )}&output=embed`
     : null;
 
-  const viewAllCount = totalCatches > 0 ? totalCatches : recentCatches.length;
+  const viewAllCount = totalCatches;
   const showAboutAdminHint =
     !(venue.description || heroTagline) && (isAdmin || isOwner);
 
@@ -232,12 +242,14 @@ export const buildVenueDetailViewModel = (
     websiteUrl,
     bookingUrl,
     contactPhone,
+    paymentMethods,
+    paymentNotes,
     totalCatches,
     recentWindow,
     displayPriceFrom,
     hasPlanContent,
     facilitiesList,
-    bestForTags,
+    speciesStock,
     pricingLines,
     heroTagline,
     aboutText,
@@ -250,6 +262,7 @@ export const buildVenueDetailViewModel = (
     hasEvents,
     activeAnglers,
     recordWeightLabel,
+    statsRecordWeightLabel,
     recordSpeciesLabel,
     topSpeciesLabel,
     featuredCatchTitle,

@@ -219,7 +219,7 @@ export const useFeedData = ({
       const loadedCount = allPages.reduce((acc, page) => acc + page.length, 0);
       return loadedCount;
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
     refetchOnWindowFocus: false,
     retry: false,
   });

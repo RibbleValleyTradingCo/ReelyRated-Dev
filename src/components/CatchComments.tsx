@@ -3,7 +3,7 @@ import type { KeyboardEvent } from "react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/components/AuthProvider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -17,6 +17,7 @@ import { useRateLimit, formatResetTime } from "@/hooks/useRateLimit";
 import { isRateLimitError, getRateLimitMessage } from "@/lib/rateLimit";
 import { useCatchComments, ThreadedComment, CatchComment, MentionCandidate } from "@/hooks/useCatchComments";
 import { mapModerationError } from "@/lib/moderation-errors";
+import { qk } from "@/lib/queryKeys";
 
 interface CatchCommentsProps {
   catchId: string;
@@ -331,6 +332,7 @@ const CatchCommentsBody = memo(
     targetCommentId,
     commentsData,
   }: CatchCommentsBodyProps) => {
+    const queryClient = useQueryClient();
     const [reportedComments, setReportedComments] = useState<Record<string, boolean>>({});
 
     const { user } = useAuth();
@@ -401,6 +403,9 @@ const CatchCommentsBody = memo(
         if (error) throw error;
         return data as string | null;
       },
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: qk.feedBase() });
+      },
       retry: false,
     });
 
@@ -411,6 +416,9 @@ const CatchCommentsBody = memo(
         });
         if (error) throw error;
         return true;
+      },
+      onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: qk.feedBase() });
       },
       retry: false,
     });
@@ -576,6 +584,7 @@ const CatchCommentsBody = memo(
         "flex-1 min-w-0 space-y-2 rounded-xl border border-border/60 bg-background px-4 py-3";
       const replyContainerClass = "flex-1 min-w-0 space-y-2 px-2";
       const bodyBubbleClass = "rounded-2xl bg-muted/40 px-4 py-3 text-sm leading-relaxed text-foreground max-w-prose";
+      const activeReplyClass = activeReply === comment.id ? "ring-1 ring-accent/40 bg-accent/5" : "";
 
       return (
         <div
@@ -602,12 +611,7 @@ const CatchCommentsBody = memo(
               </Avatar>
             </Link>
             <div
-              className={options.isRoot ? rootContainerClass : replyContainerClass}
-              style={
-                activeReply === comment.id
-                  ? { boxShadow: "0 0 0 1px var(--accent)", backgroundColor: "rgba(var(--accent-rgb),0.06)" }
-                  : undefined
-              }
+              className={`${options.isRoot ? rootContainerClass : replyContainerClass} ${activeReplyClass}`}
             >
               <div className="flex flex-wrap items-start gap-2">
                 <div className="flex items-center gap-2">
@@ -627,7 +631,7 @@ const CatchCommentsBody = memo(
                     </span>
                   )}
                   {isAdminAuthor && (
-                    <span className="text-[10px] uppercase tracking-wide rounded-full bg-amber-100 text-amber-800 px-2 py-0.5">
+                    <span className="text-[10px] uppercase tracking-wide rounded-full bg-accent/15 text-accent px-2 py-0.5">
                       Admin
                     </span>
                   )}
@@ -745,12 +749,13 @@ const CatchCommentsBody = memo(
                       onBlur={() => mentionController.resetState(replyMentionKey)}
                       rows={3}
                       className="w-full bg-background/60 rounded-md"
+                      aria-label={`Reply to ${displayName}`}
                       placeholder={`Reply to ${displayName}…`}
                     />
                     {replyMentionState.active && (
                       <div
                         ref={(el) => mentionController.setListRef(replyMentionKey, el)}
-                        className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-lg"
+                        className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-overlay"
                       >
                         {replyMentionState.matches.length > 0 ? (
                           replyMentionState.matches.map((candidate, idx) => (
@@ -877,7 +882,7 @@ const CatchCommentsBody = memo(
           "ring-offset-background",
           "bg-primary/5",
           "rounded-lg",
-          "shadow-sm",
+          "shadow-card",
           "transition"
         );
         const timeout = setTimeout(() => {
@@ -888,7 +893,7 @@ const CatchCommentsBody = memo(
             "ring-offset-background",
             "bg-primary/5",
             "rounded-lg",
-            "shadow-sm",
+            "shadow-card",
             "transition"
           );
         }, 2500);
@@ -929,13 +934,14 @@ const CatchCommentsBody = memo(
                     mentionController.handleKeyDown(TOP_MENTION_KEY, e, newComment, (next) => setNewComment(next))
                   }
                   onBlur={() => mentionController.resetState(TOP_MENTION_KEY)}
+                  aria-label="Add a comment"
                   placeholder="Share your thoughts..."
                   rows={3}
                 />
                 {topMentionState.active && (
                   <div
                     ref={(el) => mentionController.setListRef(TOP_MENTION_KEY, el)}
-                    className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-lg"
+                    className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-md border border-border/80 bg-background shadow-overlay"
                   >
                     {topMentionState.matches.length > 0 ? (
                       topMentionState.matches.map((candidate, idx) => (

@@ -21,6 +21,7 @@ export const ShareCard = memo(({
 }: ShareCardProps) => {
   const formattedDate = date ? format(new Date(date), "dd MMM yyyy") : undefined;
 
+  // Uses fixed palette colors to ensure consistent share-image rendering across themes.
   return (
     <div className="w-[640px] rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl overflow-hidden">
       <div className="relative h-[360px] w-full overflow-hidden">

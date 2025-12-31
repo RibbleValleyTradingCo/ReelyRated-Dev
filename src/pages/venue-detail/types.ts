@@ -9,15 +9,17 @@ export type Venue = {
   short_tagline: string | null;
   ticket_type: string | null;
   price_from: string | null;
-  best_for_tags: string[] | null;
   facilities: string[] | null;
   website_url: string | null;
   booking_url: string | null;
   booking_enabled?: boolean | null;
   contact_phone: string | null;
-  notes_for_rr_team: string | null;
+  payment_methods?: string[] | null;
+  payment_notes?: string | null;
   total_catches: number | null;
   recent_catches_30d: number | null;
+  active_anglers_all_time?: number | null;
+  active_anglers_30d?: number | null;
   headline_pb_weight: number | null;
   headline_pb_unit: string | null;
   headline_pb_species: string | null;
@@ -46,7 +48,23 @@ export type VenuePricingTier = {
   label: string;
   price: string;
   unit: string | null;
+  audience?: string | null;
   order_index: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type VenueSpeciesStock = {
+  id: string;
+  venue_id: string;
+  species_name: string;
+  record_weight: number | null;
+  record_unit: string | null;
+  avg_weight: number | null;
+  size_range_min: number | null;
+  size_range_max: number | null;
+  stock_density: string | null;
+  stock_notes: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -63,6 +81,7 @@ export type VenuePhoto = {
   venue_id: string;
   image_path: string;
   caption: string | null;
+  is_primary?: boolean | null;
   created_at: string;
   created_by: string | null;
 };

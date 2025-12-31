@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import LogoMark from "@/components/LogoMark";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ui/theme-toggle";
 import {
   Home,
   Layers,
@@ -44,7 +45,7 @@ interface MenuItem {
 export const MOBILE_MENU_ID = "navigation-drawer";
 
 const menuItemClasses =
-  "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base font-medium min-h-[44px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2";
+  "flex w-full items-center gap-3 rounded-lg px-3 py-3 text-base font-medium min-h-[44px] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigate, isAdmin }: MobileMenuProps) => {
   useEffect(() => {
@@ -91,7 +92,7 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
             {options.heading}
           </p>
         ) : null}
-        <div className="rounded-xl border border-border/70 bg-white/95 shadow-md">
+        <div className="rounded-xl border border-border/70 bg-card/95 shadow-card">
           <div className="flex flex-col gap-1 p-2">
             {items.map((item) => {
               const Icon = item.icon;
@@ -170,12 +171,12 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
   return createPortal(
     <div id={MOBILE_MENU_ID} className="fixed inset-0 z-[60]">
       <div
-        className="absolute inset-0 z-[55] bg-black/40 backdrop-blur-sm"
+        className="absolute inset-0 z-[55] bg-overlay/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden="true"
       />
       <div
-        className="relative z-[60] ml-auto flex h-full w-full max-w-sm flex-col overflow-y-auto bg-card px-5 pb-6 shadow-2xl"
+        className="relative z-[60] ml-auto flex h-full w-full max-w-sm flex-col overflow-y-auto bg-card px-5 pb-6 shadow-overlay"
         style={{ paddingTop: "calc(env(safe-area-inset-top, 0px) + 1.25rem)" }}
         role="dialog"
         aria-modal="true"
@@ -195,6 +196,7 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
                 <NotificationsBell />
               </div>
             )}
+            <ThemeToggle className="h-9 w-9 rounded-full" iconClassName="h-5 w-5" />
             <Button
               variant="ghost"
               size="icon"
@@ -225,7 +227,7 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
               <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Create
               </p>
-              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 shadow-md">
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 shadow-card">
                 <Button
                   variant="ocean"
                   className="w-full justify-center gap-2 rounded-full py-3 text-base font-semibold"
@@ -249,7 +251,7 @@ export const MobileMenu = ({ open, onClose, user, onSignOut, onSignIn, onNavigat
                 <p className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Account
                 </p>
-                <div className="rounded-xl border border-border/70 bg-white/95 p-3 shadow-md">
+                <div className="rounded-xl border border-border/70 bg-card/95 p-3 shadow-card">
                   <Button
                     variant="ocean"
                     className="w-full justify-center gap-2 rounded-full py-3 text-base font-semibold"

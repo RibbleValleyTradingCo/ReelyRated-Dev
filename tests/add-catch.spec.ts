@@ -28,7 +28,10 @@ test.describe('Add catch flow', () => {
     await page.getByTestId('fishery-combobox').click();
     await page.getByRole('option', { name: 'Farlows Lake, Buckinghamshire' }).click();
 
-    await page.getByRole('button', { name: /publish catch/i }).click();
+    const publishButton = page.getByRole('button', { name: /publish catch/i });
+    await publishButton.waitFor({ state: 'visible' });
+    await expect(publishButton).toBeEnabled();
+    await publishButton.click();
 
     await page.waitForURL(/\/feed/, { timeout: 15000 });
     await expect(page).not.toHaveURL(/\/auth/);

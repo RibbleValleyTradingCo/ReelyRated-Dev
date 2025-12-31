@@ -78,7 +78,7 @@ const MyVenues = () => {
     return (
       <div className="min-h-screen bg-gradient-to-b from-background to-muted">
         <PageContainer className="flex items-center justify-center px-4 sm:px-6 py-16">
-          <div className="flex items-center gap-2 text-slate-500">
+          <div className="flex items-center gap-2 text-muted-foreground">
             <Loader2 className="h-5 w-5 animate-spin" />
             <Text variant="muted">Loading your venues…</Text>
           </div>

@@ -180,7 +180,7 @@ export const useCatchDetailData = ({ catchId, userId }: UseCatchDetailDataParams
     queryKey: qk.adminStatus(userId ?? null),
     enabled: Boolean(userId),
     queryFn: async () => isAdminUser(userId),
-    staleTime: 5 * 60_000,
+    staleTime: 60_000,
     refetchOnWindowFocus: false,
     retry: false,
   });

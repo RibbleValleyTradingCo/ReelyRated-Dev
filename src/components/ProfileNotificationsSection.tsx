@@ -118,29 +118,29 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {showStatusCard ? (
-        <Card className="border border-slate-200 bg-white/90 shadow-sm">
+        <Card className="border border-border bg-card/90 shadow-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-base font-semibold">Account status</CardTitle>
             <CardDescription>Summary of moderation affecting your account.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-slate-900">{statusLabel}</span>
-              <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+              <span className="text-sm font-semibold text-foreground">{statusLabel}</span>
+              <span className="inline-flex items-center rounded-full bg-muted/70 px-2 py-1 text-[11px] font-semibold text-muted-foreground">
                 Warnings: {status?.warn_count ?? 0}/3
               </span>
             </div>
             {statusState === "suspended" && status?.suspension_until ? (
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-muted-foreground">
                 You’re currently suspended and can’t post new catches or comments until{" "}
                 {new Date(status.suspension_until).toLocaleString()}.
               </p>
             ) : statusState === "banned" ? (
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-muted-foreground">
                 Your account is banned and you can’t post new catches or comments.
               </p>
             ) : statusState === "warned" || (statusState === "active" && (status?.warn_count ?? 0) > 0) ? (
-              <p className="text-sm text-slate-700">
+              <p className="text-sm text-muted-foreground">
                 You can keep posting, but please follow community guidelines.
               </p>
             ) : null}
@@ -150,14 +150,14 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
         <div className="space-y-4 md:col-span-1" />
       )}
 
-      <Card className="border border-slate-200 bg-white/90 shadow-sm">
+      <Card className="border border-border bg-card/90 shadow-card">
         <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <CardTitle className="text-lg font-semibold text-slate-900">Notifications</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">Notifications</CardTitle>
             <CardDescription>Activity from anglers and admins related to your catches.</CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-700">
+            <span className="rounded-full bg-muted/70 px-2 py-1 text-[11px] font-semibold text-muted-foreground">
               Unread: {unreadCount}
             </span>
             <Button
@@ -207,7 +207,7 @@ export const ProfileNotificationsSection = ({ userId }: ProfileNotificationsSect
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Loading notifications…
             </div>
           ) : notifications.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">
+            <div className="rounded-lg border border-dashed border-border bg-muted/40 p-6 text-center text-sm text-muted-foreground">
               No notifications yet. Activity on your catches will appear here.
             </div>
           ) : (

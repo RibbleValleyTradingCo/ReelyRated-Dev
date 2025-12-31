@@ -15,7 +15,8 @@ import ProfileFollowingStrip from "@/components/profile/ProfileFollowingStrip";
 import ProfileCatchesGrid from "@/components/profile/ProfileCatchesGrid";
 import ProfileDeletedStub from "@/components/profile/ProfileDeletedStub";
 import ProfileBlockedViewerStub from "@/components/profile/ProfileBlockedViewerStub";
-import PageSpinner from "@/components/loading/PageSpinner";
+import { Skeleton } from "@/components/ui/skeleton";
+import SectionSkeleton from "@/components/ui/SectionSkeleton";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import Text from "@/components/typography/Text";
@@ -72,6 +73,23 @@ const buildProfileStatCards = (stats: {
     icon: <BarChart3 className="h-5 w-5" />,
   },
 ];
+
+const ProfileHeaderSkeleton = () => {
+  return (
+    <Section>
+      <div className="rounded-3xl border border-border bg-card p-6 shadow-card">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <Skeleton className="h-20 w-20 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-72" />
+            <Skeleton className="h-4 w-40" />
+          </div>
+        </div>
+      </div>
+    </Section>
+  );
+};
 
 const Profile = () => {
   const { slug } = useParams<{ slug?: string }>();
@@ -198,7 +216,7 @@ const Profile = () => {
   const totalFollowers = followersCount ?? 0;
   const statusPill = {
     label: "Active",
-    className: "border-emerald-300/60 bg-emerald-500/10 text-emerald-50",
+    className: "border-accent/40 bg-accent/15 text-accent-foreground dark:border-accent/30 dark:bg-accent/20 dark:text-accent",
   };
   const canViewPrivateContent = !profile?.is_private || isOwnProfile || isAdminViewer || isFollowing;
   const isDeletedBanner = isDeleted && isAdminViewer;
@@ -210,8 +228,8 @@ const Profile = () => {
   const isUsingStaffBioFallback = isAdminProfile && (!profile?.bio || profile.bio.trim().length === 0);
   const displayBio = isUsingStaffBioFallback ? staffBioFallback : profileBio;
   const heroBackgroundClasses = isAdminProfile
-    ? "relative overflow-hidden rounded-3xl border border-indigo-200/40 bg-slate-950 text-white shadow-xl"
-    : "relative overflow-hidden rounded-3xl border border-slate-200 bg-slate-900 text-white shadow-xl";
+    ? "relative overflow-hidden rounded-3xl border border-primary/30 bg-inverse-foreground text-inverse shadow-glow dark:border-border dark:bg-card dark:text-foreground dark:shadow-card"
+    : "relative overflow-hidden rounded-3xl border border-border/40 bg-inverse-foreground text-inverse shadow-glow dark:border-border dark:bg-card dark:text-foreground dark:shadow-card";
 
   if (!isLoading && !blockStatusLoading && shouldShowBlockedViewerStub) {
     return <ProfileBlockedViewerStub />;
@@ -219,8 +237,15 @@ const Profile = () => {
 
   if (isLoading || blockStatusLoading || !profile) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <PageSpinner label="Loading profile…" />
+      <div className="min-h-screen bg-background">
+        <PageContainer className="py-8 md:py-10">
+          <div className="space-y-8">
+            <ProfileHeaderSkeleton />
+            <Section>
+              <SectionSkeleton lines={4} />
+            </Section>
+          </div>
+        </PageContainer>
       </div>
     );
   }
@@ -267,18 +292,18 @@ const Profile = () => {
   const handleOpenCatch = (catchId: string) => navigate(`/catch/${catchId}`);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <PageContainer className="py-8 md:py-10">
         <div className="space-y-8">
           {isDeletedBanner || (isBlockedByMe && !isDeleted && !isAdminProfileOwner) ? (
             <Section className="space-y-4">
               {isDeletedBanner ? (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+                <div className="rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary shadow-card">
                   This account has been deleted. You&apos;re viewing historical data as an admin.
                 </div>
               ) : null}
               {isBlockedByMe && !isDeleted && !isAdminProfileOwner ? (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 shadow-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary shadow-card">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     <span>You have blocked this angler. Unblock to see their catches again.</span>
@@ -286,7 +311,7 @@ const Profile = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="border-amber-300 text-amber-800"
+                    className="border-primary/40 text-primary"
                     onClick={handleUnblock}
                     disabled={blockLoading}
                   >
@@ -337,7 +362,7 @@ const Profile = () => {
             />
 
             {isAdminPublicView ? (
-              <Text variant="small" className="text-slate-600">
+              <Text variant="small" className="text-muted-foreground">
                 Official ReelyRated staff account. Use report options on catches or comments to flag issues; support links live in Settings.
               </Text>
             ) : null}

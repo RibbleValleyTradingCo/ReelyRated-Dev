@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -54,13 +55,20 @@ export const FiltersPanel = ({
   venueOptions,
   showLastSessionHint,
 }: FiltersPanelProps) => {
+  const datePresetId = useId();
+  const sessionId = useId();
+  const venueId = useId();
+  const customRangeId = useId();
+
   return (
-    <div className="mb-6 rounded-2xl border border-border bg-card/70 p-4 shadow-sm">
+    <div className="w-full min-w-0 rounded-2xl border border-border bg-card/70 p-4 shadow-card">
       <div className="grid gap-4 md:grid-cols-4">
         <div className="grid gap-2">
-          <Label className="text-sm font-medium text-muted-foreground">Time range</Label>
+          <Label htmlFor={datePresetId} className="text-sm font-medium text-muted-foreground">
+            Time range
+          </Label>
           <Select value={datePreset} onValueChange={(value) => onDatePresetChange(value as DatePreset)}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id={datePresetId} className="w-full">
               <SelectValue placeholder="All time" />
             </SelectTrigger>
             <SelectContent>
@@ -76,9 +84,11 @@ export const FiltersPanel = ({
           <div className="min-h-[16px]" />
         </div>
         <div className="grid gap-2">
-          <Label className="text-sm font-medium text-muted-foreground">Session</Label>
+          <Label htmlFor={sessionId} className="text-sm font-medium text-muted-foreground">
+            Session
+          </Label>
           <Select value={selectedSessionId} onValueChange={onSessionChange}>
-            <SelectTrigger disabled={sessionsDisabled} className="w-full">
+            <SelectTrigger id={sessionId} disabled={sessionsDisabled} className="w-full">
               <SelectValue placeholder="All sessions" />
             </SelectTrigger>
             <SelectContent>
@@ -95,9 +105,11 @@ export const FiltersPanel = ({
           </p>
         </div>
         <div className="grid gap-2">
-          <Label className="text-sm font-medium text-muted-foreground">Venue</Label>
+          <Label htmlFor={venueId} className="text-sm font-medium text-muted-foreground">
+            Venue
+          </Label>
           <Select value={selectedVenue} onValueChange={onVenueChange}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger id={venueId} className="w-full">
               <SelectValue placeholder="All venues" />
             </SelectTrigger>
             <SelectContent>
@@ -112,14 +124,17 @@ export const FiltersPanel = ({
           <div className="min-h-[16px]" />
         </div>
         <div className="grid gap-2">
-          <Label className="text-sm font-medium text-muted-foreground">Custom range</Label>
+          <Label htmlFor={customRangeId} className="text-sm font-medium text-muted-foreground">
+            Custom range
+          </Label>
           <Popover open={customRangeOpen} onOpenChange={onCustomRangeOpenChange}>
             <PopoverTrigger asChild>
               <Button
+                id={customRangeId}
                 variant="outline"
                 className={cn(
                   "w-full justify-start text-left font-normal",
-                  customRangeActive ? "border-primary text-primary shadow-sm" : "text-muted-foreground"
+                  customRangeActive ? "border-primary text-primary shadow-card" : "text-muted-foreground"
                 )}
               >
                 <CalendarDays className="mr-2 h-4 w-4" />

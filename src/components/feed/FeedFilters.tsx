@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { FeedSelect } from "@/components/feed/FeedSelect";
-import { UK_FRESHWATER_SPECIES } from "@/lib/freshwater-data";
+import type { SpeciesOption } from "@/hooks/useSpeciesOptions";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -15,6 +15,8 @@ interface FeedFiltersProps {
   onFeedScopeChange: (scope: "all" | "following") => void;
   speciesFilter: string;
   onSpeciesFilterChange: (filter: string) => void;
+  speciesOptions: SpeciesOption[];
+  speciesDisabled?: boolean;
   customSpeciesFilter: string;
   onCustomSpeciesFilterChange: (filter: string) => void;
   sortBy: string;
@@ -27,6 +29,8 @@ export const FeedFilters = ({
   onFeedScopeChange,
   speciesFilter,
   onSpeciesFilterChange,
+  speciesOptions,
+  speciesDisabled,
   customSpeciesFilter,
   onCustomSpeciesFilterChange,
   sortBy,
@@ -36,12 +40,6 @@ export const FeedFilters = ({
   const typeOptions = [
     { value: "all", label: "All catches" },
     { value: "following", label: "People you follow" },
-  ];
-
-  const speciesOptions = [
-    { value: "all", label: "All species" },
-    ...UK_FRESHWATER_SPECIES.map((species) => ({ value: species.value, label: species.label })),
-    { value: "other", label: "Other" },
   ];
 
   const sortOptions = [
@@ -69,6 +67,7 @@ export const FeedFilters = ({
             value={speciesFilter}
             options={speciesOptions}
             onChange={onSpeciesFilterChange}
+            disabled={speciesDisabled}
           />
           {speciesFilter === "other" && (
             <Input

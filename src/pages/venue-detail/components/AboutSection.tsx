@@ -44,25 +44,25 @@ const AboutSection = ({
       <div className="grid gap-8 md:grid-cols-2 md:items-start">
         <div className="space-y-4">
           <div className="space-y-1">
-            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+            <h2 className="text-3xl font-semibold text-foreground md:text-4xl">
               About This Venue
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               What to expect when visiting this venue.
             </p>
           </div>
           <Suspense
             fallback={
               <div className="space-y-2">
-                <div className="h-3 w-full rounded-full bg-slate-100 animate-pulse" />
-                <div className="h-3 w-5/6 rounded-full bg-slate-100 animate-pulse" />
-                <div className="h-3 w-2/3 rounded-full bg-slate-100 animate-pulse" />
+                <div className="h-3 w-full rounded-full bg-muted animate-pulse" />
+                <div className="h-3 w-5/6 rounded-full bg-muted animate-pulse" />
+                <div className="h-3 w-2/3 rounded-full bg-muted animate-pulse" />
               </div>
             }
           >
             <LazyMarkdownContent
               content={aboutText}
-              className={`text-lg text-slate-800 ${
+              className={`text-lg text-foreground ${
                 aboutExpanded ? "" : "line-clamp-4"
               }`}
             />
@@ -78,17 +78,17 @@ const AboutSection = ({
             </button>
           ) : null}
           {showAdminHint ? (
-            <Text variant="small" className="text-slate-500">
+            <Text variant="small" className="text-muted-foreground">
               Add more information about this venue from the Manage venue page.
             </Text>
           ) : null}
         </div>
         <div className="space-y-4">
           <div id="stats" className="space-y-1 scroll-mt-24">
-            <h2 className="text-3xl font-semibold text-slate-900 md:text-4xl">
+            <h2 className="text-3xl font-semibold text-foreground md:text-4xl">
               Venue Record
             </h2>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               The heaviest catch at {venueName}.
             </p>
           </div>

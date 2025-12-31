@@ -1,5 +1,5 @@
 export const createNivoTheme = (borderColor: string) => ({
-  textColor: "var(--muted-foreground)",
+  textColor: "hsl(var(--foreground))",
   fontSize: 12,
   axis: {
     domain: {
@@ -12,12 +12,12 @@ export const createNivoTheme = (borderColor: string) => ({
         stroke: borderColor,
       },
       text: {
-        fill: "var(--muted-foreground)",
+        fill: "hsl(var(--foreground))",
       },
     },
     legend: {
       text: {
-        fill: "var(--muted-foreground)",
+        fill: "hsl(var(--foreground))",
       },
     },
   },
@@ -28,7 +28,7 @@ export const createNivoTheme = (borderColor: string) => ({
   },
   legends: {
     text: {
-      fill: "var(--muted-foreground)",
+      fill: "hsl(var(--foreground))",
     },
   },
   tooltip: {
@@ -37,7 +37,7 @@ export const createNivoTheme = (borderColor: string) => ({
       color: "hsl(var(--popover-foreground))",
       borderRadius: 8,
       border: "1px solid hsl(var(--border))",
-      boxShadow: "0 12px 40px rgba(15, 23, 42, 0.15)",
+      boxShadow: "var(--shadow-overlay)",
       padding: "0.5rem 0.75rem",
     },
   },

@@ -11,8 +11,9 @@ import SectionHeader from "@/components/layout/SectionHeader";
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { useFeedData, type FeedScope } from "@/pages/feed/useFeedData";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSpeciesOptions } from "@/hooks/useSpeciesOptions";
 
 const capitalizeFirstWord = (value: string) => {
   if (!value) return "";
@@ -32,6 +33,13 @@ const Feed = () => {
   const [customSpeciesFilter, setCustomSpeciesFilter] = useState("");
   const [feedScope, setFeedScope] = useState<FeedScope>("all");
   const sessionFilter = searchParams.get("session");
+  const { options: speciesOptions, isLoading: speciesLoading } = useSpeciesOptions({
+    includeOther: true,
+  });
+  const speciesFilterOptions = useMemo(
+    () => [{ value: "all", label: "All species" }, ...speciesOptions],
+    [speciesOptions],
+  );
 
   const {
     catches,
@@ -89,12 +97,13 @@ const Feed = () => {
           <SectionHeader
             title="Community Catches"
             subtitle="See what anglers across the community are catching right now. Filter by venue, species or rating."
+            titleAs="h1"
             actions={
               !isAdmin ? (
                 <Button
                   variant="ocean"
                   size="lg"
-                  className="w-full md:w-auto rounded-2xl px-6 py-3 font-semibold shadow-[0_12px_28px_-18px_rgba(14,165,233,0.5)]"
+                  className="w-full md:w-auto rounded-2xl px-6 py-3 font-semibold shadow-card hover:shadow-card-hover"
                   onClick={() => navigate("/add-catch")}
                 >
                   Log a catch
@@ -138,6 +147,8 @@ const Feed = () => {
             onFeedScopeChange={setFeedScope}
             speciesFilter={speciesFilter}
             onSpeciesFilterChange={setSpeciesFilter}
+            speciesOptions={speciesFilterOptions}
+            speciesDisabled={speciesLoading}
             customSpeciesFilter={customSpeciesFilter}
             onCustomSpeciesFilterChange={setCustomSpeciesFilter}
             sortBy={sortBy}
@@ -177,7 +188,7 @@ const Feed = () => {
           </Section>
         )}
 
-        {filteredCatches.length === 0 && (
+        {!isBusy && filteredCatches.length === 0 && (
           <Section>
             <EmptyState
               message={

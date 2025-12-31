@@ -16,7 +16,7 @@ const LeaderboardSectionComponent = ({ limit = 10 }: LeaderboardSectionProps) =>
     <div className="leaderboard-section__container">
       <header className="leaderboard-section__header">
         <span className="leaderboard-section__badge">
-          <PulsingDot className="h-2.5 w-2.5" />
+          <PulsingDot />
           Live Rankings
         </span>
         <h2>Angler Leaderboard</h2>

@@ -1,6 +1,7 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CloudSun, MapPin, Layers } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface VenueCount {
   name: string;
@@ -26,6 +27,8 @@ interface InfoCardsProps {
   sessionSummaries: SessionSummary[];
   topSession: SessionSummary | null;
   topVenueHighlight?: string | null;
+  sections?: Array<"conditions" | "venues" | "sessions">;
+  className?: string;
 }
 
 export const InfoCards = memo(({
@@ -40,10 +43,21 @@ export const InfoCards = memo(({
   sessionSummaries,
   topSession,
   topVenueHighlight,
+  sections,
+  className,
 }: InfoCardsProps) => {
-  return (
-    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <Card>
+  const activeSections = sections && sections.length > 0
+    ? sections
+    : ["conditions", "venues", "sessions"];
+  const showConditions = activeSections.includes("conditions");
+  const showVenues = activeSections.includes("venues");
+  const showSessions = activeSections.includes("sessions");
+
+  const cards: JSX.Element[] = [];
+
+  if (showConditions) {
+    cards.push(
+      <Card key="conditions">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <CloudSun className="h-4 w-4 text-primary" />
@@ -76,8 +90,12 @@ export const InfoCards = memo(({
           </div>
         </CardContent>
       </Card>
+    );
+  }
 
-      <Card>
+  if (showVenues) {
+    cards.push(
+      <Card key="venues">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <MapPin className="h-4 w-4 text-primary" />
@@ -86,33 +104,37 @@ export const InfoCards = memo(({
           <p className="text-sm text-muted-foreground">Where you're finding the most success.</p>
         </CardHeader>
         <CardContent>
-        {venueLeaderboard.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Log catches at different venues to start this leaderboard.
-          </p>
-        ) : (
-          <>
-            {topVenueHighlight ? (
-              <p className="mb-3 text-sm font-medium text-foreground">{topVenueHighlight}</p>
-            ) : null}
-            <ol className="space-y-2 text-sm">
-              {venueLeaderboard.map((venue, index) => (
-                <li key={venue.name} className="flex items-center justify-between gap-4">
-                  <span className="font-medium text-foreground">
-                    {index + 1}. {venue.name}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {venue.count} catch{venue.count === 1 ? "" : "es"}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </>
-        )}
-      </CardContent>
-    </Card>
+          {venueLeaderboard.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No venue data yet.
+            </p>
+          ) : (
+            <>
+              {topVenueHighlight ? (
+                <p className="mb-3 text-sm font-medium text-foreground">{topVenueHighlight}</p>
+              ) : null}
+              <ol className="space-y-2 text-sm">
+                {venueLeaderboard.map((venue, index) => (
+                  <li key={venue.name} className="flex items-center justify-between gap-4">
+                    <span className="font-medium text-foreground">
+                      {index + 1}. {venue.name}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {venue.count} catch{venue.count === 1 ? "" : "es"}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
 
-      <Card>
+  if (showSessions) {
+    cards.push(
+      <Card key="sessions">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
             <Layers className="h-4 w-4 text-primary" />
@@ -123,7 +145,7 @@ export const InfoCards = memo(({
         <CardContent>
           {sessionsCount === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No sessions recorded for these filters yet. Log a trip to unlock this section.
+              No sessions recorded for these filters yet.
             </p>
           ) : (
             <div className="space-y-3 text-sm">
@@ -162,6 +184,15 @@ export const InfoCards = memo(({
           )}
         </CardContent>
       </Card>
+    );
+  }
+
+  const columnClass =
+    cards.length === 1 ? "lg:grid-cols-1" : cards.length === 2 ? "lg:grid-cols-2" : "lg:grid-cols-3";
+
+  return (
+    <div className={cn("grid grid-cols-1 gap-6", columnClass, className)}>
+      {cards}
     </div>
   );
 });

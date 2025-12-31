@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAuthUser } from "@/components/AuthProvider";
@@ -84,6 +84,7 @@ const CatchDetail = () => {
   const [editDescription, setEditDescription] = useState<string>("");
   const [editTagsInput, setEditTagsInput] = useState<string>("");
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const ratingLabelId = useId();
   const shareCardRef = useRef<HTMLDivElement | null>(null);
   const reportTriggerRef = useRef<HTMLButtonElement | null>(null);
 
@@ -253,41 +254,43 @@ const CatchDetail = () => {
             alt={catchData.title}
             className="w-full h-[500px] object-cover rounded-xl"
           />
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-8 rounded-b-xl">
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-overlay/90 via-overlay/60 to-transparent p-8 rounded-b-xl">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 {catchData.species_slug && catchData.weight && (
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-4xl font-bold text-white">
+                    <span className="text-4xl font-bold text-inverse dark:text-inverse-foreground">
                       {catchData.weight}{catchData.weight_unit === 'kg' ? 'kg' : 'lb'}
                     </span>
-                    <span className="text-2xl text-white/90">{formatSpecies(catchData.species_slug, customSpecies ?? catchData.custom_species)}</span>
+                    <span className="text-2xl text-inverse/90 dark:text-inverse-foreground/90">
+                      {formatSpecies(catchData.species_slug, customSpecies ?? catchData.custom_species)}
+                    </span>
                   </div>
                 )}
-                <Heading as="h1" size="xl" className="text-white mb-2">
+                <Heading as="h1" size="xl" className="text-inverse dark:text-inverse-foreground mb-2">
                   {catchData.title}
                 </Heading>
                 {venue ? (
                   <Link
                     to={`/venues/${venue.slug}`}
-                    className="flex items-center gap-2 text-white/90 underline-offset-4 hover:underline"
+                    className="flex items-center gap-2 text-inverse/90 dark:text-inverse-foreground/90 underline-offset-4 hover:underline"
                   >
                     <MapPin className="w-4 h-4" />
                     <span>{venue.name}</span>
                   </Link>
                 ) : canShowExactLocation && catchData.location_label ? (
-                  <div className="flex items-center gap-2 text-white/90">
+                  <div className="flex items-center gap-2 text-inverse/90 dark:text-inverse-foreground/90">
                     <MapPin className="w-4 h-4" />
                     <span>{catchData.location_label}</span>
                   </div>
                 ) : catchData.hide_exact_spot ? (
-                  <div className="flex items-center gap-2 text-white/70">
+                  <div className="flex items-center gap-2 text-inverse/70 dark:text-inverse-foreground/70">
                     <MapPin className="w-4 h-4" />
                     <span>Undisclosed venue</span>
                   </div>
                 ) : null}
                 {catchData.session && (
-                  <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
+                  <div className="flex items-center gap-2 text-inverse/80 dark:text-inverse-foreground/80 text-sm mt-1">
                     <Layers className="w-4 h-4" />
                     <Link
                       to={`/sessions?session=${catchData.session.id}`}
@@ -298,7 +301,7 @@ const CatchDetail = () => {
                   </div>
                 )}
                 {catchData.caught_at && (
-                  <div className="flex items-center gap-2 text-white/80 text-sm mt-1">
+                  <div className="flex items-center gap-2 text-inverse/80 dark:text-inverse-foreground/80 text-sm mt-1">
                     <Calendar className="w-4 h-4" />
                     <span>{format(new Date(catchData.caught_at), "MMMM dd, yyyy")}</span>
                   </div>
@@ -307,21 +310,21 @@ const CatchDetail = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <Link
                   to={getProfilePath({ username: catchData.profiles?.username, id: catchData.user_id })}
-                  className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg p-3"
+                  className="flex items-center gap-3 bg-overlay/20 backdrop-blur-sm rounded-lg p-3"
                 >
                   <Avatar className="w-12 h-12">
                     <AvatarImage src={ownerAvatarUrl ?? ""} />
                     <AvatarFallback>{profile.username?.[0]?.toUpperCase() ?? "A"}</AvatarFallback>
                   </Avatar>
-                  <span className="font-medium text-white">{profile.username}</span>
+                  <span className="font-medium text-inverse dark:text-inverse-foreground">{profile.username}</span>
                 </Link>
                 {user && user.id !== ownerId && (
                   <Button
                     size="sm"
                     onClick={handleToggleFollow}
                     disabled={followLoading}
-                    className={`border border-white/40 text-white ${
-                      isFollowing ? "bg-white/30 hover:bg-white/40" : "bg-white/10 hover:bg-white/20"
+                    className={`border border-inverse/40 text-inverse dark:border-inverse-foreground/40 dark:text-inverse-foreground ${
+                      isFollowing ? "bg-overlay/40 hover:bg-overlay/50" : "bg-overlay/20 hover:bg-overlay/30"
                     }`}
                     variant="ghost"
                   >
@@ -333,7 +336,7 @@ const CatchDetail = () => {
           </div>
         </Section>
 
-        <Section className="mb-6 rounded-xl border border-border bg-card/60 px-4 py-3 shadow-sm space-y-0">
+        <Section className="mb-6 rounded-xl border border-border bg-card/60 px-4 py-3 shadow-card space-y-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               {isOwner ? (
@@ -430,6 +433,8 @@ const CatchDetail = () => {
                         src={photo}
                         alt={`Gallery ${index + 1}`}
                         className="w-full h-40 object-cover rounded-lg cursor-pointer hover:opacity-80 transition"
+                        loading="lazy"
+                        decoding="async"
                       />
                     ))}
                   </div>
@@ -492,14 +497,17 @@ const CatchDetail = () => {
                   </div>
 
                   {user && !hasRated && !isOwner && (
-                    <div className="space-y-3 pt-4 border-t">
-                      <p className="font-medium text-sm">Rate this catch (1-10)</p>
+                    <div className="space-y-3 pt-4 border-t border-border">
+                      <p id={ratingLabelId} className="font-medium text-sm">
+                        Rate this catch (1-10)
+                      </p>
                       <Slider
                         value={[userRating]}
                         onValueChange={(value) => setUserRating(value[0])}
                         min={1}
                         max={10}
                         step={1}
+                        aria-labelledby={ratingLabelId}
                         className="py-4"
                         disabled={ratingLoading}
                       />
@@ -584,7 +592,7 @@ const CatchDetail = () => {
                     {showGpsMap && gpsData && (
                       <div className="space-y-2">
                         <div className="font-medium">GPS Pin</div>
-                        <div className="overflow-hidden rounded-lg border">
+                        <div className="overflow-hidden rounded-lg border border-border">
                           <iframe
                             title="Pinned fishing location"
                             src={`https://www.google.com/maps?q=${gpsData.lat},${gpsData.lng}&z=15&output=embed`}
@@ -703,11 +711,11 @@ const CatchDetail = () => {
       </PageContainer>
       {user && user.id === ownerId && !isAdmin && (
         <PageContainer className="max-w-5xl pb-12 space-y-6">
-          <div className="rounded-xl border border-blue-200/60 bg-blue-50 p-6 text-sm text-slate-800">
+          <div className="rounded-xl border border-primary/20 bg-primary/10 p-6 text-sm text-foreground">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <p className="font-semibold text-slate-900">Need to update this catch?</p>
-                <p className="text-slate-700">
+                <p className="font-semibold text-foreground">Need to update this catch?</p>
+                <p className="text-muted-foreground">
                   You can edit the description and tags. Other fields remain unchanged.
                 </p>
               </div>
@@ -779,7 +787,7 @@ const CatchDetail = () => {
                   </label>
                   <textarea
                     id="edit-description"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     rows={4}
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
@@ -791,7 +799,7 @@ const CatchDetail = () => {
                   </label>
                   <input
                     id="edit-tags"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     value={editTagsInput}
                     onChange={(e) => setEditTagsInput(e.target.value)}
                     placeholder="carp, night, float"

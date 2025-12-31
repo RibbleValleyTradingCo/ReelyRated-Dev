@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -22,11 +22,23 @@ interface FeedSelectProps {
   options: FeedSelectOption[];
   onChange: (value: string) => void;
   placeholder?: string;
+  disabled?: boolean;
+  hideLabel?: boolean;
 }
 
-// A feed-specific lightweight select built on Popover + Command to avoid Radix Select auto-scroll side effects.
-export const FeedSelect = ({ label, value, options, onChange, placeholder }: FeedSelectProps) => {
+// A lightweight select built on Popover + Command to avoid Radix Select auto-scroll side effects.
+export const FeedSelect = ({
+  label,
+  value,
+  options,
+  onChange,
+  placeholder,
+  disabled,
+  hideLabel,
+}: FeedSelectProps) => {
   const [open, setOpen] = useState(false);
+  const labelId = useId();
+  const valueId = useId();
 
   const selectedLabel = useMemo(
     () => options.find((option) => option.value === value)?.label ?? placeholder ?? "Select",
@@ -34,8 +46,14 @@ export const FeedSelect = ({ label, value, options, onChange, placeholder }: Fee
   );
 
   return (
-    <div className="flex w-full flex-col gap-1 sm:flex-1">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div className={cn("flex w-full flex-col sm:flex-1", hideLabel ? "gap-0" : "gap-1")}>
+      <span
+        id={labelId}
+        className={cn(
+          "text-[11px] font-semibold uppercase tracking-wide text-muted-foreground",
+          hideLabel && "sr-only"
+        )}
+      >
         {label}
       </span>
       <Popover open={open} onOpenChange={setOpen}>
@@ -43,8 +61,12 @@ export const FeedSelect = ({ label, value, options, onChange, placeholder }: Fee
           <Button
             variant="outline"
             className="w-full justify-between rounded-xl border border-border/60 bg-background px-3 py-3 text-sm font-medium text-foreground hover:border-primary/40 hover:bg-primary/5"
+            aria-labelledby={`${labelId} ${valueId}`}
+            disabled={disabled}
           >
-            <span className="truncate text-left">{selectedLabel}</span>
+            <span id={valueId} className="truncate text-left">
+              {selectedLabel}
+            </span>
             <ChevronDown className="ml-2 h-4 w-4 flex-shrink-0 text-muted-foreground" />
           </Button>
         </PopoverTrigger>

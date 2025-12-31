@@ -29,7 +29,7 @@ export const useNotificationsData = (
       if (!userId) return [];
       return fetchNotifications(userId, limit);
     },
-    staleTime: 60_000,
+    staleTime: 30_000,
     refetchOnWindowFocus: false,
     retry: false,
     placeholderData: (prev) => prev,

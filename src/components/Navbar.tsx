@@ -11,6 +11,7 @@ import LogoMark from "@/components/LogoMark";
 import { MobileMenu, MOBILE_MENU_ID } from "@/components/MobileMenu";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import ThemeToggle from "@/components/ui/theme-toggle";
 import {
   Command,
   CommandGroup,
@@ -132,9 +133,9 @@ export const Navbar = () => {
   );
 
   const iconButtonBase =
-    "group inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white md:h-11 md:w-11";
+    "focus-ring group inline-flex h-10 w-10 items-center justify-center rounded-xl border border-transparent transition-colors hover:bg-muted/60 md:h-11 md:w-11";
   const iconSvgBase =
-    "h-5 w-5 text-slate-600 transition-colors group-hover:text-primary md:h-6 md:w-6";
+    "h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary md:h-6 md:w-6";
 
   const avatarDisplayName =
     profileUsername ?? user?.user_metadata?.username ?? user?.email ?? user?.user_metadata?.full_name ?? "";
@@ -160,12 +161,13 @@ export const Navbar = () => {
       </button>
 
       <NotificationsBell buttonClassName="h-10 w-10 sm:h-11 sm:w-11 rounded-xl" />
+      <ThemeToggle className={cn(iconButtonBase, "hidden sm:inline-flex")} iconClassName={iconSvgBase} />
 
       <Popover open={avatarMenuOpen} onOpenChange={setAvatarMenuOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
-            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+            className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="Account menu"
           >
             <Avatar className="h-10 w-10">
@@ -184,7 +186,7 @@ export const Navbar = () => {
         <PopoverContent
           align="end"
           sideOffset={8}
-          className="z-[80] w-64 rounded-xl border border-border/60 bg-background p-0 shadow-lg"
+          className="z-[80] w-64 rounded-xl border border-border/60 bg-background p-0 shadow-overlay"
         >
           <Command>
             <CommandList className="max-h-[min(75vh,340px)] overflow-y-auto">
@@ -267,7 +269,7 @@ export const Navbar = () => {
         type="button"
         className={cn(
           iconButtonBase,
-          "border border-slate-200 hover:bg-slate-100 aria-expanded:shadow-inner",
+          "border border-border hover:bg-muted/60 aria-expanded:shadow-card",
         )}
         aria-controls={MOBILE_MENU_ID}
         aria-expanded={menuOpen}
@@ -286,21 +288,22 @@ export const Navbar = () => {
         asChild
         size="sm"
         variant="ocean"
-        className="px-4 py-2 shadow-sm transition-transform hover:-translate-y-0.5"
+        className="px-4 py-2 shadow-card transition-transform hover:-translate-y-0.5"
       >
         <Link to="/auth#signup">Sign Up</Link>
       </Button>
       <Link
         to="/auth"
-        className="text-sm font-semibold text-slate-600 transition-colors hover:text-primary"
+        className="text-sm font-semibold text-muted-foreground transition-colors hover:text-primary"
       >
         Log In
       </Link>
+      <ThemeToggle className={cn(iconButtonBase, "hidden sm:inline-flex")} iconClassName={iconSvgBase} />
     </div>
   );
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border/70 bg-background/90 backdrop-blur">
       <div className="mx-auto w-full max-w-6xl px-3 md:px-6 lg:px-8">
         <div
           className="flex items-center justify-between gap-3 md:gap-4"
@@ -309,10 +312,10 @@ export const Navbar = () => {
           <Link to="/" className="group flex items-center gap-3">
             <LogoMark className="h-10 w-10 md:h-11 md:w-11 transition-transform duration-200 hover:scale-105" />
             <div className="leading-tight">
-              <span className="block text-lg font-semibold text-slate-900 transition-colors group-hover:text-primary md:text-xl">
+              <span className="block text-lg font-semibold text-foreground transition-colors group-hover:text-primary md:text-xl">
                 ReelyRated
               </span>
-              <span className="hidden text-[11px] uppercase tracking-[0.32em] text-slate-500 md:block">
+              <span className="hidden text-[11px] uppercase tracking-[0.32em] text-muted-foreground md:block">
                 Freshwater Social
               </span>
             </div>
@@ -329,7 +332,7 @@ export const Navbar = () => {
                   key={link.href}
                   to={link.href}
                   className={cn(
-                    "text-sm font-medium text-slate-600 transition-colors hover:text-primary",
+                    "text-sm font-medium text-muted-foreground transition-colors hover:text-primary",
                     isActive && "text-primary",
                   )}
                 >

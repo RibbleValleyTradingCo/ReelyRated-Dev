@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -76,9 +76,71 @@ const formatActionLabel = (action: string) => {
   return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
 };
 
+const SENSITIVE_METADATA_KEYS = /(password|token|secret|authorization|cookie|session|jwt|email|ip|user_agent|phone|address)/i;
+const MAX_METADATA_VALUE_LENGTH = 200;
+const MAX_METADATA_PREVIEW_LENGTH = 160;
+
+const sanitizeMetadataValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) {
+    return value.map(sanitizeMetadataValue);
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => {
+        if (SENSITIVE_METADATA_KEYS.test(key)) {
+          return [key, "[redacted]"];
+        }
+        return [key, sanitizeMetadataValue(entryValue)];
+      })
+    );
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.length > MAX_METADATA_VALUE_LENGTH) {
+      return `${trimmed.slice(0, MAX_METADATA_VALUE_LENGTH)}…`;
+    }
+    return trimmed;
+  }
+  return value;
+};
+
+const formatMetadata = (details: Record<string, unknown> | null) => {
+  if (!details) return "—";
+  const sanitized = sanitizeMetadataValue(details);
+  return JSON.stringify(sanitized, null, 2);
+};
+
+const buildMetadataPreview = (text: string) =>
+  text.length > MAX_METADATA_PREVIEW_LENGTH ? `${text.slice(0, MAX_METADATA_PREVIEW_LENGTH)}…` : text;
+
 type ActionOption = { label: string; value: string };
 
-const actionOptions: ActionOption[] = [{ label: "All actions", value: "all" }, ...Object.entries(actionLabels).map(([value, label]) => ({ label, value }))];
+const actionOptions: ActionOption[] = [
+  { label: "All actions", value: "all" },
+  ...Object.entries(actionLabels).map(([value, label]) => ({ label, value })),
+];
+
+const normalizeLogRows = (rows: ModerationLogFetchRow[]): LogRow[] =>
+  rows.map((row) => {
+    const metadata = row.metadata ?? null;
+    const reason =
+      metadata && typeof metadata["reason"] === "string" ? (metadata["reason"] as string) : "No reason provided";
+    const targetType =
+      row.target_type ?? (row.comment_id ? "comment" : row.catch_id ? "catch" : row.user_id ? "user" : "unknown");
+    const targetId = row.target_id ?? row.comment_id ?? row.catch_id ?? row.user_id ?? "";
+
+    return {
+      id: row.id,
+      action: row.action,
+      target_type: targetType,
+      target_id: targetId,
+      user_id: row.user_id ?? undefined,
+      reason,
+      details: metadata,
+      created_at: row.created_at,
+      admin: row.admin_id || row.admin_username ? { id: row.admin_id, username: row.admin_username } : null,
+    } satisfies LogRow;
+  });
 
 const AdminAuditLog = () => {
   const { user } = useAuth();
@@ -94,71 +156,59 @@ const AdminAuditLog = () => {
   const [dateRange, setDateRange] = useState<DateRange>("7d");
   const [page, setPage] = useState(1);
   const pageSize = 100;
+  const actionFilterId = useId();
+  const dateRangeId = useId();
+  const searchId = useId();
+
+  const getQueryParams = useCallback(() => {
+    const range =
+      dateRange === "24h" ? 1 : dateRange === "7d" ? 7 : dateRange === "30d" ? 30 : null;
+    const since = range ? new Date(Date.now() - range * 24 * 60 * 60 * 1000).toISOString() : null;
+
+    return {
+      p_user_id: null,
+      p_action: actionFilter === "all" ? null : actionFilter,
+      p_search: searchTerm.trim() === "" ? null : searchTerm.trim(),
+      p_from: since,
+      p_to: null,
+      p_sort_direction: sortDirection,
+    } as const;
+  }, [actionFilter, dateRange, searchTerm, sortDirection]);
+
+  const fetchAuditLogPage = useCallback(
+    async (limit: number, offset: number) => {
+      const { data, error } = await supabase.rpc(
+        "admin_list_moderation_log" as never,
+        {
+          ...getQueryParams(),
+          p_limit: limit,
+          p_offset: offset,
+        } as never
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      return (data ?? []) as unknown as ModerationLogFetchRow[];
+    },
+    [getQueryParams]
+  );
 
   const fetchAuditLog = useCallback(async () => {
     if (!user || !isAdmin) return;
     setIsLoading(true);
 
-    const range =
-      dateRange === "24h"
-        ? 1
-        : dateRange === "7d"
-        ? 7
-        : dateRange === "30d"
-        ? 30
-        : null;
-
-    const since = range ? new Date(Date.now() - range * 24 * 60 * 60 * 1000).toISOString() : null;
-
-    const { data, error } = await supabase.rpc(
-      "admin_list_moderation_log" as never,
-      {
-        p_user_id: null,
-        p_action: actionFilter === "all" ? null : actionFilter,
-        p_search: searchTerm.trim() === "" ? null : searchTerm.trim(),
-        p_from: since,
-        p_to: null,
-        p_sort_direction: sortDirection,
-        p_limit: pageSize,
-        p_offset: (page - 1) * pageSize,
-      } as never
-    );
-
-    if (error) {
+    try {
+      const rows = await fetchAuditLogPage(pageSize, (page - 1) * pageSize);
+      setLogRows(normalizeLogRows(rows));
+    } catch {
       toast.error("Unable to load moderation log");
+      setLogRows([]);
+    } finally {
       setIsLoading(false);
-      return;
     }
-
-    const rows = (data ?? []) as unknown as ModerationLogFetchRow[];
-    const normalized = rows.map((row) => {
-      const metadata = row.metadata ?? null;
-      const reason =
-        metadata && typeof metadata["reason"] === "string" ? (metadata["reason"] as string) : "No reason provided";
-      const targetType =
-        row.target_type ??
-        (row.comment_id ? "comment" : row.catch_id ? "catch" : row.user_id ? "user" : "unknown");
-      const targetId = row.target_id ?? row.comment_id ?? row.catch_id ?? row.user_id ?? "";
-
-      return {
-        id: row.id,
-        action: row.action,
-        target_type: targetType,
-        target_id: targetId,
-        user_id: row.user_id ?? undefined,
-        reason,
-        details: metadata,
-        created_at: row.created_at,
-        admin:
-          row.admin_id || row.admin_username
-            ? { id: row.admin_id, username: row.admin_username }
-            : null,
-      } satisfies LogRow;
-    });
-
-    setLogRows(normalized);
-    setIsLoading(false);
-  }, [user, isAdmin, dateRange, page, pageSize, sortDirection, actionFilter, searchTerm]);
+  }, [fetchAuditLogPage, isAdmin, page, pageSize, user]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -189,35 +239,15 @@ const AdminAuditLog = () => {
     };
   }, [fetchAuditLog, isAdmin]);
 
-  const filteredRows = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
-
-    return logRows
-      .filter((row) => (actionFilter === "all" ? true : row.action === actionFilter))
-      .filter((row) => {
-        if (!normalizedSearch) return true;
-
-        const adminMatch = row.admin?.username?.toLowerCase().includes(normalizedSearch) ||
-          row.admin?.id?.toLowerCase().includes(normalizedSearch);
-
-        const reasonMatch = row.reason.toLowerCase().includes(normalizedSearch);
-        const targetMatch = row.target_id.toLowerCase().includes(normalizedSearch);
-        const detailsText = row.details ? JSON.stringify(row.details).toLowerCase() : "";
-        const detailsMatch = detailsText.includes(normalizedSearch);
-
-        return adminMatch || reasonMatch || targetMatch || detailsMatch;
-      })
-      .sort((a, b) => {
-        const aTime = new Date(a.created_at).getTime();
-        const bTime = new Date(b.created_at).getTime();
-        return sortDirection === "asc" ? aTime - bTime : bTime - aTime;
-      });
-  }, [actionFilter, logRows, searchTerm, sortDirection]);
-
   const canGoNext = logRows.length === pageSize;
 
   const handleViewTarget = useCallback(
     async (row: LogRow) => {
+      if (!row.target_id) {
+        toast.error("Unable to open target");
+        return;
+      }
+
       if (row.target_type === "catch") {
         navigate(`/catch/${row.target_id}`);
         return;
@@ -252,7 +282,8 @@ const AdminAuditLog = () => {
     [navigate]
   );
 
-  const resolveModerationUserId = (row: LogRow) => row.user_id ?? (row.target_type === "user" ? row.target_id : null);
+  const resolveModerationUserId = (row: LogRow) =>
+    row.user_id ?? (row.target_type === "user" && row.target_id ? row.target_id : null);
 
   const handleViewUserModeration = useCallback(
     (row: LogRow) => {
@@ -284,24 +315,35 @@ const AdminAuditLog = () => {
   }
 
   const handleExportCsv = async () => {
-    if (filteredRows.length === 0) {
-      toast.error("No rows to export");
-      return;
-    }
-
     setIsExporting(true);
     try {
+      const exportRows: LogRow[] = [];
+      let offset = 0;
+      let batch: ModerationLogFetchRow[] = [];
+
+      do {
+        batch = await fetchAuditLogPage(pageSize, offset);
+        if (batch.length === 0) break;
+        exportRows.push(...normalizeLogRows(batch));
+        offset += pageSize;
+      } while (batch.length === pageSize);
+
+      if (exportRows.length === 0) {
+        toast.error("No rows to export");
+        return;
+      }
+
       const header = ["Timestamp", "Admin", "Action", "Target Type", "Target Id", "Reason", "Details"];
       const escapeValue = (value: string) => `"${value.replace(/"/g, '""')}"`;
 
       const csv = [
         header.map(escapeValue).join(","),
-        ...filteredRows.map((row) => {
+        ...exportRows.map((row) => {
           const timestamp = format(new Date(row.created_at), "yyyy-MM-dd HH:mm:ssXXX");
           const adminName = row.admin?.username ?? row.admin?.id ?? "Unknown";
           const actionLabel = formatActionLabel(row.action);
           const reason = row.reason;
-          const details = row.details ? JSON.stringify(row.details) : "";
+          const details = formatMetadata(row.details);
 
           return [timestamp, adminName, actionLabel, row.target_type, row.target_id, reason, details]
             .map(escapeValue)
@@ -336,6 +378,7 @@ const AdminAuditLog = () => {
               eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
               title="Audit log"
               subtitle="History of moderation actions."
+              titleAs="h1"
               actions={
                 <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                   <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
@@ -362,9 +405,11 @@ const AdminAuditLog = () => {
               <CardContent className="space-y-4 p-4 md:p-6">
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 items-end">
                   <div className="space-y-2 min-w-0">
-                    <label className="block text-sm font-medium text-muted-foreground">Action</label>
+                    <label htmlFor={actionFilterId} className="block text-sm font-medium text-muted-foreground">
+                      Action
+                    </label>
                     <Select value={actionFilter} onValueChange={(value) => { setActionFilter(value as typeof actionFilter); setPage(1); }}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id={actionFilterId} className="w-full">
                         <SelectValue placeholder="Filter by action" />
                       </SelectTrigger>
                       <SelectContent>
@@ -377,9 +422,11 @@ const AdminAuditLog = () => {
                     </Select>
                   </div>
                   <div className="space-y-2 min-w-0">
-                    <label className="block text-sm font-medium text-muted-foreground">Date range</label>
+                    <label htmlFor={dateRangeId} className="block text-sm font-medium text-muted-foreground">
+                      Date range
+                    </label>
                     <Select value={dateRange} onValueChange={(value) => { setDateRange(value as DateRange); setPage(1); }}>
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger id={dateRangeId} className="w-full">
                         <SelectValue placeholder="Select range" />
                       </SelectTrigger>
                       <SelectContent>
@@ -391,8 +438,11 @@ const AdminAuditLog = () => {
                     </Select>
                   </div>
                   <div className="space-y-2 min-w-0 sm:col-span-2 xl:col-span-2">
-                    <label className="block text-sm font-medium text-muted-foreground">Search</label>
+                    <label htmlFor={searchId} className="block text-sm font-medium text-muted-foreground">
+                      Search
+                    </label>
                     <Input
+                      id={searchId}
                       placeholder="Search by admin, reason, target, or details"
                       value={searchTerm}
                       onChange={(event) => {
@@ -409,12 +459,15 @@ const AdminAuditLog = () => {
                   </Button>
                   <Button
                     onClick={() => void handleExportCsv()}
-                    disabled={isExporting || filteredRows.length === 0}
+                    disabled={isExporting || logRows.length === 0}
                     className="w-full sm:w-auto"
                   >
                     Export CSV
                   </Button>
                 </div>
+                <Text variant="muted" className="text-xs">
+                  Export includes all matching rows; the table view shows 100 per page.
+                </Text>
               </CardContent>
             </Card>
 
@@ -469,7 +522,7 @@ const AdminAuditLog = () => {
                   <Text variant="muted" className="text-sm">
                     Loading moderation log…
                   </Text>
-                ) : filteredRows.length === 0 ? (
+                ) : logRows.length === 0 ? (
                   <Text variant="muted" className="text-sm">
                     No moderation actions matched your filters.
                   </Text>
@@ -489,13 +542,16 @@ const AdminAuditLog = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {filteredRows.map((row) => {
+                        {logRows.map((row) => {
                           const adminName = row.admin?.username ?? row.admin?.id ?? "Unknown";
                           const displayAction = formatActionLabel(row.action);
-                          const detailsText = row.details ? JSON.stringify(row.details, null, 2) : "—";
+                          const detailsText = formatMetadata(row.details);
+                          const detailsPreview = detailsText === "—" ? detailsText : buildMetadataPreview(detailsText);
                           const targetLabel =
                             row.target_type === "user"
-                              ? `@${row.target_id ?? "user"}`
+                              ? row.target_id
+                                ? `@${row.target_id}`
+                                : "User"
                               : row.target_type === "catch"
                               ? "Catch"
                               : row.target_type === "comment"
@@ -527,8 +583,22 @@ const AdminAuditLog = () => {
                               <TableCell className="min-w-[12rem] max-w-[18rem] text-sm text-foreground">
                                 <span className="line-clamp-2">{row.reason}</span>
                               </TableCell>
-                              <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words text-xs text-muted-foreground">
-                                {detailsText}
+                              <TableCell className="max-w-[18rem] text-xs text-muted-foreground">
+                                {detailsText === "—" ? (
+                                  <span>{detailsText}</span>
+                                ) : (
+                                  <div className="space-y-2">
+                                    <p className="line-clamp-2 whitespace-pre-wrap break-words">{detailsPreview}</p>
+                                    <details className="text-xs text-muted-foreground">
+                                      <summary className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:underline">
+                                        View full metadata
+                                      </summary>
+                                      <pre className="mt-2 max-h-48 overflow-auto rounded-md bg-muted/40 p-2 text-[11px] text-muted-foreground">
+                                        {detailsText}
+                                      </pre>
+                                    </details>
+                                  </div>
+                                )}
                               </TableCell>
                               <TableCell className="text-right">
                                 <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-2">
@@ -537,7 +607,7 @@ const AdminAuditLog = () => {
                                     size="sm"
                                     className="w-full sm:w-auto"
                                     onClick={() => void handleViewTarget(row)}
-                                    disabled={row.target_type === "comment" && !row.target_id}
+                                    disabled={!row.target_id}
                                   >
                                     View
                                   </Button>
@@ -562,7 +632,7 @@ const AdminAuditLog = () => {
                 )}
                 <div className="flex flex-col gap-3 text-xs text-muted-foreground sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                   <span className="min-w-0">
-                    {`Showing ${filteredRows.length} action${filteredRows.length === 1 ? "" : "s"} (${dateRange === "24h" ? "Last 24 hours" : dateRange === "7d" ? "Last 7 days" : dateRange === "30d" ? "Last 30 days" : "All time"}, ${actionFilter === "all" ? "All actions" : actionLabels[actionFilter] ?? actionFilter})`}
+                    {`Showing ${logRows.length} action${logRows.length === 1 ? "" : "s"} (${dateRange === "24h" ? "Last 24 hours" : dateRange === "7d" ? "Last 7 days" : dateRange === "30d" ? "Last 30 days" : "All time"}, ${actionFilter === "all" ? "All actions" : actionLabels[actionFilter] ?? actionFilter})`}
                   </span>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <Button

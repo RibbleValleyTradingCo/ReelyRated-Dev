@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Fish, Lock, MapPin } from "lucide-react";
+import EmptyStateCard from "@/components/ui/EmptyStateCard";
 
 interface CatchVenue {
   id: string;
@@ -58,8 +59,8 @@ const ProfileCatchesGrid = ({
     <section className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-slate-900">{isOwnProfile ? "Your catches" : `${username}'s catches`}</h2>
-          <span className="text-sm text-slate-500">{catches.length} logged</span>
+          <h2 className="text-lg font-semibold text-foreground">{isOwnProfile ? "Your catches" : `${username}'s catches`}</h2>
+          <span className="text-sm text-muted-foreground">{catches.length} logged</span>
         </div>
         {isOwnProfile ? (
           <Button variant="outline" className="h-10 rounded-full px-4 text-sm" onClick={onLogCatch}>
@@ -68,46 +69,38 @@ const ProfileCatchesGrid = ({
         ) : null}
       </div>
       {isPrivateAndBlocked ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-card p-6 text-center shadow-card">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted/40 text-muted-foreground">
             <Lock className="h-5 w-5" />
           </div>
           <div className="space-y-1">
-            <h3 className="text-base font-semibold text-slate-900">This account is private</h3>
-            <p className="text-sm text-slate-500">Only followers can see this angler&apos;s catches and detailed stats.</p>
+            <h3 className="text-base font-semibold text-foreground">This account is private</h3>
+            <p className="text-sm text-muted-foreground">Only followers can see this angler&apos;s catches and detailed stats.</p>
           </div>
         </div>
       ) : catches.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <Fish className="h-10 w-10 text-slate-400" />
-          <div className="space-y-1">
-            <h3 className="text-base font-semibold text-slate-900">You haven’t logged any catches yet.</h3>
-            <p className="text-sm text-slate-500">Log your first catch to start building your angler profile and rankings.</p>
-          </div>
-          {isOwnProfile ? (
-            <Button variant="outline" className="h-10 rounded-full px-5 text-sm font-semibold" onClick={onLogCatch}>
-              Log a catch
-            </Button>
-          ) : (
-            <Button variant="outline" className="h-10 rounded-full px-5 text-sm font-semibold" onClick={onViewFeed}>
-              View community feed
-            </Button>
-          )}
-        </div>
+        <EmptyStateCard
+          icon={<Fish className="h-10 w-10" />}
+          title="You have not logged any catches yet."
+          message="Log your first catch to start building your angler profile and rankings."
+          actionLabel={isOwnProfile ? "Log a catch" : "View community feed"}
+          onAction={isOwnProfile ? onLogCatch : onViewFeed}
+          className="rounded-xl border-border bg-card shadow-card"
+        />
       ) : (
         <div className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {catches.map((catchItem) => (
               <Card
                 key={catchItem.id}
-                className="overflow-hidden border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md"
+                className="overflow-hidden border border-border bg-card shadow-card transition hover:-translate-y-1 hover:shadow-card-hover"
                 onClick={() => onOpenCatch(catchItem.id)}
               >
                 <CardContent className="p-0">
                   <img src={catchItem.image_url} alt={catchItem.title} className="h-48 w-full object-cover" />
                   <div className="space-y-3 p-4">
-                    <p className="truncate text-sm font-semibold text-slate-900">{catchItem.title}</p>
-                    <p className="truncate text-xs text-slate-500">
+                    <p className="truncate text-sm font-semibold text-foreground">{catchItem.title}</p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {catchItem.species ? formatSpecies(catchItem.species) : "Species unknown"}
                     </p>
                     {catchItem.venues ? (
@@ -120,7 +113,7 @@ const ProfileCatchesGrid = ({
                         <span className="truncate">{catchItem.venues.name}</span>
                       </Link>
                     ) : null}
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{new Date(catchItem.created_at).toLocaleDateString("en-GB")}</span>
                       <span>{formatWeight(catchItem.weight, catchItem.weight_unit)}</span>
                     </div>

@@ -227,7 +227,7 @@ export const CatchBasicsSection = ({
         </Popover>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end sm:gap-2">
         <div className="space-y-2">
           <Label htmlFor="weight">Weight</Label>
           <Input
@@ -256,7 +256,7 @@ export const CatchBasicsSection = ({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:items-end sm:gap-2">
         <div className="space-y-2">
           <Label htmlFor="length">Length (optional)</Label>
           <Input

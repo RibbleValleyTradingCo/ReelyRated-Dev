@@ -17,10 +17,10 @@ const ProfileSettingsAvatarCard = ({
   onAvatarChange,
 }: ProfileSettingsAvatarCardProps) => {
   return (
-    <Card className="rounded-xl border border-slate-200 bg-white shadow-sm">
+    <Card className="rounded-xl">
       <CardHeader className="px-5 pb-2 pt-5 md:px-8 md:pt-8 md:pb-4">
         <CardTitle className="text-lg">Avatar</CardTitle>
-        <p className="text-sm text-slate-600">Upload a photo so other anglers can recognise you.</p>
+        <p className="text-sm text-muted-foreground">Upload a photo so other anglers can recognise you.</p>
       </CardHeader>
       <CardContent className="px-5 pb-5 md:px-8 md:pb-8">
         <ProfileAvatarSection

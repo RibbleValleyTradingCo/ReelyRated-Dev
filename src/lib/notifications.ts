@@ -115,13 +115,7 @@ export const clearAllNotifications = async (userId: string) => {
   return !error;
 };
 
-let cachedAdminIds: string[] | null = null;
-
 const loadAdminUserIds = async () => {
-  if (cachedAdminIds) {
-    return cachedAdminIds;
-  }
-
   const { data, error } = await supabase
     .from("admin_users")
     .select("user_id")
@@ -129,15 +123,14 @@ const loadAdminUserIds = async () => {
 
   if (error) {
     logger.error("Failed to load admin users", error);
-    cachedAdminIds = [];
-    return cachedAdminIds;
+    return [];
   }
 
-  cachedAdminIds = (data ?? [])
+  const adminIds = (data ?? [])
     .map((row) => row.user_id)
     .filter((value): value is string => Boolean(value));
 
-  return cachedAdminIds;
+  return adminIds;
 };
 
 export const notifyAdmins = async (payload: NotificationInsert["extra_data"]) => {

@@ -97,7 +97,7 @@ const LeaderboardPage = () => {
   }, [entries]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <PageContainer className="py-10 md:py-12 space-y-6 md:space-y-8">
         <Section>
           <SectionHeader
@@ -114,7 +114,7 @@ const LeaderboardPage = () => {
 
         {error ? (
           <Section>
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <div className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
               {error}
             </div>
           </Section>
@@ -122,7 +122,7 @@ const LeaderboardPage = () => {
 
         <Section>
           {loading ? (
-            <div className="rounded-xl border border-slate-200 bg-white px-6 py-10 text-center text-slate-500 shadow-sm">
+            <div className="rounded-xl border border-border bg-card px-6 py-10 text-center text-muted-foreground shadow-card">
               Loading leaderboard…
             </div>
           ) : (
@@ -193,7 +193,7 @@ const LeaderboardPage = () => {
                 </tbody>
               </table>
               {rows.length === 0 ? (
-                <Text className="px-6 py-10 text-center text-sm text-slate-500">
+                <Text className="px-6 py-10 text-center text-sm text-muted-foreground">
                   No public catches have been ranked yet. Share your first catch to kick off the leaderboard.
                 </Text>
               ) : (

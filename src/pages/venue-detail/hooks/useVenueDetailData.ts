@@ -2,7 +2,6 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { isAdminUser } from "@/lib/admin";
 import { qk } from "@/lib/queryKeys";
-import { getVenueRatingCache, setVenueRatingCache } from "@/lib/venueCache";
 import {
   keepPreviousData,
   useInfiniteQuery,
@@ -10,7 +9,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import type { Dispatch, SetStateAction } from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import type {
   CatchRow,
@@ -19,6 +18,7 @@ import type {
   VenueOpeningHour,
   VenuePhoto,
   VenuePricingTier,
+  VenueSpeciesStock,
 } from "../types";
 import { normalizeCatchRow } from "../utils";
 
@@ -45,6 +45,7 @@ type UseVenueDetailDataResult = {
   photosLoading: boolean;
   openingHours: VenueOpeningHour[];
   pricingTiers: VenuePricingTier[];
+  speciesStock: VenueSpeciesStock[];
   rulesText: string | null;
   operationalLoading: boolean;
   avgRating: number | null;
@@ -110,20 +111,9 @@ export const useVenueDetailData = (
   const queryClient = useQueryClient();
   const venueId = venue?.id ?? null;
   const userId = user?.id ?? null;
-  const ratingCacheKey =
-    userId && venueId ? `${userId}:${venueId}` : null;
-  const cachedRatingEntry = ratingCacheKey
-    ? getVenueRatingCache(ratingCacheKey)
-    : null;
-  const [topCatches, setTopCatches] = useState<CatchRow[]>([]);
-  const [topLoading, setTopLoading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
-  const [upcomingEvents, setUpcomingEvents] = useState<VenueEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
   const [showPastEvents, setShowPastEvents] = useState(false);
-  const [photos, setPhotos] = useState<VenuePhoto[]>([]);
-  const [photosLoading, setPhotosLoading] = useState(false);
   const [avgRating, setAvgRating] = useState<number | null>(
     venue?.avg_rating ?? null
   );
@@ -150,8 +140,6 @@ export const useVenueDetailData = (
     staleTime: RATING_STALE_MS,
     refetchOnWindowFocus: false,
     retry: false,
-    initialData: cachedRatingEntry ? cachedRatingEntry.rating : undefined,
-    initialDataUpdatedAt: cachedRatingEntry?.loadedAt,
   });
   const userRating = ratingQuery.data ?? null;
   const userRatingResolved = Boolean(userId && venueId && ratingQuery.isFetched);
@@ -227,23 +215,110 @@ export const useVenueDetailData = (
     retry: false,
     placeholderData: null,
   });
+  const speciesStockQuery = useQuery<VenueSpeciesStock[]>({
+    queryKey: qk.venueSpeciesStock(venueId),
+    enabled: Boolean(venueId),
+    queryFn: async () => {
+      if (!venueId) return [];
+      const result = await supabase
+        .from("venue_species_stock")
+        .select("*")
+        .eq("venue_id", venueId)
+        .order("created_at", { ascending: true });
+      if (result.error) {
+        console.error("Failed to load venue species stock", result.error);
+        if (debugVenue) {
+          toast.error("Failed to load species stock.");
+        }
+        return [];
+      }
+      return result.data ?? [];
+    },
+    staleTime: VENUE_STALE_MS,
+    refetchOnWindowFocus: false,
+    retry: false,
+    placeholderData: [],
+  });
+  const upcomingEventsQuery = useQuery<VenueEvent[]>({
+    queryKey: qk.venueUpcomingEvents(venueId),
+    enabled: Boolean(venueId),
+    queryFn: async () => {
+      if (!venueId) return [];
+      const { data, error } = await supabase.rpc("get_venue_upcoming_events", {
+        p_venue_id: venueId,
+      });
+      if (error) {
+        console.error("Failed to load events", error);
+        return [];
+      }
+      return (data as VenueEvent[]) ?? [];
+    },
+    staleTime: VENUE_STALE_MS,
+    refetchOnWindowFocus: false,
+    retry: false,
+    placeholderData: [],
+  });
+  const photosQuery = useQuery<VenuePhoto[]>({
+    queryKey: qk.venuePhotos(venueId),
+    enabled: Boolean(venueId),
+    queryFn: async () => {
+      if (!venueId) return [];
+      const { data, error } = await supabase.rpc("get_venue_photos", {
+        p_venue_id: venueId,
+        p_limit: 20,
+        p_offset: 0,
+      });
+      if (error) {
+        console.error("Failed to load venue photos", error);
+        return [];
+      }
+      return (data as VenuePhoto[]) ?? [];
+    },
+    staleTime: VENUE_STALE_MS,
+    refetchOnWindowFocus: false,
+    retry: false,
+    placeholderData: [],
+  });
   const openingHours = openingHoursQuery.data ?? [];
   const pricingTiers = pricingTiersQuery.data ?? [];
+  const speciesStock = speciesStockQuery.data ?? [];
   const rulesText = rulesQuery.data ?? null;
+  const upcomingEvents = upcomingEventsQuery.data ?? [];
+  const eventsLoading = upcomingEventsQuery.isFetching;
+  const photos = photosQuery.data ?? [];
+  const photosLoading = photosQuery.isFetching;
   const operationalLoading =
     openingHoursQuery.isLoading ||
     pricingTiersQuery.isLoading ||
+    speciesStockQuery.isLoading ||
     rulesQuery.isLoading;
   const [ratingLoading, setRatingLoading] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
   const [pendingRating, setPendingRating] = useState<number | null>(null);
   const [lastKnownAvg, setLastKnownAvg] = useState<number | null>(null);
   const [lastKnownCount, setLastKnownCount] = useState<number | null>(null);
-  const requestIdsRef = useRef({
-    photos: 0,
-    top: 0,
-    upcoming: 0,
+  const topCatchesQuery = useQuery<CatchRow[]>({
+    queryKey: qk.venueTopCatches(venueId),
+    enabled: Boolean(venueId),
+    queryFn: async () => {
+      if (!venueId) return [];
+      const { data, error } = await supabase.rpc("get_venue_top_catches", {
+        p_venue_id: venueId,
+        p_limit: 6,
+      });
+      if (error) {
+        console.error("Failed to load top catches", error);
+        return [];
+      }
+      return ((data as CatchRow[]) ?? []).map(normalizeCatchRow);
+    },
+    staleTime: VENUE_STALE_MS,
+    refetchOnWindowFocus: false,
+    retry: false,
+    placeholderData: [],
   });
+  const topCatches = topCatchesQuery.data ?? [];
+  const topLoading = topCatchesQuery.isFetching && topCatches.length === 0;
 
   useEffect(() => {
     if (!venue) {
@@ -256,19 +331,6 @@ export const useVenueDetailData = (
   }, [venue?.avg_rating, venue?.id, venue?.rating_count]);
 
   useEffect(() => {
-    if (!ratingCacheKey || !ratingQuery.isFetched) return;
-    setVenueRatingCache(ratingCacheKey, {
-      rating: ratingQuery.data ?? null,
-      loadedAt: ratingQuery.dataUpdatedAt || Date.now(),
-    });
-  }, [
-    ratingCacheKey,
-    ratingQuery.data,
-    ratingQuery.dataUpdatedAt,
-    ratingQuery.isFetched,
-  ]);
-
-  useEffect(() => {
     if (avgRating !== null && avgRating !== undefined) {
       setLastKnownAvg(avgRating);
     }
@@ -276,23 +338,6 @@ export const useVenueDetailData = (
       setLastKnownCount(ratingCount);
     }
   }, [avgRating, ratingCount]);
-
-  const loadTopCatches = async (venueId: string) => {
-    const requestId = ++requestIdsRef.current.top;
-    setTopLoading(true);
-    const { data, error } = await supabase.rpc("get_venue_top_catches", {
-      p_venue_id: venueId,
-      p_limit: 6,
-    });
-    if (requestId !== requestIdsRef.current.top) return;
-    if (error) {
-      console.error("Failed to load top catches", error);
-      setTopCatches([]);
-    } else {
-      setTopCatches(((data as CatchRow[]) ?? []).map(normalizeCatchRow));
-    }
-    setTopLoading(false);
-  };
 
   const RECENT_LIMIT = 12;
   const recentCatchesQuery = useInfiniteQuery<CatchRow[]>({
@@ -366,51 +411,6 @@ export const useVenueDetailData = (
     void pastEventsQuery.fetchNextPage();
   };
 
-  const loadUpcomingEvents = async (venueId: string) => {
-    const requestId = ++requestIdsRef.current.upcoming;
-    setEventsLoading(true);
-    const { data, error } = await supabase.rpc("get_venue_upcoming_events", {
-      p_venue_id: venueId,
-    });
-    if (requestId !== requestIdsRef.current.upcoming) return;
-    if (error) {
-      console.error("Failed to load events", error);
-      setUpcomingEvents([]);
-    } else {
-      setUpcomingEvents((data as VenueEvent[]) ?? []);
-    }
-    setEventsLoading(false);
-  };
-
-  useEffect(() => {
-    const loadPhotos = async () => {
-      if (!venue?.id) return;
-      const requestId = ++requestIdsRef.current.photos;
-      setPhotosLoading(true);
-      const { data, error } = await supabase.rpc("get_venue_photos", {
-        p_venue_id: venue.id,
-        p_limit: 20,
-        p_offset: 0,
-      });
-      if (requestId !== requestIdsRef.current.photos) return;
-      if (error) {
-        console.error("Failed to load venue photos", error);
-        setPhotos([]);
-      } else {
-        setPhotos((data as VenuePhoto[]) ?? []);
-      }
-      setPhotosLoading(false);
-    };
-    void loadPhotos();
-  }, [venue?.id]);
-
-  useEffect(() => {
-    if (venueId) {
-      void loadTopCatches(venueId);
-      void loadUpcomingEvents(venueId);
-    }
-  }, [venueId]);
-
   useEffect(() => {
     const checkAdmin = async () => {
       if (!user) {
@@ -474,12 +474,6 @@ export const useVenueDetailData = (
       const prevLastCount = lastKnownCount;
       const ratingQueryKey = qk.venueRating(userId, venueId);
       queryClient.setQueryData(ratingQueryKey, rating);
-      if (ratingCacheKey) {
-        setVenueRatingCache(ratingCacheKey, {
-          rating,
-          loadedAt: Date.now(),
-        });
-      }
       const currentAvg = avgRating ?? lastKnownAvg ?? 0;
       const currentCount = ratingCount ?? lastKnownCount ?? 0;
       const isFirst = previous === null || previous === undefined;
@@ -504,12 +498,6 @@ export const useVenueDetailData = (
         setRatingCount(prevCount ?? null);
         setLastKnownAvg(prevLastAvg);
         setLastKnownCount(prevLastCount);
-        if (ratingCacheKey) {
-          setVenueRatingCache(ratingCacheKey, {
-            rating: previous ?? null,
-            loadedAt: Date.now(),
-          });
-        }
         setRatingLoading(false);
         return;
       }
@@ -527,12 +515,6 @@ export const useVenueDetailData = (
       setRatingCount(row?.rating_count ?? optimisticCount);
       const resolvedRating = row?.user_rating ?? rating;
       queryClient.setQueryData(ratingQueryKey, resolvedRating);
-      if (ratingCacheKey) {
-        setVenueRatingCache(ratingCacheKey, {
-          rating: resolvedRating,
-          loadedAt: Date.now(),
-        });
-      }
       setRatingModalOpen(false);
       toast.success("Thanks for rating this venue!");
       setRatingLoading(false);
@@ -542,7 +524,6 @@ export const useVenueDetailData = (
       lastKnownAvg,
       lastKnownCount,
       queryClient,
-      ratingCacheKey,
       ratingCount,
       ratingLoading,
       userRating,
@@ -571,6 +552,7 @@ export const useVenueDetailData = (
     photosLoading,
     openingHours,
     pricingTiers,
+    speciesStock,
     rulesText,
     operationalLoading,
     avgRating,

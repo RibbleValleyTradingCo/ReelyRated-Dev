@@ -1,0 +1,249 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications (F8)":
+    - list
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - link "ReelyRated Freshwater Social" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img [ref=e10]
+          - generic [ref=e14]:
+            - generic [ref=e15]: ReelyRated
+            - generic [ref=e16]: Freshwater Social
+        - navigation [ref=e17]:
+          - link "Feed" [ref=e18] [cursor=pointer]:
+            - /url: /feed
+          - link "Venues" [ref=e19] [cursor=pointer]:
+            - /url: /venues
+          - link "Leaderboard" [ref=e20] [cursor=pointer]:
+            - /url: /leaderboard
+          - link "Sessions" [ref=e21] [cursor=pointer]:
+            - /url: /sessions
+          - link "Explore" [ref=e22] [cursor=pointer]:
+            - /url: /search
+        - generic [ref=e23]:
+          - link "Sign Up" [ref=e24] [cursor=pointer]:
+            - /url: /auth#signup
+          - link "Log In" [ref=e25] [cursor=pointer]:
+            - /url: /auth
+          - button "Toggle theme" [ref=e26] [cursor=pointer]:
+            - img
+    - main [ref=e27]:
+      - generic [ref=e29]:
+        - main [ref=e30]:
+          - generic [ref=e35]:
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - heading "Turn every catch into a story worth scoring" [level=1] [ref=e39]:
+                  - text: Turn every catch into a
+                  - generic [ref=e40]: story worth scoring
+                - paragraph [ref=e41]: ReelyRated is your digital fishing partner. Log catches with precision, unlock community insights, and build a shareable career on and off the water.
+              - generic [ref=e42]:
+                - button "Create Your Logbook" [ref=e43] [cursor=pointer]
+                - button "Browse Public Highlights" [ref=e44] [cursor=pointer]
+            - generic [ref=e46]:
+              - generic [ref=e49]: Live • Featured Catch
+              - generic [ref=e50] [cursor=pointer]:
+                - generic [ref=e51]:
+                  - img "Wild Rainbow Test" [ref=e52]
+                  - generic [ref=e54]:
+                    - img [ref=e55]
+                    - generic [ref=e58]: "#1 Ranked"
+                - generic [ref=e60]:
+                  - generic [ref=e61]:
+                    - img [ref=e63]
+                    - generic [ref=e70]: Overall Score
+                    - generic [ref=e72]: "84.0"
+                  - generic [ref=e73]:
+                    - img [ref=e75]
+                    - generic [ref=e82]: Recorded Weight
+                    - generic [ref=e84]: 14 lb_oz
+                  - generic [ref=e85]:
+                    - img [ref=e87]
+                    - generic [ref=e93]: Average Rating
+                    - generic [ref=e95]: "7.0"
+                    - generic [ref=e96]: 1 rating
+                - generic [ref=e97]:
+                  - generic [ref=e98]:
+                    - generic [ref=e99]:
+                      - img [ref=e100]
+                      - generic [ref=e103]: Rainbow Trout
+                    - heading "Wild Rainbow Test" [level=3] [ref=e104]
+                  - generic [ref=e106]:
+                    - generic [ref=e107]:
+                      - generic [ref=e110]: T
+                      - generic [ref=e111]:
+                        - link "@test2" [ref=e112]:
+                          - /url: /profile/test2
+                        - generic [ref=e113]: 2 days ago
+                    - button "View" [ref=e114]:
+                      - generic [ref=e115]: View
+                      - img
+              - generic [ref=e116]:
+                - generic [ref=e117]: Data palette
+                - button "Blue" [ref=e118] [cursor=pointer]
+                - button "Midnight" [ref=e119] [cursor=pointer]
+                - button "Emerald" [ref=e120] [cursor=pointer]
+                - button "Sunset" [ref=e121] [cursor=pointer]
+          - generic [ref=e122]:
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e127]: Live Community Pulse
+                - heading "Fueled by anglers across the UK" [level=2] [ref=e130]
+                - paragraph [ref=e131]: These numbers refresh as the community logs more catches, recruits new crews, and charts new waters.
+              - generic [ref=e132]:
+                - article [ref=e134]:
+                  - generic [ref=e135]:
+                    - img [ref=e137]
+                    - generic [ref=e144]:
+                      - generic [ref=e146]: "0"
+                      - paragraph [ref=e147]: Recorded catches
+                      - paragraph [ref=e148]: Shared publicly across the UK community.
+                - article [ref=e150]:
+                  - generic [ref=e151]:
+                    - img [ref=e153]
+                    - generic [ref=e156]:
+                      - generic [ref=e158]: "0"
+                      - paragraph [ref=e159]: Active anglers
+                      - paragraph [ref=e160]: Anglers trading tips, scores, and sessions.
+                - article [ref=e162]:
+                  - generic [ref=e163]:
+                    - img [ref=e165]
+                    - generic [ref=e169]:
+                      - generic [ref=e171]: "0"
+                      - paragraph [ref=e172]: UK waterways
+                      - paragraph [ref=e173]: Waterways logged across the community.
+            - generic [ref=e176]:
+              - generic [ref=e177]:
+                - generic [ref=e178]: Live Rankings
+                - heading "Angler Leaderboard" [level=2] [ref=e181]
+                - paragraph [ref=e182]: Scores blend catch weight, community ratings, media evidence, and logbook completeness. Discover the most complete stories from the water.
+              - generic [ref=e183]:
+                - generic [ref=e184]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]: Filter by species
+                    - combobox "Filter by species" [ref=e188]:
+                      - option "All species" [selected]
+                      - option "Carp (Unspecified)"
+                      - option "Perch"
+                      - option "Rainbow Trout"
+                  - generic [ref=e189]: Showing 3 catches
+                - table [ref=e191]:
+                  - rowgroup [ref=e192]:
+                    - row "Rank Score Catch Species Weight Rating" [ref=e193]:
+                      - cell "Rank" [ref=e194]
+                      - cell "Score" [ref=e195]
+                      - cell "Catch" [ref=e196]
+                      - cell "Species" [ref=e197]
+                      - cell "Weight" [ref=e198]
+                      - cell "Rating" [ref=e199]
+                  - rowgroup [ref=e200]:
+                    - row "#1 84.0 Wild Rainbow Test Rainbow Trout 14 lb_oz ⭐ 7.0 (1)" [ref=e201] [cursor=pointer]:
+                      - cell "#1" [ref=e202]:
+                        - generic [ref=e203]:
+                          - img [ref=e204]
+                          - generic [ref=e207]: "#1"
+                      - cell "84.0" [ref=e208]:
+                        - generic [ref=e209]: "84.0"
+                      - cell "Wild Rainbow Test" [ref=e210]:
+                        - generic [ref=e213]: Wild Rainbow Test
+                      - cell "Rainbow Trout" [ref=e214]
+                      - cell "14 lb_oz" [ref=e215]
+                      - cell "⭐ 7.0 (1)" [ref=e216]
+                    - row "#2 34.0 GPS test Carp (Unspecified) 34 lb_oz —" [ref=e217] [cursor=pointer]:
+                      - cell "#2" [ref=e218]:
+                        - generic [ref=e220]: "#2"
+                      - cell "34.0" [ref=e221]:
+                        - generic [ref=e222]: "34.0"
+                      - cell "GPS test" [ref=e223]:
+                        - generic [ref=e226]: GPS test
+                      - cell "Carp (Unspecified)" [ref=e227]
+                      - cell "34 lb_oz" [ref=e228]
+                      - cell "—" [ref=e229]
+                    - row "#3 11.0 GPS hidden Perch 11 lb_oz —" [ref=e230] [cursor=pointer]:
+                      - cell "#3" [ref=e231]:
+                        - generic [ref=e233]: "#3"
+                      - cell "11.0" [ref=e234]:
+                        - generic [ref=e235]: "11.0"
+                      - cell "GPS hidden" [ref=e236]:
+                        - generic [ref=e239]: GPS hidden
+                      - cell "Perch" [ref=e240]
+                      - cell "11 lb_oz" [ref=e241]
+                      - cell "—" [ref=e242]
+              - link "View Full Leaderboard →" [ref=e244] [cursor=pointer]:
+                - /url: /leaderboard
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - heading "Built to remember every day on the water" [level=2] [ref=e249]
+                - paragraph [ref=e250]: From first cast to last light, ReelyRated keeps every detail so you can repeat the days that work and fix the ones that don’t.
+              - generic [ref=e251]:
+                - article [ref=e253] [cursor=pointer]:
+                  - generic [ref=e254]:
+                    - img [ref=e256]
+                    - generic [ref=e263]:
+                      - heading "Log every catch with precision" [level=3] [ref=e264]
+                      - paragraph [ref=e265]: Record weight, species, tactics, conditions and photos in seconds. Everything drops into a searchable logbook you can rely on.
+                      - link "Learn more" [ref=e266]:
+                        - /url: /add-catch
+                        - text: Learn more
+                        - img [ref=e267]
+                - article [ref=e271] [cursor=pointer]:
+                  - generic [ref=e272]:
+                    - img [ref=e274]
+                    - generic [ref=e279]:
+                      - heading "Climb community scoreboards" [level=3] [ref=e280]
+                      - paragraph [ref=e281]: Your catches earn scores based on weight, detail and community ratings, so you can see exactly where you rank on each venue.
+                      - link "Learn more" [ref=e282]:
+                        - /url: /feed
+                        - text: Learn more
+                        - img [ref=e283]
+                - article [ref=e287] [cursor=pointer]:
+                  - generic [ref=e288]:
+                    - img [ref=e290]
+                    - generic [ref=e292]:
+                      - heading "Spot the patterns that catch fish" [level=3] [ref=e293]
+                      - paragraph [ref=e294]: See which baits, rigs and methods actually convert into landed fish across different venues, seasons and conditions.
+                - article [ref=e296] [cursor=pointer]:
+                  - generic [ref=e297]:
+                    - img [ref=e299]
+                    - generic [ref=e302]:
+                      - heading "Map your proven waters" [level=3] [ref=e303]
+                      - paragraph [ref=e304]: Save your favourite venues, swims and pegs with notes and conditions, so you always know where to start on your next session.
+            - generic [ref=e306]:
+              - generic [ref=e307]:
+                - heading "From first bite to bragging rights in three clean steps" [level=2] [ref=e308]
+                - paragraph [ref=e309]: Log your catch on the bank, let the community rate it, and use the data to plan your next session.
+              - generic [ref=e312]:
+                - generic [ref=e314]:
+                  - img [ref=e316]
+                  - generic [ref=e319]:
+                    - generic [ref=e321]: Step 1
+                    - heading "Log the catch while you’re on the bank" [level=3] [ref=e322]
+                    - paragraph [ref=e323]: Snap a photo, add species, weight and a quick note. ReelyRated timestamps and stores it so you never lose the details.
+                    - paragraph [ref=e324]: Takes about 30 seconds per catch.
+                - generic [ref=e326]:
+                  - img [ref=e328]
+                  - generic [ref=e330]:
+                    - generic [ref=e332]: Step 2
+                    - heading "Share it and get real-world ratings" [level=3] [ref=e333]
+                    - paragraph [ref=e334]: Once your catch is live, other anglers score it on detail and quality. Your profile and venue scores update in real time, and standout catches can hit the spotlight and leaderboards.
+                    - paragraph [ref=e335]: Ratings happen automatically once it’s live.
+                - generic [ref=e337]:
+                  - img [ref=e339]
+                  - generic [ref=e342]:
+                    - generic [ref=e344]: Step 3
+                    - heading "Turn those sessions into a pattern" [level=3] [ref=e345]
+                    - paragraph [ref=e346]: See which tactics, venues and conditions actually work for you in your logbook and insights. Next time out, you’re not guessing – you’re repeating what catches fish.
+                    - paragraph [ref=e347]: Check your trends in under a minute before you head out.
+            - generic [ref=e352]:
+              - heading "Join the UK's most dedicated fishing leaderboard" [level=2] [ref=e353]
+              - paragraph [ref=e354]: Secure your handle, build your story, and rally your crew. Your next personal best deserves more than a camera roll.
+              - generic [ref=e355]:
+                - button "Claim Your Profile" [ref=e356] [cursor=pointer]
+                - button "View Public Leaderboard" [ref=e357] [cursor=pointer]
+        - paragraph [ref=e360]: ReelyRated • Built for UK Anglers
+```

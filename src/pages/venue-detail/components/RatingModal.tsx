@@ -55,7 +55,7 @@ const StarRating = ({
           >
             <Star
               className={`h-4 w-4 ${
-                filled ? "fill-amber-400 text-amber-400" : "text-slate-300"
+                filled ? "fill-accent text-accent" : "text-muted-foreground/40"
               }`}
             />
           </button>
@@ -129,25 +129,25 @@ const RatingModal = ({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 px-4 py-6">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-overlay/70 px-4 py-6">
       <div
         ref={modalRef}
         role="dialog"
         aria-modal="true"
         aria-label={`Rate ${venueName}`}
-        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl bg-card p-6 shadow-overlay"
       >
         <div className="space-y-3">
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold text-slate-900">
+            <h3 className="text-lg font-semibold text-foreground">
               Rate this venue
             </h3>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Your feedback helps others plan their trip.
             </p>
           </div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-            <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+            <Star className="h-4 w-4 fill-accent text-accent" />
             <span>{ratingSummaryText}</span>
           </div>
           <div className="flex flex-col items-start gap-3">
@@ -156,7 +156,7 @@ const RatingModal = ({
               onSelect={onPendingRatingChange}
               disabled={loading}
             />
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               {pendingRating
                 ? `You’re about to rate this ${pendingRating} star${
                     pendingRating === 1 ? "" : "s"
@@ -188,7 +188,7 @@ const RatingModal = ({
               )}
             </Button>
           </div>
-          <p className="text-xs text-slate-500">Press Esc to close.</p>
+          <p className="text-xs text-muted-foreground">Press Esc to close.</p>
         </div>
       </div>
     </div>,

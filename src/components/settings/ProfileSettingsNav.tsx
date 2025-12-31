@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-type SectionId = "profile" | "security" | "data-privacy" | "safety-blocking" | "danger-zone";
+type SectionId = "profile" | "security" | "data-privacy" | "safety-blocking" | "data" | "danger-zone";
 
 interface NavSection {
   id: SectionId;
@@ -11,12 +12,26 @@ interface NavSection {
 interface ProfileSettingsNavProps {
   sections: NavSection[];
   onSelect: (id: SectionId) => void;
+  variant?: "tabs" | "rail";
+  className?: string;
 }
 
-const ProfileSettingsNav = ({ sections, onSelect }: ProfileSettingsNavProps) => {
+const ProfileSettingsNav = ({
+  sections,
+  onSelect,
+  variant = "tabs",
+  className,
+}: ProfileSettingsNavProps) => {
+  const isRail = variant === "rail";
   return (
-    <nav className="w-full">
-      <div className="flex gap-2 overflow-x-auto rounded-lg border border-slate-200 bg-white p-2 shadow-sm md:justify-center">
+    <nav className={cn("w-full", className)}>
+      <div
+        className={cn(
+          isRail
+            ? "flex flex-col gap-2 rounded-xl border border-border bg-card p-3 shadow-card"
+            : "flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2 shadow-card md:flex-nowrap md:justify-center"
+        )}
+      >
         {sections.map((section) => (
           <Button
             key={section.id}
@@ -24,11 +39,14 @@ const ProfileSettingsNav = ({ sections, onSelect }: ProfileSettingsNavProps) => 
             size="sm"
             variant="ghost"
             onClick={() => onSelect(section.id)}
-            className={`rounded-full border px-4 py-2 text-sm shadow-none transition ${
+            aria-current={section.active ? "page" : undefined}
+            className={cn(
+              "border text-sm shadow-none transition",
+              isRail ? "justify-start rounded-lg px-3 py-2" : "rounded-full px-4 py-2",
               section.active
-                ? "border-slate-900 bg-slate-900 text-white hover:bg-slate-900"
-                : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-            }`}
+                ? "border-transparent bg-primary text-primary-foreground hover:bg-primary/90"
+                : "border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+            )}
           >
             {section.label}
           </Button>

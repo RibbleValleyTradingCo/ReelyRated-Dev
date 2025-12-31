@@ -43,14 +43,14 @@ const EventsSection = ({
       <SectionHeader
         title="Events & Announcements"
         subtitle="Match dates, announcements, and venue updates."
-        titleClassName="text-3xl font-bold text-gray-900 md:text-4xl"
+        titleClassName="text-3xl font-bold text-foreground md:text-4xl"
         className="px-0 mb-6"
         actions={
           pastEvents.length > 0 ? (
             <button
               type="button"
               onClick={onTogglePastEvents}
-              className="text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
+              className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               {showPastEvents ? "Hide past events" : "Show past events"}
             </button>
@@ -60,29 +60,29 @@ const EventsSection = ({
 
       <div className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-600">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Upcoming
           </h3>
           {eventsLoading ? (
-            <div className="flex items-center justify-center rounded-2xl border border-blue-100 bg-white/90 p-5 text-slate-500 shadow-sm">
+            <div className="flex items-center justify-center rounded-2xl border border-border bg-card/90 p-5 text-muted-foreground shadow-card">
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Loading events…
             </div>
           ) : upcomingEvents.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-blue-200 bg-white/90 p-5 text-sm text-slate-600 shadow-sm">
+            <div className="rounded-2xl border border-dashed border-border/60 bg-muted/40 p-5 text-sm text-muted-foreground shadow-none">
               No upcoming events — check back soon.
             </div>
           ) : (
             <>
               {featuredEvent ? (
-                <Card className="rounded-2xl border border-blue-200 bg-white shadow-md transition hover:shadow-lg">
+                <Card className="rounded-2xl border border-border bg-card shadow-card transition hover:shadow-card-hover">
                   <CardContent className="space-y-3 p-5">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="space-y-1 min-w-0">
-                        <p className="text-lg font-semibold text-slate-900 break-words">
+                        <p className="text-lg font-semibold text-foreground break-words">
                           {featuredEvent.title}
                         </p>
-                        <p className="text-sm font-medium text-slate-600">
+                        <p className="text-sm font-medium text-muted-foreground">
                           {formatEventDate(
                             featuredEvent.starts_at,
                             featuredEvent.ends_at
@@ -90,18 +90,18 @@ const EventsSection = ({
                         </p>
                       </div>
                       {featuredEvent.event_type ? (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold text-blue-800">
+                        <span className="inline-flex items-center rounded-full bg-secondary/20 px-3 py-1 text-[11px] font-semibold text-secondary">
                           {featuredEvent.event_type}
                         </span>
                       ) : null}
                     </div>
                     {featuredEvent.description ? (
-                      <p className="text-sm text-slate-600 line-clamp-3 break-words">
+                      <p className="text-sm text-muted-foreground line-clamp-3 break-words">
                         {featuredEvent.description}
                       </p>
                     ) : null}
                     {featuredEvent.ticket_info ? (
-                      <p className="text-xs font-semibold text-slate-700 break-words">
+                      <p className="text-xs font-semibold text-muted-foreground break-words">
                         Tickets: {featuredEvent.ticket_info}
                       </p>
                     ) : null}
@@ -111,7 +111,7 @@ const EventsSection = ({
                           href={featuredLink.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
+                          className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           {featuredLink.label}
                         </a>
@@ -127,31 +127,31 @@ const EventsSection = ({
                     return (
                       <Card
                         key={event.id}
-                        className="rounded-2xl border border-blue-100 bg-white shadow-sm transition hover:shadow-md"
+                        className="rounded-2xl border border-border bg-card shadow-card transition hover:shadow-card-hover"
                       >
                         <CardContent className="space-y-2 p-4 sm:p-5">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <div className="space-y-1 min-w-0">
-                              <p className="text-base font-semibold text-slate-900 break-words">
+                              <p className="text-base font-semibold text-foreground break-words">
                                 {event.title}
                               </p>
-                              <p className="text-sm font-medium text-slate-600">
+                              <p className="text-sm font-medium text-muted-foreground">
                                 {formatEventDate(event.starts_at, event.ends_at)}
                               </p>
                             </div>
                             {event.event_type ? (
-                              <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold text-blue-800">
+                              <span className="inline-flex items-center rounded-full bg-secondary/20 px-3 py-1 text-[11px] font-semibold text-secondary">
                                 {event.event_type}
                               </span>
                             ) : null}
                           </div>
                           {event.description ? (
-                            <p className="text-sm text-slate-600 line-clamp-3 break-words">
+                            <p className="text-sm text-muted-foreground line-clamp-3 break-words">
                               {event.description}
                             </p>
                           ) : null}
                           {event.ticket_info ? (
-                            <p className="text-xs font-semibold text-slate-700 break-words">
+                            <p className="text-xs font-semibold text-muted-foreground break-words">
                               Tickets: {event.ticket_info}
                             </p>
                           ) : null}
@@ -161,7 +161,7 @@ const EventsSection = ({
                                 href={eventLink.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
+                                className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                               >
                                 {eventLink.label}
                               </a>
@@ -178,12 +178,12 @@ const EventsSection = ({
         </div>
 
         {pastEvents.length > 0 && showPastEvents ? (
-          <div className="space-y-3 border-t border-blue-100/80 pt-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+          <div className="space-y-3 border-t border-border/60 pt-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Past events
             </h3>
             {pastEventsLoading ? (
-              <div className="flex items-center justify-center rounded-2xl border border-blue-100 bg-white/90 p-5 text-slate-500 shadow-sm">
+              <div className="flex items-center justify-center rounded-2xl border border-border bg-card/90 p-5 text-muted-foreground shadow-card">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading past events…
               </div>
@@ -194,31 +194,31 @@ const EventsSection = ({
                   return (
                     <Card
                       key={event.id}
-                      className="rounded-2xl border border-blue-100/70 bg-white/80 shadow-sm transition hover:shadow-md"
+                      className="rounded-2xl border border-border/80 bg-card/80 shadow-card transition hover:shadow-card-hover"
                     >
                       <CardContent className="space-y-2 p-4 sm:p-5">
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="space-y-1 min-w-0">
-                            <p className="text-base font-semibold text-slate-800 break-words">
+                            <p className="text-base font-semibold text-foreground break-words">
                               {event.title}
                             </p>
-                            <p className="text-sm font-medium text-slate-500">
+                            <p className="text-sm font-medium text-muted-foreground">
                               {formatEventDate(event.starts_at, event.ends_at)}
                             </p>
                           </div>
                           {event.event_type ? (
-                            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-[11px] font-semibold text-blue-800">
+                            <span className="inline-flex items-center rounded-full bg-secondary/20 px-3 py-1 text-[11px] font-semibold text-secondary">
                               {event.event_type}
                             </span>
                           ) : null}
                         </div>
                         {event.description ? (
-                          <p className="text-sm text-slate-500 line-clamp-3 break-words">
+                          <p className="text-sm text-muted-foreground line-clamp-3 break-words">
                             {event.description}
                           </p>
                         ) : null}
                         {event.ticket_info ? (
-                          <p className="text-xs font-semibold text-slate-500 break-words">
+                          <p className="text-xs font-semibold text-muted-foreground break-words">
                             Tickets: {event.ticket_info}
                           </p>
                         ) : null}
@@ -228,7 +228,7 @@ const EventsSection = ({
                               href={eventLink.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-sm font-semibold text-blue-600 underline underline-offset-4 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-200 focus-visible:ring-offset-2"
+                              className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             >
                               {eventLink.label}
                             </a>

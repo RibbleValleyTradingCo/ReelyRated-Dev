@@ -90,54 +90,54 @@ const ProfileHero = ({
       <div
         className={cn(
           "absolute -top-24 right-10 h-56 w-56 rounded-full blur-3xl",
-          isAdminProfile ? "bg-indigo-500/25" : "bg-sky-500/30"
+          isAdminProfile ? "bg-primary/25" : "bg-secondary/30"
         )}
       />
       <div
         className={cn(
           "absolute bottom-0 left-0 h-48 w-48 -translate-x-1/3 translate-y-1/3 rounded-full blur-3xl",
-          isAdminProfile ? "bg-indigo-600/20" : "bg-sky-600/20"
+          isAdminProfile ? "bg-primary/20" : "bg-secondary/20"
         )}
       />
       <div
         className={cn(
           "absolute inset-0",
           isAdminProfile
-            ? "bg-[radial-gradient(circle_at_top,_rgba(99,102,241,0.2)_0%,_rgba(15,23,42,0.94)_50%,_rgba(8,12,20,0.98)_100%)]"
-            : "bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.2)_0%,_rgba(15,23,42,0.94)_50%,_rgba(8,12,20,0.98)_100%)]"
+            ? "bg-[radial-gradient(circle_at_top,_hsl(var(--primary)/0.2)_0%,_hsl(var(--inverse-foreground)/0.94)_50%,_hsl(var(--inverse-foreground)/0.98)_100%)] dark:bg-[radial-gradient(circle_at_top,_hsl(var(--primary)/0.18)_0%,_hsl(var(--card)/0.92)_55%,_hsl(var(--background)/0.98)_100%)]"
+            : "bg-[radial-gradient(circle_at_top,_hsl(var(--secondary)/0.2)_0%,_hsl(var(--inverse-foreground)/0.94)_50%,_hsl(var(--inverse-foreground)/0.98)_100%)] dark:bg-[radial-gradient(circle_at_top,_hsl(var(--secondary)/0.18)_0%,_hsl(var(--card)/0.92)_55%,_hsl(var(--background)/0.98)_100%)]"
         )}
       />
       <div className="relative z-10 grid gap-8 px-5 py-8 sm:px-7 sm:py-10 md:grid-cols-[minmax(0,1fr)_260px] lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex flex-col gap-6">
           <div className="space-y-4">
             {!isAdminProfile && (
-              <span className="inline-flex w-fit items-center gap-1 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-100/90 shadow-sm">
+              <span className="inline-flex w-fit items-center gap-1 rounded-full border border-inverse/15 bg-inverse/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-inverse/90 shadow-card dark:border-border/50 dark:bg-muted/40 dark:text-foreground">
                 <Sparkles className="h-3 w-3" aria-hidden="true" />
                 {isOwnProfile ? "My account" : "Angler spotlight"}
               </span>
             )}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-5">
-              <Avatar className="h-20 w-20 shrink-0 ring-2 ring-white/30 ring-offset-4 ring-offset-slate-900 shadow-2xl sm:h-24 sm:w-24">
+              <Avatar className="h-20 w-20 shrink-0 ring-2 ring-inverse/30 ring-offset-4 ring-offset-inverse-foreground shadow-glow sm:h-24 sm:w-24 dark:ring-ring/40 dark:ring-offset-card">
                 <AvatarImage src={profileAvatarUrl ?? ""} />
                 <AvatarFallback className="text-2xl">{profile.username[0].toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl sm:leading-snug">{profile.username}</h1>
+                  <h1 className="text-3xl font-bold leading-tight text-inverse sm:text-4xl sm:leading-snug dark:text-foreground">{profile.username}</h1>
                 </div>
-                <div className="flex flex-wrap items-center gap-2 text-sm text-white/80">
-                  <span className="inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 font-medium text-white/90">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-inverse/80 dark:text-muted-foreground">
+                  <span className="inline-flex items-center rounded-full border border-inverse/15 bg-inverse/5 px-3 py-1 font-medium text-inverse/90 dark:border-border/50 dark:bg-muted/40 dark:text-foreground">
                     @{profile.username}
                   </span>
                   {isAdminProfile && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200/40 bg-indigo-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-indigo-50">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-inverse dark:text-primary">
                       ReelyRated staff
                     </span>
                   )}
                   {showStatusPill ? (
                     <span
                       className={cn(
-                        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-sm",
+                        "inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold shadow-card",
                         statusPill.className
                       )}
                     >
@@ -151,26 +151,26 @@ const ProfileHero = ({
           </div>
 
           {isEditing && isOwnProfile ? (
-            <div className="w-full max-w-2xl space-y-3 rounded-xl border border-white/10 bg-white/10 p-4 backdrop-blur">
+            <div className="w-full max-w-2xl space-y-3 rounded-xl border border-inverse/10 bg-inverse/10 p-4 backdrop-blur dark:border-border/60 dark:bg-card/70 dark:text-foreground">
               <Textarea
                 value={editedBio}
                 onChange={(e) => onChangeEditedBio(e.target.value)}
                 placeholder="Tell us about yourself..."
                 rows={3}
-                className="bg-white text-slate-900"
+                className="bg-inverse text-inverse-foreground dark:bg-background/80 dark:text-foreground"
               />
               <div className="flex flex-wrap gap-3">
                 <Button
                   size="sm"
                   onClick={onSaveBio}
-                  className="h-9 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 px-4 text-slate-900 shadow-lg shadow-cyan-500/30 hover:from-sky-500 hover:to-cyan-300"
+                  className="h-9 rounded-full bg-gradient-to-r from-primary to-secondary px-4 text-inverse-foreground shadow-ocean hover:from-primary/90 hover:to-secondary/90 hover:shadow-glow"
                 >
                   Save
                 </Button>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-9 rounded-full border-white/40 bg-white/10 px-4 text-white hover:bg-white/15"
+                  className="h-9 rounded-full border-inverse/40 bg-inverse/10 px-4 text-inverse hover:bg-inverse/15 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                   onClick={onCancelEditBio}
                 >
                   Cancel
@@ -180,21 +180,26 @@ const ProfileHero = ({
           ) : (
             <div className="w-full max-w-2xl space-y-2">
               {displayBio ? (
-                <p className={cn("text-sm leading-relaxed text-white/80", bioExpanded ? "" : "line-clamp-3 sm:line-clamp-4")}>
+                <p
+                  className={cn(
+                    "text-sm leading-relaxed text-inverse/80 dark:text-muted-foreground",
+                    bioExpanded ? "" : "line-clamp-3 sm:line-clamp-4"
+                  )}
+                >
                   {displayBio}
                 </p>
               ) : null}
               {bio && bio.length > 180 ? (
                 <button
                   type="button"
-                  className="text-xs font-semibold text-white/90 underline underline-offset-2"
+                  className="text-xs font-semibold text-inverse/90 underline underline-offset-2 dark:text-foreground"
                   onClick={onToggleBioExpanded}
                 >
                   {bioExpanded ? "Show less" : "Show more"}
                 </button>
               ) : null}
               {isAdminProfile && !isUsingStaffBioFallback && (
-                <p className="text-xs text-white/75">
+                <p className="text-xs text-inverse/75 dark:text-muted-foreground">
                   This is a ReelyRated staff account used for moderation and safety. Admin profiles don&apos;t usually share personal catches.
                 </p>
               )}
@@ -206,7 +211,7 @@ const ProfileHero = ({
               <>
                 <Button
                   variant="outline"
-                  className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                  className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                   onClick={onOpenSettings}
                 >
                   <span className="flex items-center gap-2">
@@ -216,7 +221,7 @@ const ProfileHero = ({
                 </Button>
                 <Button
                   variant="outline"
-                  className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                  className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                   onClick={onViewFeed}
                 >
                   View community feed
@@ -224,7 +229,7 @@ const ProfileHero = ({
                 {onModeration ? (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                    className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                     onClick={onModeration}
                   >
                     User moderation
@@ -233,7 +238,7 @@ const ProfileHero = ({
                 {onReports ? (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                    className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                     onClick={onReports}
                   >
                     Reports
@@ -242,7 +247,7 @@ const ProfileHero = ({
                 {onAuditLog ? (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                    className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                     onClick={onAuditLog}
                   >
                     Audit log
@@ -254,21 +259,21 @@ const ProfileHero = ({
                 {!isAdminProfile && (
                   <>
                     <Button
-                      className="h-10 rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 px-5 text-sm font-semibold text-slate-900 shadow-lg shadow-cyan-500/30 hover:from-sky-500 hover:to-cyan-300"
+                      className="h-10 rounded-full bg-gradient-to-r from-primary to-secondary px-5 text-sm font-semibold text-inverse-foreground shadow-ocean hover:from-primary/90 hover:to-secondary/90 hover:shadow-glow"
                       onClick={onAddCatch}
                     >
                       Add catch
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                      className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                       onClick={onEditProfile}
                     >
                       Edit profile
                     </Button>
                     <Button
                       variant="outline"
-                      className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                      className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                       onClick={onViewStats}
                     >
                       View my stats
@@ -277,7 +282,7 @@ const ProfileHero = ({
                 )}
                 <Button
                   variant="outline"
-                  className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                  className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                   onClick={onOpenSettings}
                 >
                   <span className="flex items-center gap-2">
@@ -288,7 +293,7 @@ const ProfileHero = ({
                 {isAdminProfile ? (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                    className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                     onClick={onViewFeed}
                   >
                     View community feed
@@ -301,7 +306,7 @@ const ProfileHero = ({
                   <>
                     {!isBlockedByMe && (
                       <Button
-                        className="h-10 rounded-full border border-white/25 bg-white/90 px-5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-white"
+                        className="h-10 rounded-full border border-inverse/25 bg-inverse/90 px-5 text-sm font-semibold text-inverse-foreground shadow-card transition hover:bg-inverse dark:border-border dark:bg-card dark:text-foreground dark:hover:bg-muted/40"
                         onClick={onToggleFollow}
                         disabled={followLoading}
                       >
@@ -310,7 +315,7 @@ const ProfileHero = ({
                     )}
                     <Button
                       variant="outline"
-                      className="h-10 rounded-full border-white/40 bg-white/10 px-4 font-semibold text-white hover:bg-white/20"
+                      className="h-10 rounded-full border-inverse/40 bg-inverse/10 px-4 font-semibold text-inverse hover:bg-inverse/20 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                       onClick={onBlockToggle}
                       disabled={blockLoading}
                       title={isBlockedByMe ? undefined : "Block this user"}
@@ -322,7 +327,7 @@ const ProfileHero = ({
                 {isAdminProfile ? (
                   <Button
                     variant="outline"
-                    className="h-10 rounded-full border-white/20 bg-white/0 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                    className="h-10 rounded-full border-inverse/20 bg-inverse/0 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/50 dark:text-foreground dark:hover:bg-muted/60"
                     onClick={onViewFeed}
                   >
                     Back to feed
@@ -333,7 +338,7 @@ const ProfileHero = ({
             {!isAdminProfile && !isAdminSelf ? (
               <Button
                 variant="outline"
-                className="h-10 rounded-full border-white/20 bg-white/0 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                className="h-10 rounded-full border-inverse/20 bg-inverse/0 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/50 dark:text-foreground dark:hover:bg-muted/60"
                 onClick={onViewFeed}
               >
                 View community feed
@@ -342,7 +347,7 @@ const ProfileHero = ({
             {isAdminViewer && !isAdminSelf && onModeration ? (
               <Button
                 variant="outline"
-                className="h-10 rounded-full border-white/30 bg-white/5 px-5 text-sm font-semibold text-white hover:bg-white/10"
+                className="h-10 rounded-full border-inverse/30 bg-inverse/5 px-5 text-sm font-semibold text-inverse hover:bg-inverse/10 dark:border-border/60 dark:bg-muted/40 dark:text-foreground dark:hover:bg-muted/60"
                 onClick={onModeration}
               >
                 Moderation
@@ -356,11 +361,13 @@ const ProfileHero = ({
             {heroStatTiles.map((tile) => (
               <div
                 key={tile.label}
-                className="rounded-2xl border border-white/15 bg-slate-900/60 p-4 shadow-lg shadow-slate-900/30 backdrop-blur"
+                className="rounded-2xl border border-inverse/15 bg-inverse-foreground/60 p-4 shadow-overlay backdrop-blur dark:border-border/60 dark:bg-card/80 dark:shadow-card"
               >
-                <p className="text-[11px] uppercase tracking-[0.12em] text-white/70">{tile.label}</p>
-                <p className="mt-2 text-3xl font-semibold text-white">{tile.value}</p>
-                {tile.hint ? <p className="text-xs text-white/65">{tile.hint}</p> : null}
+                <p className="text-[11px] uppercase tracking-[0.12em] text-inverse/70 dark:text-muted-foreground">{tile.label}</p>
+                <p className="mt-2 text-3xl font-semibold text-inverse dark:text-foreground">{tile.value}</p>
+                {tile.hint ? (
+                  <p className="text-xs text-inverse/65 dark:text-muted-foreground">{tile.hint}</p>
+                ) : null}
               </div>
             ))}
           </div>

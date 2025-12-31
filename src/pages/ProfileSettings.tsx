@@ -7,7 +7,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import ProfileSettingsAvatarCard from "@/components/settings/ProfileSettingsAvatarCard";
+import ProfileSettingsIdentityHeader from "@/components/settings/ProfileSettingsIdentityHeader";
 import ProfileSettingsAccountCard from "@/components/settings/ProfileSettingsAccountCard";
 import ProfileSettingsEmailChangeCard from "@/components/settings/ProfileSettingsEmailChangeCard";
 import ProfileSettingsPasswordCard from "@/components/settings/ProfileSettingsPasswordCard";
@@ -17,15 +17,44 @@ import ProfileSettingsPrivacyCard from "@/components/settings/ProfileSettingsPri
 import ProfileSettingsSafetyBlockingCard, {
   BlockedProfileEntry,
 } from "@/components/settings/ProfileSettingsSafetyBlockingCard";
-import ProfileSettingsDangerZoneCard from "@/components/settings/ProfileSettingsDangerZoneCard";
 import ProfileSettingsNav, { SectionId } from "@/components/settings/ProfileSettingsNav";
 import PageContainer from "@/components/layout/PageContainer";
 import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import Text from "@/components/typography/Text";
+import Heading from "@/components/typography/Heading";
 import { isAdminUser } from "@/lib/admin";
-import { Loader2 } from "lucide-react";
+import { Ban, Download, Loader2, Lock, Mail, Shield, Trash2, User } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { profileSchema, passwordChangeSchema, type ProfileFormData, type PasswordChangeFormData } from "@/schemas";
+import PageSkeleton from "@/components/ui/PageSkeleton";
+import SectionSkeleton from "@/components/ui/SectionSkeleton";
+
+const SettingsSectionHeader = ({
+  title,
+  subtitle,
+  icon: Icon,
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: LucideIcon;
+}) => {
+  return (
+    <div className="space-y-1">
+      <Heading as="h3" size="sm" className="text-foreground">
+        <span className="inline-flex items-center gap-2">
+          {Icon ? <Icon className="h-4 w-4 text-muted-foreground" /> : null}
+          {title}
+        </span>
+      </Heading>
+      {subtitle ? (
+        <Text variant="muted" className="text-sm text-muted-foreground">
+          {subtitle}
+        </Text>
+      ) : null}
+    </div>
+  );
+};
 
 const ProfileSettings = () => {
   const { user, loading, signOut } = useAuth();
@@ -73,10 +102,12 @@ const ProfileSettings = () => {
   const [blockedLoading, setBlockedLoading] = useState(false);
   const [blockedError, setBlockedError] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<SectionId>("profile");
+  const [isAdmin, setIsAdmin] = useState(false);
   const profileSectionRef = useRef<HTMLDivElement | null>(null);
   const securitySectionRef = useRef<HTMLDivElement | null>(null);
   const dataPrivacySectionRef = useRef<HTMLDivElement | null>(null);
   const safetyBlockingSectionRef = useRef<HTMLDivElement | null>(null);
+  const dataSectionRef = useRef<HTMLDivElement | null>(null);
   const dangerZoneSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -84,6 +115,22 @@ const ProfileSettings = () => {
       navigate("/auth");
     }
   }, [loading, user, navigate]);
+
+  useEffect(() => {
+    let active = true;
+    const checkAdmin = async () => {
+      if (!user?.id) {
+        if (active) setIsAdmin(false);
+        return;
+      }
+      const result = await isAdminUser(user.id);
+      if (active) setIsAdmin(result);
+    };
+    void checkAdmin();
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -289,16 +336,6 @@ const ProfileSettings = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast.error("Failed to sign out. Please try again.");
-      return;
-    }
-    toast.success("Signed out");
-    navigate("/auth");
-  };
-
   const handleAccountDeletion = async () => {
     if (!user) {
       toast.error("You need to be signed in to delete your account.");
@@ -397,6 +434,7 @@ const ProfileSettings = () => {
       "security": securitySectionRef,
       "data-privacy": dataPrivacySectionRef,
       "safety-blocking": safetyBlockingSectionRef,
+      "data": dataSectionRef,
       "danger-zone": dangerZoneSectionRef,
     };
     const target = sectionRefMap[id].current;
@@ -418,6 +456,7 @@ const ProfileSettings = () => {
       { id: "security", ref: securitySectionRef },
       { id: "data-privacy", ref: dataPrivacySectionRef },
       { id: "safety-blocking", ref: safetyBlockingSectionRef },
+      { id: "data", ref: dataSectionRef },
       { id: "danger-zone", ref: dangerZoneSectionRef },
     ];
 
@@ -442,28 +481,44 @@ const ProfileSettings = () => {
 
   if (loading || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-background">
         <PageContainer className="py-10 md:py-12">
-          <div className="flex items-center justify-center text-slate-500">
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Loading profile settings…
-          </div>
+          <PageSkeleton sections={4} />
         </PageContainer>
       </div>
     );
   }
 
-  const isAdmin = isAdminUser(user?.id);
   const navSections = [
-    { id: "profile" as const, label: "Profile", active: activeSection === "profile" },
-    { id: "security" as const, label: "Security", active: activeSection === "security" },
-    { id: "data-privacy" as const, label: "Data & privacy", active: activeSection === "data-privacy" },
+    { id: "profile" as const, label: "Profile details", active: activeSection === "profile" },
+    { id: "security" as const, label: "Account", active: activeSection === "security" },
+    { id: "data-privacy" as const, label: "Privacy", active: activeSection === "data-privacy" },
     { id: "safety-blocking" as const, label: "Safety & blocking", active: activeSection === "safety-blocking" },
-    { id: "danger-zone" as const, label: "Danger zone", active: activeSection === "danger-zone" },
+    { id: "data" as const, label: "Data", active: activeSection === "data" },
+    { id: "danger-zone" as const, label: "Account deletion", active: activeSection === "danger-zone" },
   ];
+  const watchedUsername = profileForm.watch("username");
+  const watchedFullName = profileForm.watch("fullName");
+  const watchedBio = profileForm.watch("bio");
+  const identityUsername =
+    watchedUsername?.trim() || user?.user_metadata?.username || user?.email || "Angler";
+  const identityFullName =
+    watchedFullName?.trim() || user?.user_metadata?.full_name || null;
+  const identityBio = watchedBio ?? "";
+
+  const handleEditBio = () => {
+    setActiveSection("profile");
+    const bioElement = document.getElementById("bio") as HTMLTextAreaElement | null;
+    if (!bioElement) {
+      handleNavSelect("profile");
+      return;
+    }
+    bioElement.scrollIntoView({ behavior: "smooth", block: "start" });
+    bioElement.focus({ preventScroll: true });
+  };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-background">
       <PageContainer className="py-8 md:py-12">
         <div className="space-y-8 md:space-y-10">
           <Section>
@@ -474,103 +529,153 @@ const ProfileSettings = () => {
             />
           </Section>
 
-          <Section>
-            <ProfileSettingsNav sections={navSections} onSelect={handleNavSelect} />
-          </Section>
-
-          <Section>
-            <div ref={profileSectionRef} id="profile" className="space-y-8">
-              {user && (
-                <ProfileSettingsAvatarCard
-                  userId={user.id}
-                  username={profileForm.watch("username") || user.user_metadata?.username || user.email || "Angler"}
-                  avatarPath={avatarPath}
-                  legacyAvatarUrl={legacyAvatarUrl}
-                  onAvatarChange={(path) => {
-                    setAvatarPath(path);
-                    if (path) {
-                      setLegacyAvatarUrl(null);
-                    }
-                  }}
-                />
-              )}
-
-              <form className="space-y-8" onSubmit={profileForm.handleSubmit(handleSaveProfile)}>
-                <ProfileSettingsAccountCard profileForm={profileForm} />
-
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-end">
-                  <Text variant="small" className="md:order-1">
-                    Changes take effect immediately after saving.
-                  </Text>
-                  <Button
-                    type="submit"
-                    disabled={profileForm.formState.isSubmitting || (!profileForm.formState.isDirty && avatarPath === initialAvatarPath)}
-                    className="order-2 h-11 w-full bg-sky-600 text-white hover:bg-sky-700 md:w-auto"
-                  >
-                    {profileForm.formState.isSubmitting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Saving…
-                      </>
-                    ) : (
-                      "Save changes"
-                    )}
-                  </Button>
+          <div className="space-y-6">
+            <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+              <aside className="hidden lg:block">
+                <div className="sticky top-24">
+                  <ProfileSettingsNav
+                    sections={navSections}
+                    onSelect={handleNavSelect}
+                    variant="rail"
+                  />
                 </div>
-              </form>
-            </div>
-          </Section>
+              </aside>
 
-          <Section>
-            <div ref={securitySectionRef} id="security" className="space-y-6">
-              <ProfileSettingsPasswordCard passwordForm={passwordForm} onSubmit={handleUpdatePassword} />
-            </div>
-          </Section>
+              <div className="min-w-0 space-y-8">
+                <Section>
+                  <div ref={profileSectionRef} id="profile" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Profile details" icon={User} />
+                    <div className="space-y-6">
+                      {user ? (
+                        <ProfileSettingsIdentityHeader
+                          userId={user.id}
+                          username={identityUsername}
+                          fullName={identityFullName}
+                          bio={identityBio}
+                          avatarPath={avatarPath}
+                          legacyAvatarUrl={legacyAvatarUrl}
+                          onAvatarChange={(path) => {
+                            setAvatarPath(path);
+                            if (path) {
+                              setLegacyAvatarUrl(null);
+                            }
+                          }}
+                          onEditBio={handleEditBio}
+                        />
+                      ) : null}
 
-          <Section>
-            <div ref={dataPrivacySectionRef} id="data-privacy" className="space-y-6">
-              <ProfileSettingsEmailChangeCard
-                initialEmail={initialEmail}
-                emailForm={emailForm}
-                onSubmit={handleEmailChange}
-              />
-              <ProfileSettingsDataExportCard isExporting={isExporting} onDownload={handleDownloadExport} />
-              <ProfileSettingsPrivacyCard
-                isPrivate={isPrivate}
-                isUpdatingPrivacy={isUpdatingPrivacy}
-                onTogglePrivacy={(checked) => {
-                  void handlePrivacyToggle(checked);
-                }}
-              />
-            </div>
-          </Section>
+                      <div className="lg:hidden">
+                        <ProfileSettingsNav sections={navSections} onSelect={handleNavSelect} />
+                      </div>
 
-          <Section>
-            <div ref={safetyBlockingSectionRef} id="safety-blocking" className="space-y-6">
-              <ProfileSettingsSafetyBlockingCard
-                blockedProfiles={blockedProfiles}
-                blockedLoading={blockedLoading}
-                blockedError={blockedError}
-                onUnblock={(blockedId, username) => {
-                  void handleUnblock(blockedId, username);
-                }}
-              />
-            </div>
-          </Section>
+                      <form className="space-y-8" onSubmit={profileForm.handleSubmit(handleSaveProfile)}>
+                        <ProfileSettingsAccountCard profileForm={profileForm} />
 
-          <Section>
-            <div ref={dangerZoneSectionRef} id="danger-zone" className="space-y-6">
-              <ProfileSettingsDeleteAccountCard
-                isDeleteDialogOpen={isDeleteDialogOpen}
-                setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-                deleteReason={deleteReason}
-                setDeleteReason={setDeleteReason}
-                isDeletingAccount={isDeletingAccount}
-                onDeleteAccount={handleAccountDeletion}
-              />
-              <ProfileSettingsDangerZoneCard onSignOut={handleSignOut} />
+                        <div className="flex justify-end">
+                          <Button
+                            type="submit"
+                            disabled={profileForm.formState.isSubmitting || (!profileForm.formState.isDirty && avatarPath === initialAvatarPath)}
+                            className="h-11 w-full md:w-auto"
+                          >
+                            {profileForm.formState.isSubmitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Saving…
+                              </>
+                            ) : (
+                              "Save changes"
+                            )}
+                          </Button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </Section>
+
+                <Section>
+                  <div ref={securitySectionRef} id="security" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Account" icon={Mail} />
+                    <div className="space-y-6">
+                      <ProfileSettingsEmailChangeCard
+                        initialEmail={initialEmail}
+                        emailForm={emailForm}
+                        onSubmit={handleEmailChange}
+                      />
+                      <hr className="border-border/80" />
+                      <SettingsSectionHeader title="Security" icon={Lock} />
+                      <ProfileSettingsPasswordCard passwordForm={passwordForm} onSubmit={handleUpdatePassword} />
+                    </div>
+                  </div>
+                </Section>
+
+                <hr className="border-border/80" />
+
+                <Section>
+                  <div ref={dataPrivacySectionRef} id="data-privacy" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Privacy" icon={Shield} />
+                    <div className="space-y-6">
+                      <ProfileSettingsPrivacyCard
+                        isPrivate={isPrivate}
+                        isUpdatingPrivacy={isUpdatingPrivacy}
+                        onTogglePrivacy={(checked) => {
+                          void handlePrivacyToggle(checked);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </Section>
+
+                <hr className="border-border/80" />
+
+                <Section>
+                  <div ref={safetyBlockingSectionRef} id="safety-blocking" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Safety & blocking" icon={Ban} />
+                    <div className="space-y-6">
+                      {blockedLoading ? (
+                        <SectionSkeleton lines={3} />
+                      ) : (
+                        <ProfileSettingsSafetyBlockingCard
+                          blockedProfiles={blockedProfiles}
+                          blockedLoading={blockedLoading}
+                          blockedError={blockedError}
+                          onUnblock={(blockedId, username) => {
+                            void handleUnblock(blockedId, username);
+                          }}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </Section>
+
+                <hr className="border-border/80" />
+
+                <Section>
+                  <div ref={dataSectionRef} id="data" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Data" icon={Download} />
+                    <div className="space-y-6">
+                      <ProfileSettingsDataExportCard isExporting={isExporting} onDownload={handleDownloadExport} />
+                    </div>
+                  </div>
+                </Section>
+
+                <Section>
+                  <div ref={dangerZoneSectionRef} id="danger-zone" className="space-y-4 scroll-mt-28">
+                    <SettingsSectionHeader title="Account deletion" icon={Trash2} />
+                    <div className="space-y-6">
+                      <ProfileSettingsDeleteAccountCard
+                        isDeleteDialogOpen={isDeleteDialogOpen}
+                        setIsDeleteDialogOpen={setIsDeleteDialogOpen}
+                        deleteReason={deleteReason}
+                        setDeleteReason={setDeleteReason}
+                        isDeletingAccount={isDeletingAccount}
+                        onDeleteAccount={handleAccountDeletion}
+                      />
+                    </div>
+                  </div>
+                </Section>
+              </div>
             </div>
-          </Section>
+          </div>
         </div>
       </PageContainer>
     </div>

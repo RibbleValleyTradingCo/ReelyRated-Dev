@@ -7,10 +7,19 @@ export const qk = {
   venuePricingTiers: (venueId: string | null | undefined) =>
     ["venuePricingTiers", venueId] as const,
   venueRules: (venueId: string | null | undefined) => ["venueRules", venueId] as const,
+  venueUpcomingEvents: (venueId: string | null | undefined) =>
+    ["venueUpcomingEvents", venueId] as const,
+  venueTopCatches: (venueId: string | null | undefined) =>
+    ["venueTopCatches", venueId] as const,
+  venueSpeciesStock: (venueId: string | null | undefined) =>
+    ["venueSpeciesStock", venueId] as const,
   venueRecentCatches: (venueId: string | null | undefined) =>
     ["venueRecentCatches", venueId] as const,
   venuePastEvents: (venueId: string | null | undefined) =>
     ["venuePastEvents", venueId] as const,
+  venuePhotos: (venueId: string | null | undefined) =>
+    ["venuePhotos", venueId] as const,
+  feedBase: () => ["feed"] as const,
   feed: (params: {
     scope?: string;
     filter?: string;

@@ -13,13 +13,13 @@ import { Link } from "react-router-dom";
 
 type RecentCatchesSectionProps = {
   recentCatches: CatchRow[];
-  totalCatches: number;
-  recentWindow: number;
+  totalCatches: number | null;
+  recentWindow: number | null;
   venueName: string;
   venueSlug: string;
   isLoggedIn: boolean;
   isAdmin: boolean;
-  viewAllCount: number;
+  viewAllCount: number | null;
 };
 
 const RecentCatchesSection = ({
@@ -33,6 +33,9 @@ const RecentCatchesSection = ({
   viewAllCount,
 }: RecentCatchesSectionProps) => {
   const recentToShow = recentCatches.slice(0, 3);
+  const hasTotalCatches = totalCatches !== null && totalCatches !== undefined;
+  const showUnknownState = !hasTotalCatches && recentCatches.length === 0;
+  const showEmptyState = hasTotalCatches ? totalCatches <= 0 : false;
   const formatCatchWeight = (catchItem: CatchRow) =>
     catchItem.weight
       ? `${catchItem.weight}${
@@ -43,25 +46,30 @@ const RecentCatchesSection = ({
   return (
     <Section className="space-y-6">
       <div id="catches" className="text-center space-y-2 md:space-y-3 scroll-mt-24">
-        <h2 className="text-3xl font-bold text-slate-900 md:text-4xl">
+        <h2 className="text-3xl font-bold text-foreground md:text-4xl">
           Recent Catches
         </h2>
-        <p className="text-base text-slate-600 md:text-lg">
+        <p className="text-base text-muted-foreground md:text-lg">
           See what anglers are landing at {venueName} right now.
         </p>
       </div>
-      {totalCatches <= 0 ? (
-        <Card className="rounded-2xl border border-dashed border-slate-300 bg-gradient-to-br from-slate-50 to-white shadow-none">
-          <CardContent className="space-y-3 p-5 text-sm text-slate-600">
+      {showUnknownState ? (
+        <Card className="rounded-2xl border border-dashed border-border/60 bg-gradient-to-br from-muted/40 to-background shadow-none">
+          <CardContent className="space-y-2 p-5 text-sm text-muted-foreground">
+            <Text>Catches are unavailable right now.</Text>
+            <Text>Please check back later.</Text>
+          </CardContent>
+        </Card>
+      ) : showEmptyState ? (
+        <Card className="rounded-2xl border border-dashed border-border/60 bg-gradient-to-br from-muted/40 to-background shadow-none">
+          <CardContent className="space-y-3 p-5 text-sm text-muted-foreground">
             <Text>No catches have been logged at this venue yet.</Text>
             <Text>Be the first to add one from your catch log.</Text>
-            {isLoggedIn && !isAdmin ? (
-              <Button asChild className="rounded-full">
-                <Link to={`/add-catch${venueSlug ? `?venue=${venueSlug}` : ""}`}>
-                  Log a catch at this venue
-                </Link>
-              </Button>
-            ) : null}
+            <Button asChild variant="outline" className="rounded-full">
+              <Link to={`/add-catch${venueSlug ? `?venue=${venueSlug}` : ""}`}>
+                Be the first to log a catch
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -74,9 +82,9 @@ const RecentCatchesSection = ({
                   <Link
                     key={catchItem.id}
                     to={`/catch/${catchItem.id}`}
-                    className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:border-slate-300 hover:shadow-md"
+                    className="group overflow-hidden rounded-2xl border border-border bg-card shadow-card transition hover:border-border/80 hover:shadow-card-hover"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                       {catchItem.image_url ? (
                         <img
                           src={catchItem.image_url}
@@ -84,7 +92,7 @@ const RecentCatchesSection = ({
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="flex h-full items-center justify-center text-sm text-slate-500">
+                        <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                           No photo
                         </div>
                       )}
@@ -107,10 +115,10 @@ const RecentCatchesSection = ({
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold text-slate-900">
+                          <p className="truncate text-sm font-semibold text-foreground">
                             {catchItem.profiles?.username ?? "Unknown angler"}
                           </p>
-                          <p className="text-xs text-slate-500">
+                          <p className="text-xs text-muted-foreground">
                             {new Date(catchItem.created_at).toLocaleDateString(
                               undefined,
                               { month: "short", day: "numeric" }
@@ -119,10 +127,10 @@ const RecentCatchesSection = ({
                         </div>
                       </div>
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-slate-900">
+                        <span className="text-2xl font-bold text-foreground">
                           {formatCatchWeight(catchItem)}
                         </span>
-                        <span className="text-base text-slate-600">
+                        <span className="text-base text-muted-foreground">
                           {catchItem.species
                             ? humanizeSpecies(catchItem.species)
                             : "Species unknown"}
@@ -134,7 +142,7 @@ const RecentCatchesSection = ({
               })}
             </div>
           ) : null}
-          {viewAllCount > 3 ? (
+          {viewAllCount !== null && viewAllCount > 3 ? (
             <div className="flex justify-center pt-4">
               <Button asChild variant="outline" className="rounded-full px-6">
                 <Link to={`/feed?venue=${venueSlug}`}>

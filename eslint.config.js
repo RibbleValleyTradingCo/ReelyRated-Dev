@@ -3,6 +3,7 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
+import tailwindcss from "eslint-plugin-tailwindcss";
 
 export default tseslint.config(
   { ignores: ["dist"] },
@@ -16,11 +17,21 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
+      tailwindcss,
+    },
+    settings: {
+      tailwindcss: {
+        callees: ["cn", "cva"],
+        config: "tailwind.config.ts",
+      },
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      "tailwindcss/classnames-order": "warn",
+      "tailwindcss/no-contradicting-classname": "warn",
+      "tailwindcss/no-custom-classname": "off",
     },
   },
 );

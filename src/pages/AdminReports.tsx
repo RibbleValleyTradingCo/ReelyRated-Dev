@@ -127,9 +127,9 @@ const severityOptions: { value: SeverityOption; label: string }[] = [
 ];
 
 const statusBadgeVariants: Record<ReportStatus, string> = {
-  open: "bg-red-100 text-red-800",
-  resolved: "bg-green-100 text-green-800",
-  dismissed: "bg-yellow-100 text-yellow-800",
+  open: "bg-destructive/15 text-destructive",
+  resolved: "bg-primary/15 text-primary",
+  dismissed: "bg-muted/50 text-muted-foreground",
 };
 
 const formatRelative = (value: string | null | undefined) => {
@@ -553,6 +553,11 @@ const AdminReports = () => {
 
   const handleViewTarget = useCallback(
     async (report: ReportRow, catchIdFromDetails?: string | null) => {
+      if (!report.target_id) {
+        toast.error("Unable to open reported content");
+        return;
+      }
+
       if (report.target_type === "catch") {
         navigate(`/catch/${report.target_id}`);
         return;
@@ -608,10 +613,6 @@ const AdminReports = () => {
         });
         if (error) throw error;
       } else {
-        console.debug("admin_delete_comment payload", {
-          reportId: selectedReport.id,
-          targetId: selectedReport.target_id,
-        });
         const { error } = await supabase.rpc("admin_delete_comment", {
           p_comment_id: selectedReport.target_id,
           p_reason: deleteReason,
@@ -733,16 +734,6 @@ const AdminReports = () => {
     }
   }, [details, fetchReportDetails, fetchReports, handleUpdateStatus, selectedReport, warnDuration, warnReason, warnSeverity]);
 
-  const filteredReports = useMemo(() => {
-    return reports.filter((report) => {
-      const typeMatches = filter === "all" ? true : report.target_type === filter;
-      const statusMatches =
-        statusFilter === "all" ? true : report.status.toLowerCase() === statusFilter;
-      const userMatches = filteredUserId ? report.target_id === filteredUserId : true;
-      return typeMatches && statusMatches && userMatches;
-    });
-  }, [reports, filter, statusFilter, filteredUserId]);
-
   const canLoadMore = reports.length === pageSize * page;
 
   const resetFilters = useCallback(() => {
@@ -838,6 +829,7 @@ const AdminReports = () => {
               eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
               title="Reports"
               subtitle="Review and act on user reports."
+              titleAs="h1"
               actions={
                 <Button variant="outline" onClick={() => navigate(-1)} className="w-full sm:w-auto">
                   Back
@@ -886,27 +878,25 @@ const AdminReports = () => {
                 </div>
 
                 <details className="block sm:hidden rounded-lg border border-border/70 bg-muted/30 p-3">
-                  <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-md border border-border/70 bg-white/60 px-3 py-2 text-sm text-muted-foreground">
+                  <summary className="flex cursor-pointer items-center justify-between gap-2 rounded-md border border-border/70 bg-card/70 px-3 py-2 text-sm text-muted-foreground">
                     <span className="truncate">{filterSummary}</span>
                     <ChevronDown className="h-4 w-4 shrink-0" />
                   </summary>
                   <div className="mt-3 space-y-4">
-                    <div className="space-y-2 min-w-0">
-                      <Text variant="small" className="font-medium text-muted-foreground">
-                        Type
-                      </Text>
+                    <fieldset className="space-y-2 min-w-0">
+                      <legend className="text-xs font-medium text-muted-foreground">Type</legend>
                       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
                         {(["all", "catch", "comment", "profile"] as const).map((type) => (
                           <Button
-                          key={type}
-                          variant={filter === type ? "ocean" : "outline"}
-                          size="sm"
-                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setFilter(type);
-                            setPage(1);
-                          }}
-                        >
+                            key={type}
+                            variant={filter === type ? "ocean" : "outline"}
+                            size="sm"
+                            className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                            onClick={() => {
+                              setFilter(type);
+                              setPage(1);
+                            }}
+                          >
                             {filter === type ? <Check className="h-4 w-4 shrink-0" /> : null}
                             <span className="truncate">
                               {type === "all" ? "All" : type.charAt(0).toUpperCase() + type.slice(1)}
@@ -914,24 +904,22 @@ const AdminReports = () => {
                           </Button>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
 
-                    <div className="space-y-2 min-w-0">
-                      <Text variant="small" className="font-medium text-muted-foreground">
-                        Status
-                      </Text>
+                    <fieldset className="space-y-2 min-w-0">
+                      <legend className="text-xs font-medium text-muted-foreground">Status</legend>
                       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
                         {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
                           <Button
-                          key={status}
-                          variant={statusFilter === status ? "ocean" : "outline"}
-                          size="sm"
-                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setStatusFilter(status);
-                            setPage(1);
-                          }}
-                        >
+                            key={status}
+                            variant={statusFilter === status ? "ocean" : "outline"}
+                            size="sm"
+                            className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                            onClick={() => {
+                              setStatusFilter(status);
+                              setPage(1);
+                            }}
+                          >
                             {statusFilter === status ? <Check className="h-4 w-4 shrink-0" /> : null}
                             <span className="truncate">
                               {status === "all"
@@ -941,24 +929,22 @@ const AdminReports = () => {
                           </Button>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
 
-                    <div className="space-y-2 min-w-0">
-                      <Text variant="small" className="font-medium text-muted-foreground">
-                        Date
-                      </Text>
+                    <fieldset className="space-y-2 min-w-0">
+                      <legend className="text-xs font-medium text-muted-foreground">Date</legend>
                       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
                         {(["24h", "7d", "30d", "all"] as const).map((range) => (
                           <Button
-                          key={range}
-                          variant={dateRange === range ? "ocean" : "ghost"}
-                          size="sm"
-                          className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
-                          onClick={() => {
-                            setDateRange(range);
-                            setPage(1);
-                          }}
-                        >
+                            key={range}
+                            variant={dateRange === range ? "ocean" : "ghost"}
+                            size="sm"
+                            className="w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px] flex items-center justify-center gap-2"
+                            onClick={() => {
+                              setDateRange(range);
+                              setPage(1);
+                            }}
+                          >
                             {dateRange === range ? <Check className="h-4 w-4 shrink-0" /> : null}
                             <span className="truncate">
                               {range === "24h"
@@ -972,15 +958,13 @@ const AdminReports = () => {
                           </Button>
                         ))}
                       </div>
-                    </div>
+                    </fieldset>
                   </div>
                 </details>
 
                 <div className="hidden sm:grid gap-4 md:grid-cols-3">
-                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
-                    <Text variant="small" className="font-medium text-muted-foreground">
-                      Type
-                    </Text>
+                  <fieldset className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <legend className="text-xs font-medium text-muted-foreground">Type</legend>
                     <div className="flex flex-wrap gap-2 min-w-0">
                       {(["all", "catch", "comment", "profile"] as const).map((type) => (
                         <Button
@@ -998,12 +982,10 @@ const AdminReports = () => {
                         </Button>
                       ))}
                     </div>
-                  </div>
+                  </fieldset>
 
-                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
-                    <Text variant="small" className="font-medium text-muted-foreground">
-                      Status
-                    </Text>
+                  <fieldset className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <legend className="text-xs font-medium text-muted-foreground">Status</legend>
                     <div className="flex flex-wrap gap-2 min-w-0">
                       {(["all", "open", "resolved", "dismissed"] as const).map((status) => (
                         <Button
@@ -1025,12 +1007,10 @@ const AdminReports = () => {
                         </Button>
                       ))}
                     </div>
-                  </div>
+                  </fieldset>
 
-                  <div className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
-                    <Text variant="small" className="font-medium text-muted-foreground">
-                      Date
-                    </Text>
+                  <fieldset className="space-y-2 min-w-0 border-t border-border/50 pt-2 md:border-none md:pt-0">
+                    <legend className="text-xs font-medium text-muted-foreground">Date</legend>
                     <div className="flex flex-wrap gap-2 min-w-0">
                       {(["24h", "7d", "30d", "all"] as const).map((range) => (
                         <Button
@@ -1056,7 +1036,7 @@ const AdminReports = () => {
                         </Button>
                       ))}
                     </div>
-                  </div>
+                  </fieldset>
                 </div>
                 </CardContent>
               </Card>
@@ -1097,7 +1077,7 @@ const AdminReports = () => {
                   <Text variant="muted" className="text-sm">
                     Loading reports…
                   </Text>
-                ) : filteredReports.length === 0 ? (
+                ) : reports.length === 0 ? (
                   <div className="rounded-md border border-dashed border-border/70 bg-muted/40 p-4">
                     <Text variant="muted" className="text-sm">
                       {filteredUserId
@@ -1111,7 +1091,7 @@ const AdminReports = () => {
                     </div>
                   </div>
                 ) : (
-                  filteredReports.map((report) => {
+                  reports.map((report) => {
                     const isSelected = selectedReport?.id === report.id;
                     const currentDetails = isSelected ? details : null;
                     const isStatusUpdating = updatingId === report.id;
@@ -1139,7 +1119,10 @@ const AdminReports = () => {
                               onValueChange={(value) => handleUpdateStatus(report.id, value as ReportStatus)}
                               disabled={isStatusUpdating}
                             >
-                              <SelectTrigger className="w-full sm:w-40 min-h-[44px]">
+                              <SelectTrigger
+                                className="w-full sm:w-40 min-h-[44px]"
+                                aria-label={`Report status for ${report.target_type} report`}
+                              >
                                 <SelectValue placeholder={report.status} />
                               </SelectTrigger>
                               <SelectContent>
@@ -1161,6 +1144,7 @@ const AdminReports = () => {
                               size="sm"
                               className="text-primary w-full sm:w-auto min-w-0 whitespace-normal text-sm leading-tight px-3 py-2 min-h-[44px]"
                               onClick={() => void handleViewTarget(report, currentDetails?.parentCatchId)}
+                              disabled={!report.target_id}
                             >
                               <span className="truncate">View target</span>
                             </Button>
@@ -1225,19 +1209,19 @@ const AdminReports = () => {
                                 )}
 
                                 {currentDetails.deletedAt && (
-                                  <div className="rounded bg-red-50 p-3 text-sm text-red-700">
+                                  <div className="rounded border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
                                     Content deleted {formatRelative(currentDetails.deletedAt)}.
                                   </div>
                                 )}
 
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded bg-gray-50 p-3 min-w-0">
+                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between rounded border border-border/60 bg-muted/30 p-3 min-w-0">
                                   <Text className="font-medium">Status:</Text>
                                   <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusBadgeVariants[report.status]}`}>
                                     {report.status.toUpperCase()}
                                   </span>
                                 </div>
 
-                                <div className="rounded bg-slate-50 p-3 text-sm space-y-1">
+                                <div className="rounded border border-border/60 bg-muted/30 p-3 text-sm space-y-1">
                                   <div className="flex items-center justify-between gap-3">
                                     <Text>Moderation status</Text>
                                     <Text className="font-medium capitalize text-right truncate">
@@ -1251,7 +1235,7 @@ const AdminReports = () => {
                                   )}
                                 </div>
 
-                                <div className="space-y-2 rounded bg-blue-50 p-3">
+                                <div className="space-y-2 rounded border border-primary/20 bg-primary/10 p-3">
                                   <div className="flex items-center justify-between text-sm">
                                     <Text>Prior warnings</Text>
                                     <span>
@@ -1265,8 +1249,8 @@ const AdminReports = () => {
                                   ) : (
                                     <div className="space-y-1 text-xs text-muted-foreground">
                                       {currentDetails.userWarnings.map((warning) => (
-                                        <div key={warning.id} className="rounded border border-blue-200 bg-white/60 p-2">
-                                          <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-blue-700">
+                                        <div key={warning.id} className="rounded border border-border bg-card/60 p-2">
+                                          <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-primary">
                                             <span>{warning.severity.replace("_", " ")}</span>
                                             <span>{formatRelative(warning.created_at)}</span>
                                           </div>
@@ -1292,7 +1276,7 @@ const AdminReports = () => {
                                     <Button
                                       onClick={() => setShowDeleteConfirm(true)}
                                       disabled={isProcessingAction || isStatusUpdating}
-                                      className="px-3 py-2 bg-red-600 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                                      className="px-3 py-2 bg-destructive text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                                     >
                                       Delete {report.target_type === "catch" ? "post" : "comment"}
                                     </Button>
@@ -1300,7 +1284,7 @@ const AdminReports = () => {
                                   <Button
                                     onClick={() => setShowWarnDialog(true)}
                                     disabled={!canWarn || isProcessingAction || isStatusUpdating}
-                                    className="px-3 py-2 bg-orange-600 text-sm font-medium text-white hover:bg-orange-700 disabled:opacity-50"
+                                    className="px-3 py-2 bg-accent text-sm font-medium text-accent-foreground hover:bg-accent/90 disabled:opacity-50"
                                   >
                                     Warn user
                                   </Button>
@@ -1310,13 +1294,13 @@ const AdminReports = () => {
                                   <Button
                                     onClick={() => void handleRestoreContent()}
                                     disabled={isProcessingAction}
-                                    className="w-full px-3 py-2 bg-purple-600 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                                    className="w-full px-3 py-2 bg-primary text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                                   >
                                     Restore {report.target_type === "catch" ? "post" : "comment"}
                                   </Button>
                                 )}
 
-                                <details className="rounded bg-gray-50 p-3">
+                                <details className="rounded border border-border/60 bg-muted/30 p-3">
                                   <summary className="cursor-pointer font-medium">Moderation history</summary>
                                   <div className="mt-3 space-y-3 text-sm">
                                     {currentDetails.modHistory.length === 0 ? (
@@ -1333,7 +1317,7 @@ const AdminReports = () => {
                                                 {entry.admin?.username ?? entry.admin?.id ?? "Unknown admin"} – {entry.action}
                                               </Text>
                                             </div>
-                                            <Text className="text-gray-600">{entry.reason}</Text>
+                                            <Text className="text-muted-foreground">{entry.reason}</Text>
                                             <Text variant="muted" className="text-xs">
                                               {formatRelative(entry.created_at)}
                                             </Text>
@@ -1355,10 +1339,10 @@ const AdminReports = () => {
                     );
                   })
                 )}
-                {!isLoading && filteredReports.length > 0 && (
+                {!isLoading && reports.length > 0 && (
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/60">
                     <Text variant="muted" className="text-xs">
-                      {`Showing ${filteredReports.length} report${filteredReports.length === 1 ? "" : "s"}`}
+                      {`Showing ${reports.length} report${reports.length === 1 ? "" : "s"}`}
                     </Text>
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
                       <Button

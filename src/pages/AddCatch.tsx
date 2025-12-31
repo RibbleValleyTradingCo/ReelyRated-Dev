@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { normalizeVenueName } from "@/lib/freshwater-data";
 import type { Database } from "@/integrations/supabase/types";
 import { catchSchemaWithRefinements } from "@/schemas";
+import { useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/queryKeys";
 import { CatchBasicsSection } from "@/components/catch-form/CatchBasicsSection";
 import { LocationSection } from "@/components/catch-form/LocationSection";
 import { TacticsSection } from "@/components/catch-form/TacticsSection";
@@ -62,6 +64,7 @@ const AddCatch = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [adminChecked, setAdminChecked] = useState(false);
@@ -124,15 +127,37 @@ const AddCatch = () => {
     notes: "",
   });
   const [prefilledVenue, setPrefilledVenue] = useState<{ id: string; name: string } | null>(null);
+  const venueSlugParam = searchParams.get("venue");
+  const blobUrlsRef = useRef(new Set<string>());
+
+  const createPreviewUrl = (file: File) => {
+    const url = URL.createObjectURL(file);
+    blobUrlsRef.current.add(url);
+    return url;
+  };
+
+  const revokePreviewUrl = (url: string) => {
+    if (!url) return;
+    if (blobUrlsRef.current.has(url)) {
+      URL.revokeObjectURL(url);
+      blobUrlsRef.current.delete(url);
+    }
+  };
 
   useEffect(() => {
-    const slug = searchParams.get("venue");
-    if (!slug) return;
+    return () => {
+      blobUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrlsRef.current.clear();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!venueSlugParam) return;
     const loadVenueFromSlug = async () => {
       const venueResponse = await supabase
         .from("venues" as never)
         .select("id,name")
-        .eq("slug", slug)
+        .eq("slug", venueSlugParam)
         .maybeSingle();
       const { data, error } = venueResponse as { data: VenueRow | null; error: unknown };
       if (error || !data) return;
@@ -148,7 +173,7 @@ const AddCatch = () => {
       }));
     };
     void loadVenueFromSlug();
-  }, [searchParams]);
+  }, [venueSlugParam]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -331,11 +356,8 @@ const AddCatch = () => {
     const file = e.target.files?.[0];
     if (file) {
       setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      revokePreviewUrl(imagePreview);
+      setImagePreview(createPreviewUrl(file));
     }
   };
 
@@ -346,20 +368,18 @@ const AddCatch = () => {
       return;
     }
 
-    setGalleryFiles([...galleryFiles, ...files]);
-
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setGalleryPreviews(prev => [...prev, reader.result as string]);
-      };
-      reader.readAsDataURL(file);
-    });
+    const newPreviews = files.map(createPreviewUrl);
+    setGalleryFiles((prev) => [...prev, ...files]);
+    setGalleryPreviews((prev) => [...prev, ...newPreviews]);
   };
 
   const removeGalleryImage = (index: number) => {
-    setGalleryFiles(galleryFiles.filter((_, i) => i !== index));
-    setGalleryPreviews(galleryPreviews.filter((_, i) => i !== index));
+    const previewToRemove = galleryPreviews[index];
+    if (previewToRemove) {
+      revokePreviewUrl(previewToRemove);
+    }
+    setGalleryFiles((prev) => prev.filter((_, i) => i !== index));
+    setGalleryPreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUseGps = () => {
@@ -463,18 +483,23 @@ const AddCatch = () => {
       ? (UK_FISHERIES as readonly string[]).includes(normalizedLocation)
       : false;
     let venueId: string | null = null;
+    let venueSlug: string | null = venueSlugParam ?? null;
 
     if (prefilledVenue && prefilledVenue.name === finalLocation) {
       venueId = prefilledVenue.id;
     } else if (isKnownFishery) {
       const venueResponse = await supabase
         .from("venues" as never)
-        .select("id")
+        .select("id,slug")
         .eq("name", normalizedLocation)
         .maybeSingle();
-      const { data: venueRow } = venueResponse as { data: { id: string } | null; error: unknown };
+      const { data: venueRow } = venueResponse as {
+        data: { id: string; slug: string | null } | null;
+        error: unknown;
+      };
       const venue = venueRow ?? null;
       venueId = venue?.id ?? null;
+      venueSlug = venue?.slug ?? venueSlug;
     }
 
     setIsSubmitting(true);
@@ -638,6 +663,15 @@ const AddCatch = () => {
 
       if (insertError) throw insertError;
 
+      if (venueId) {
+        void queryClient.invalidateQueries({ queryKey: qk.venueTopCatches(venueId) });
+        void queryClient.invalidateQueries({ queryKey: qk.venueRecentCatches(venueId) });
+      }
+      if (venueSlug) {
+        void queryClient.invalidateQueries({ queryKey: qk.venueBySlug(venueSlug) });
+      }
+      void queryClient.invalidateQueries({ queryKey: qk.feedBase() });
+
       if (createdSession) {
         setSessions((prev) => [createdSession!, ...prev.filter((session) => session.id !== createdSession!.id)]);
         setSelectedSessionId(createdSession.id);
@@ -720,6 +754,7 @@ const AddCatch = () => {
             <SectionHeader
               title="Log a new catch"
               subtitle="Capture the details that actually help you catch more next time."
+              titleAs="h1"
             />
           </Section>
 
@@ -729,7 +764,7 @@ const AddCatch = () => {
                 <form onSubmit={handleSubmit} className="space-y-8" data-testid="add-catch-form">
                   <Section className="space-y-4">
                     <div className="space-y-3 pt-1">
-                      <div className="rounded-xl border border-border/60 bg-white/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.border-2]:p-2.5 [&_.border-2]:py-3 [&_label[for='title']]:text-sm [&_label[for='title']]:text-muted-foreground">
+                      <div className="rounded-xl border border-border/60 bg-card/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.border-2]:p-2.5 [&_.border-2]:py-3 [&_label[for='title']]:text-sm [&_label[for='title']]:text-muted-foreground">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Camera className="h-4 w-4" />
                           <Eyebrow className="mb-0">Catch basics</Eyebrow>
@@ -751,7 +786,7 @@ const AddCatch = () => {
                         />
                       </div>
 
-                      <div className="rounded-xl border border-border/60 bg-white/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.flex.flex-wrap.items-center.gap-2]:gap-1.5">
+                      <div className="rounded-xl border border-border/60 bg-card/80 p-3 sm:p-4 space-y-2 [&_h3]:sr-only [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-1.5 [&_.space-y-2]:space-y-1.5 [&_.grid.grid-cols-2]:gap-2 [&_.grid.grid-cols-2]:items-end [&_.flex.flex-wrap.items-center.gap-2]:gap-1.5">
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="h-4 w-4" />
                           <Eyebrow className="mb-0">Location & session</Eyebrow>
@@ -817,7 +852,7 @@ const AddCatch = () => {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
-                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                          <div className="rounded-xl border border-border/60 bg-card/80 p-4 sm:p-5">
                             <TacticsSection
                               formData={{
                                 baitUsed: formData.baitUsed,
@@ -850,7 +885,7 @@ const AddCatch = () => {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
-                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                          <div className="rounded-xl border border-border/60 bg-card/80 p-4 sm:p-5">
                             <StorySection
                               description={formData.description}
                               onDescriptionChange={(description) => setFormData({ ...formData, description })}
@@ -874,7 +909,7 @@ const AddCatch = () => {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
-                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                          <div className="rounded-xl border border-border/60 bg-card/80 p-4 sm:p-5">
                             <ConditionsSection
                               formData={{
                                 weather: formData.weather,
@@ -905,7 +940,7 @@ const AddCatch = () => {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
-                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                          <div className="rounded-xl border border-border/60 bg-card/80 p-4 sm:p-5">
                             <MediaSection
                               galleryFiles={galleryFiles}
                               galleryPreviews={galleryPreviews}
@@ -933,7 +968,7 @@ const AddCatch = () => {
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="px-1 pb-2 pt-0 sm:px-2 sm:pb-3">
-                          <div className="rounded-xl border border-border/60 bg-white/80 p-4 sm:p-5">
+                          <div className="rounded-xl border border-border/60 bg-card/80 p-4 sm:p-5">
                             <PrivacySection
                               formData={{
                                 tags: formData.tags,
@@ -950,7 +985,7 @@ const AddCatch = () => {
                   </Section>
 
                   <Section>
-                    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-border/60 bg-white/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-4">
+                    <div className="mt-2 flex flex-col gap-2 rounded-xl border border-border/60 bg-card/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-5 sm:py-4">
                       <Text variant="muted" className="text-xs leading-snug sm:text-sm">
                         You can log up to 10 catches per hour. We’ll save this to your logbook and update your rankings.
                       </Text>

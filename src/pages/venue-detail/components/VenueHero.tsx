@@ -75,34 +75,37 @@ const VenueHero = ({
     contactPhone ? `tel:${contactPhone}` : null
   );
 
+  const outlineButtonClass =
+    "h-12 w-full rounded-xl border border-inverse/30 bg-inverse/10 text-inverse shadow-card backdrop-blur-sm transition hover:bg-inverse/15 sm:w-[180px] dark:border-inverse-foreground/30 dark:bg-inverse-foreground/10 dark:text-inverse-foreground dark:hover:bg-inverse-foreground/15";
+
   return (
-    <div className="relative w-full overflow-hidden text-white">
+    <div className="relative w-full overflow-hidden text-inverse dark:text-inverse-foreground">
       <div className="relative">
         <div
-          className={`absolute inset-0 ${heroHasImage ? "bg-cover bg-center" : "bg-slate-950"}`}
+          className={`absolute inset-0 ${heroHasImage ? "bg-cover bg-center" : "bg-overlay"}`}
           style={{
             backgroundImage:
               heroHasImage && activeHeroImage
                 ? `url(${activeHeroImage})`
-                : "radial-gradient(circle at top, rgba(148,163,184,0.2) 0%, rgba(15,23,42,0.94) 50%, rgba(8,12,20,0.98) 100%)",
-            backgroundColor: "#0b1220",
+                : "radial-gradient(circle at top, hsl(var(--overlay) / 0.35) 0%, hsl(var(--overlay) / 0.85) 50%, hsl(var(--overlay) / 0.95) 100%)",
+            backgroundColor: "hsl(var(--overlay))",
           }}
         />
         {!heroHasImage ? (
           <>
             <div
-              className="absolute -top-24 right-10 h-56 w-56 rounded-full bg-sky-500/25 blur-3xl"
+              className="absolute -top-24 right-10 h-56 w-56 rounded-full bg-primary/25 blur-3xl"
               aria-hidden
             />
             <div
-              className="absolute bottom-0 left-0 h-48 w-48 -translate-x-1/3 translate-y-1/3 rounded-full bg-sky-600/20 blur-3xl"
+              className="absolute bottom-0 left-0 h-48 w-48 -translate-x-1/3 translate-y-1/3 rounded-full bg-secondary/20 blur-3xl"
               aria-hidden
             />
           </>
         ) : null}
         {activeHeroImage && !heroReady ? (
           <div
-            className="absolute inset-0 animate-pulse bg-slate-200/80"
+            className="absolute inset-0 animate-pulse bg-muted/80"
             aria-hidden
           />
         ) : null}
@@ -111,67 +114,67 @@ const VenueHero = ({
           className="absolute inset-0 opacity-15"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12) 0, transparent 35%), radial-gradient(circle at 80% 30%, rgba(255,255,255,0.08) 0, transparent 30%), radial-gradient(circle at 40% 70%, rgba(255,255,255,0.06) 0, transparent 30%)",
+              "radial-gradient(circle at 20% 20%, hsl(var(--inverse) / 0.12) 0, transparent 35%), radial-gradient(circle at 80% 30%, hsl(var(--inverse) / 0.08) 0, transparent 30%), radial-gradient(circle at 40% 70%, hsl(var(--inverse) / 0.06) 0, transparent 30%)",
           }}
           aria-hidden
         />
         <div className="relative mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-10 text-center sm:px-6 sm:py-12 lg:px-8 lg:py-14">
-          <div className="flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-slate-200/80 sm:text-xs">
+          <div className="flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-inverse/80 sm:text-xs dark:text-inverse-foreground/80">
             <Link to="/venues" className="hover:underline">
               Venues
             </Link>
             <span aria-hidden="true">/</span>
-            <span className="text-sky-300">{venue.name}</span>
+            <span className="text-secondary">{venue.name}</span>
           </div>
           <div className="mt-4 w-full space-y-5 lg:space-y-6">
             <div className="space-y-3 min-w-0">
               <Heading
                 as="h1"
-                className="text-4xl font-extrabold leading-tight text-white sm:text-5xl lg:text-6xl"
+                className="text-4xl font-extrabold leading-tight text-inverse sm:text-5xl lg:text-6xl dark:text-inverse-foreground"
               >
                 {venue.name}
               </Heading>
               {venue.is_published === false && (isOwner || isAdmin) ? (
-                <span className="inline-flex items-center justify-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-200">
+                <span className="inline-flex items-center justify-center gap-2 rounded-full bg-inverse/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-secondary dark:bg-inverse-foreground/15">
                   Unpublished — only visible to you and admins
                 </span>
               ) : null}
-              <div className="flex items-center justify-center gap-2 text-sm text-slate-100 min-w-0 sm:text-base">
+              <div className="flex items-center justify-center gap-2 text-sm text-inverse min-w-0 sm:text-base dark:text-inverse-foreground">
                 {venue.location ? (
-                  <span className="inline-flex items-center gap-2 min-w-0 text-slate-100">
-                    <MapPin className="h-4 w-4 text-slate-200" />
+                  <span className="inline-flex items-center gap-2 min-w-0 text-inverse dark:text-inverse-foreground">
+                    <MapPin className="h-4 w-4 text-inverse/80 dark:text-inverse-foreground/80" />
                     <span className="truncate">{venue.location}</span>
                   </span>
                 ) : null}
               </div>
-              <Text className="mx-auto max-w-3xl text-base text-slate-100/90 sm:text-lg lg:text-xl">
+              <Text className="mx-auto max-w-3xl text-base text-inverse/90 sm:text-lg lg:text-xl dark:text-inverse-foreground/90">
                 {heroTagline}
               </Text>
-              <div className="flex flex-col gap-2 text-sm text-slate-200/85 sm:flex-row sm:items-center sm:justify-center sm:gap-3 min-w-0 sm:text-base">
-                <div className="flex min-w-0 items-center justify-center gap-2 text-sm font-semibold text-white sm:text-base">
-                  <Star className="h-5 w-5 fill-amber-300 text-amber-300" />
+              <div className="flex flex-col gap-2 text-sm text-inverse/85 sm:flex-row sm:items-center sm:justify-center sm:gap-3 min-w-0 sm:text-base dark:text-inverse-foreground/85">
+                <div className="flex min-w-0 items-center justify-center gap-2 text-sm font-semibold text-inverse sm:text-base dark:text-inverse-foreground">
+                  <Star className="h-5 w-5 fill-accent text-accent" />
                   <span className="truncate">{ratingSummaryText}</span>
                 </div>
                 {isLoggedIn ? (
-                  <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-slate-200/85 min-w-0 min-h-[28px] sm:min-h-[24px] sm:text-sm">
+                  <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-inverse/85 min-w-0 min-h-[28px] sm:min-h-[24px] sm:text-sm dark:text-inverse-foreground/85">
                     {!isUserRatingResolved ? (
                       <>
                         <span
-                          className="inline-flex h-3 w-24 rounded-full bg-white/20 animate-pulse"
+                          className="inline-flex h-3 w-24 rounded-full bg-inverse/20 animate-pulse dark:bg-inverse-foreground/20"
                           aria-hidden="true"
                         />
                         <span className="sr-only">Loading your rating</span>
                       </>
                     ) : userRating !== null ? (
                       <>
-                        <span className="truncate text-slate-200/80">
+                        <span className="truncate text-inverse/80 dark:text-inverse-foreground/80">
                           You rated this {userRating} star
                           {userRating === 1 ? "" : "s"}
                         </span>
                         <button
                           type="button"
                           onClick={(event) => onOpenRatingModal(event.currentTarget)}
-                          className="text-xs font-semibold text-white underline underline-offset-2 hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:text-sm"
+                          className="text-xs font-semibold text-inverse underline underline-offset-2 hover:text-inverse/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inverse/70 sm:text-sm dark:text-inverse-foreground dark:hover:text-inverse-foreground/90 dark:focus-visible:ring-inverse-foreground/70"
                         >
                           Change
                         </button>
@@ -180,15 +183,18 @@ const VenueHero = ({
                       <button
                         type="button"
                         onClick={(event) => onOpenRatingModal(event.currentTarget)}
-                        className="text-xs font-semibold text-white underline underline-offset-2 hover:text-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 sm:text-sm"
+                        className="text-xs font-semibold text-inverse underline underline-offset-2 hover:text-inverse/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inverse/70 sm:text-sm dark:text-inverse-foreground dark:hover:text-inverse-foreground/90 dark:focus-visible:ring-inverse-foreground/70"
                       >
                         Rate this venue
                       </button>
                     )}
                   </div>
                 ) : (
-                  <Text className="text-xs text-slate-200/80 sm:text-sm">
-                    <Link to="/auth" className="underline hover:text-white">
+                  <Text className="text-xs text-inverse/80 sm:text-sm dark:text-inverse-foreground/80">
+                    <Link
+                      to="/auth"
+                      className="underline hover:text-inverse dark:hover:text-inverse-foreground"
+                    >
                       Log in
                     </Link>{" "}
                     to rate this venue.
@@ -199,7 +205,7 @@ const VenueHero = ({
                 {safePrimaryCtaUrl && bookingEnabled ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl bg-blue-600 text-white shadow-md transition hover:bg-blue-700 hover:shadow-lg sm:w-[180px]"
+                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
                   >
                     <a href={safePrimaryCtaUrl} target="_blank" rel="noreferrer">
                       <ExternalLink className="h-4 w-4" />
@@ -209,7 +215,7 @@ const VenueHero = ({
                 ) : (
                   <Button
                     disabled
-                    className="h-12 w-full rounded-xl bg-blue-600 text-white shadow-md sm:w-[180px]"
+                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
                   >
                     Book Now
                   </Button>
@@ -217,7 +223,7 @@ const VenueHero = ({
                 {safePhoneUrl ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl bg-blue-600/90 text-white shadow-md transition hover:bg-blue-600 sm:w-[180px]"
+                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
                   >
                     <a href={safePhoneUrl}>
                       <Phone className="h-4 w-4" />
@@ -227,7 +233,7 @@ const VenueHero = ({
                 ) : (
                   <Button
                     disabled
-                    className="h-12 w-full rounded-xl bg-blue-600/70 text-white shadow-md sm:w-[180px]"
+                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
                   >
                     Call Venue
                   </Button>
@@ -235,7 +241,7 @@ const VenueHero = ({
                 {safeSecondaryCtaUrl ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     <a href={safeSecondaryCtaUrl} target="_blank" rel="noreferrer">
                       <Globe2 className="h-4 w-4" />
@@ -245,7 +251,7 @@ const VenueHero = ({
                 ) : (
                   <Button
                     disabled
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     {secondaryCtaLabel}
                   </Button>
@@ -253,7 +259,7 @@ const VenueHero = ({
                 {safeMapsUrl ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     <a href={safeMapsUrl} target="_blank" rel="noreferrer">
                       <MapPin className="h-4 w-4" />
@@ -263,7 +269,7 @@ const VenueHero = ({
                 ) : (
                   <Button
                     disabled
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     Get Directions
                   </Button>
@@ -271,7 +277,7 @@ const VenueHero = ({
                 {isOwner ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     <Link to={`/my/venues/${venue.slug}`}>
                       Manage venue
@@ -280,7 +286,7 @@ const VenueHero = ({
                 ) : isAdmin ? (
                   <Button
                     asChild
-                    className="h-12 w-full rounded-xl border border-white/30 bg-white/10 text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 sm:w-[180px]"
+                    className={outlineButtonClass}
                   >
                     <Link to={`/admin/venues/${venue.slug}`}>
                       Edit Venue
@@ -289,7 +295,7 @@ const VenueHero = ({
                 ) : null}
               </div>
               {!bookingEnabled ? (
-                <Text className="text-xs text-slate-200/80">
+                <Text className="text-xs text-inverse/80 dark:text-inverse-foreground/80">
                   Bookings currently closed.
                 </Text>
               ) : null}
@@ -306,7 +312,7 @@ const VenueHero = ({
                     (prev) => (prev - 1 + heroImages.length) % heroImages.length
                   )
                 }
-                className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-white/25"
+                className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-inverse/15 text-inverse shadow-overlay ring-1 ring-inverse/20 backdrop-blur transition hover:bg-inverse/25 dark:bg-inverse-foreground/15 dark:text-inverse-foreground dark:ring-inverse-foreground/20 dark:hover:bg-inverse-foreground/25"
                 aria-label="Previous hero image"
               >
                 ‹
@@ -316,7 +322,7 @@ const VenueHero = ({
                 onClick={() =>
                   setHeroIndex((prev) => (prev + 1) % heroImages.length)
                 }
-                className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-white shadow-lg ring-1 ring-white/20 backdrop-blur transition hover:bg-white/25"
+                className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full bg-inverse/15 text-inverse shadow-overlay ring-1 ring-inverse/20 backdrop-blur transition hover:bg-inverse/25 dark:bg-inverse-foreground/15 dark:text-inverse-foreground dark:ring-inverse-foreground/20 dark:hover:bg-inverse-foreground/25"
                 aria-label="Next hero image"
               >
                 ›
@@ -330,8 +336,8 @@ const VenueHero = ({
                   onClick={() => setHeroIndex(idx)}
                   className={`pointer-events-auto h-2.5 rounded-full transition ${
                     heroIndex === idx
-                      ? "w-6 bg-white"
-                      : "w-2.5 bg-white/50 hover:bg-white/70"
+                      ? "w-6 bg-inverse dark:bg-inverse-foreground"
+                      : "w-2.5 bg-inverse/50 hover:bg-inverse/70 dark:bg-inverse-foreground/50 dark:hover:bg-inverse-foreground/70"
                   }`}
                   aria-label={`Show hero image ${idx + 1}`}
                 />

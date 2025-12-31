@@ -12,7 +12,7 @@ export const PageSpinner = ({ label = "Loading…", className }: PageSpinnerProp
       role="status"
       aria-live="polite"
       className={cn(
-        "section-container py-10 md:py-14 flex items-center justify-center text-slate-500",
+        "section-container py-10 md:py-14 flex items-center justify-center text-muted-foreground",
         className
       )}
     >

@@ -23,15 +23,16 @@ export const StatsCards = memo(({
   mostCommonSpecies,
   mostCommonSpeciesCount,
 }: StatsCardsProps) => {
+  const valueClass = "text-2xl font-semibold leading-tight tracking-tight text-foreground tabular-nums sm:text-3xl";
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">Total catches</CardTitle>
           <Fish className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{totalCatches}</p>
+          <p className={valueClass}>{totalCatches}</p>
           <p className="text-xs text-muted-foreground">Logged with these filters</p>
         </CardContent>
       </Card>
@@ -42,7 +43,7 @@ export const StatsCards = memo(({
           <Trophy className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{pbLabel}</p>
+          <p className={`${valueClass} break-words`}>{pbLabel}</p>
           <p className="text-xs text-muted-foreground">Heaviest catch in this range</p>
         </CardContent>
       </Card>
@@ -53,7 +54,7 @@ export const StatsCards = memo(({
           <Scale className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <p className="text-lg font-semibold leading-tight">{averageWeightLabel}</p>
+          <p className={`${valueClass} break-words`}>{averageWeightLabel}</p>
           <p className="text-xs text-muted-foreground">
             {weightedCatchCount > 0
               ? `Across ${weightedCatchCount} weighed catch${weightedCatchCount === 1 ? "" : "es"}`
@@ -68,7 +69,7 @@ export const StatsCards = memo(({
           <Layers className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{sessionsCount}</p>
+          <p className={valueClass}>{sessionsCount}</p>
           <p className="text-xs text-muted-foreground">
             {sessionsCount === 0
               ? "No sessions tagged"
@@ -83,7 +84,7 @@ export const StatsCards = memo(({
           <Sparkles className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <p className="text-lg font-semibold leading-tight">
+          <p className={`${valueClass} break-words`}>
             {mostCommonSpecies ?? "No species data yet"}
           </p>
           <p className="text-xs text-muted-foreground">

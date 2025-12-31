@@ -1,17 +1,17 @@
 import heroFish from "@/assets/hero-fish.jpg";
 import { useLeaderboardRealtime } from "@/hooks/useLeaderboardRealtime";
 import { getFreshwaterSpeciesLabel } from "@/lib/freshwater-data";
-import { supabase } from "@/integrations/supabase/client";
 import { Crown } from "lucide-react";
 import {
   memo,
   useCallback,
-  useEffect,
+  useMemo,
   useState,
   useTransition,
-  type ChangeEvent,
 } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { FeedSelect } from "@/components/feed/FeedSelect";
+import { useSpeciesOptions } from "@/hooks/useSpeciesOptions";
 
 import "./Leaderboard.css";
 
@@ -37,92 +37,29 @@ interface LeaderboardProps {
 }
 
 const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
-  const navigate = useNavigate();
-  const [selectedSpecies, setSelectedSpecies] = useState<string>("");
-  const [speciesOptions, setSpeciesOptions] = useState<string[]>([]);
-  const [speciesError, setSpeciesError] = useState<string | null>(null);
+  const [selectedSpecies, setSelectedSpecies] = useState<string>("all");
   const [isPending, startTransition] = useTransition();
 
   const { entries, loading, error } = useLeaderboardRealtime(
-    selectedSpecies ? selectedSpecies : null,
+    selectedSpecies !== "all" ? selectedSpecies : null,
     limit,
-  );
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSpeciesOptions = async () => {
-      try {
-        const { data, error: queryError } = await supabase
-          .from("leaderboard_scores_detailed")
-          .select("species_slug")
-          .not("species_slug", "is", null)
-          .order("species_slug", { ascending: true })
-          .limit(500);
-
-        if (queryError) {
-          throw queryError;
-        }
-
-        if (!isMounted) return;
-
-        const unique = new Set<string>();
-        (data ?? []).forEach((row) => {
-          const value = row?.species_slug;
-          if (typeof value === "string" && value.length > 0) {
-            unique.add(value);
-          }
-        });
-
-        setSpeciesOptions(Array.from(unique).sort((a, b) => a.localeCompare(b)));
-        setSpeciesError(null);
-      } catch (loadError) {
-        console.error("Failed to load leaderboard species options:", loadError);
-        if (isMounted) {
-          setSpeciesError("Species filter options are limited right now.");
-        }
-      }
-    };
-
-    void loadSpeciesOptions();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    setSpeciesOptions((previous) => {
-      const combined = new Set(previous);
-      let changed = false;
-
-      entries.forEach((entry) => {
-        if (entry.species_slug && !combined.has(entry.species_slug)) {
-          combined.add(entry.species_slug);
-          changed = true;
-        }
-      });
-
-      if (!changed) {
-        return previous;
-      }
-
-      return Array.from(combined).sort((a, b) => a.localeCompare(b));
-    });
-  }, [entries]);
-
-  const handleCatchClick = useCallback(
-    (catchId: string) => {
-      navigate(`/catch/${catchId}`);
+    {
+      enableRealtime: false,
+      refreshIntervalMs: 3 * 60 * 1000,
     },
-    [navigate],
+  );
+  const { options: speciesOptions, isLoading: speciesLoading } = useSpeciesOptions({
+    onlyWithCatches: true,
+  });
+  const speciesFilterOptions = useMemo(
+    () => [{ value: "all", label: "All species" }, ...speciesOptions],
+    [speciesOptions],
   );
 
   const handleSpeciesChange = useCallback(
-    (event: ChangeEvent<HTMLSelectElement>) => {
-      const nextValue = event.target.value;
+    (value: string) => {
       startTransition(() => {
-        setSelectedSpecies(nextValue);
+        setSelectedSpecies(value);
       });
     },
     [startTransition],
@@ -134,34 +71,22 @@ const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
     <div className="leaderboard-wrapper">
       <div className={`leaderboard-controls${tableIsBusy ? " leaderboard-controls--busy" : ""}`}>
         <div className="leaderboard-controls__group">
-          <label htmlFor="leaderboard-species">Filter by species</label>
-          <div className="leaderboard-select-wrapper">
-            <select
-              id="leaderboard-species"
-              className="leaderboard-select"
+          <p className="leaderboard-controls__heading">Filter leaderboard by species</p>
+          <div className="leaderboard-controls__select">
+            <FeedSelect
+              label="Species"
               value={selectedSpecies}
+              options={speciesFilterOptions}
               onChange={handleSpeciesChange}
-              disabled={speciesOptions.length === 0 && loading}
-            >
-              <option value="">All species</option>
-              {speciesOptions.map((species) => (
-                <option key={species} value={species}>
-                  {formatSpeciesLabel(species)}
-                </option>
-              ))}
-            </select>
+              disabled={speciesLoading || loading}
+              hideLabel
+            />
           </div>
+          <span className="leaderboard-meta" aria-live="polite">
+            Showing {entries.length} catch{entries.length === 1 ? "" : "es"}
+          </span>
         </div>
-        <span className="leaderboard-meta" aria-live="polite">
-          Showing {entries.length} catch{entries.length === 1 ? "" : "es"}
-        </span>
       </div>
-
-      {speciesError ? (
-        <div className="leaderboard-meta leaderboard-meta--warn" role="status">
-          {speciesError}
-        </div>
-      ) : null}
 
       {error ? (
         <div className="leaderboard-error">
@@ -210,7 +135,6 @@ const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
                     <tr
                       key={entry.id}
                       className={`leaderboard-row${isLeader ? " leaderboard-row--leader" : ""}`}
-                      onClick={() => handleCatchClick(entry.id)}
                     >
                       <td className="rank-col">
                         <span className="rank-wrapper">
@@ -226,12 +150,16 @@ const LeaderboardComponent = ({ limit = 50 }: LeaderboardProps) => {
                         </span>
                       </td>
                       <td className="title-col">
-                        <div className="catch-cell">
+                        <Link
+                          to={`/catch/${entry.id}`}
+                          className="catch-cell leaderboard-link"
+                          aria-label={`View catch: ${entry.title ?? "Untitled catch"}`}
+                        >
                           <div className="catch-thumb">
                             <img src={thumbnail} alt="" />
                           </div>
                           <span className="catch-title">{entry.title ?? "Untitled catch"}</span>
-                        </div>
+                        </Link>
                       </td>
                       <td className="species-col">{formatSpeciesLabel(entry.species_slug)}</td>
                       <td className="weight-col hide-md">

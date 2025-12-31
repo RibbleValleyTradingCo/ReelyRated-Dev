@@ -116,6 +116,9 @@ export const useCatchInteractions = ({
       if (error) throw error;
       return action;
     },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: qk.feedBase() });
+    },
     retry: false,
   });
 
@@ -130,6 +133,9 @@ export const useCatchInteractions = ({
       });
       if (error) throw error;
       return true;
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: qk.feedBase() });
     },
     retry: false,
   });
@@ -159,7 +165,7 @@ export const useCatchInteractions = ({
       setDeleteLoading(false);
       queryClient.removeQueries({ queryKey: qk.catchById(catchData.id) });
       queryClient.removeQueries({ queryKey: qk.catchComments(catchData.id) });
-      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: qk.feedBase() });
       navigate("/feed");
     } catch (error) {
       toast.error("Failed to delete catch");
@@ -253,7 +259,7 @@ export const useCatchInteractions = ({
           actorId: userId,
           type: "new_reaction",
           payload: {
-            message: `${actorName} liked your catch \"${catchData.title}\".`,
+            message: `${actorName} liked your catch "${catchData.title}".`,
             catchId: catchData.id,
             extraData: {
               catch_title: catchData.title,

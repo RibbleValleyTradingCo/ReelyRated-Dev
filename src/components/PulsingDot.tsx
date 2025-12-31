@@ -5,8 +5,15 @@ interface PulsingDotProps {
 }
 
 export const PulsingDot = ({ className }: PulsingDotProps) => (
-  <span className={cn("relative inline-flex h-2 w-2", className)}>
-    <span className="absolute inset-0 rounded-full bg-white/70 motion-safe:animate-ping" />
+  <span className={cn("relative inline-flex h-3 w-3 items-center justify-center", className)}>
+    <span
+      className="absolute h-3 w-3 rounded-full bg-background/35 motion-safe:animate-ping"
+      aria-hidden="true"
+    />
+    <span
+      className="relative h-2 w-2 rounded-full bg-background shadow-[0_0_10px_hsl(var(--background)/0.55)]"
+      aria-hidden="true"
+    />
   </span>
 );
 

@@ -14,7 +14,7 @@ export const LoadingState = ({ message = "Loading...", fullscreen = false }: Loa
         fullscreen ? "min-h-[60vh]" : "py-10",
       )}
     >
-      <Loader2 className="h-5 w-5 animate-spin text-slate-400" aria-hidden="true" />
+      <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden="true" />
       <span>{message}</span>
     </div>
   );

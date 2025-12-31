@@ -140,7 +140,7 @@ export const NotificationsBell = ({
           variant="ghost"
           size="icon"
           className={cn(
-            "group relative h-10 w-10 rounded-xl border border-transparent bg-white/0 transition-colors hover:bg-slate-100 md:h-11 md:w-11",
+            "group relative h-10 w-10 rounded-xl border border-transparent bg-transparent transition-colors hover:bg-muted/60 md:h-11 md:w-11",
             buttonClassName,
           )}
           onClick={() => setOpen((prev) => !prev)}
@@ -149,14 +149,14 @@ export const NotificationsBell = ({
         >
           <Bell
             className={cn(
-              "h-5 w-5 text-slate-600 transition-colors group-hover:text-primary md:h-6 md:w-6",
+              "h-5 w-5 text-muted-foreground transition-colors group-hover:text-primary md:h-6 md:w-6",
               iconClassName,
             )}
           />
           {unreadCount > 0 && (
             <span
               className={cn(
-                "absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white shadow-md ring-2 ring-white",
+                "absolute -top-1 -right-1 inline-flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground shadow-card ring-2 ring-background",
                 badgeClassName,
               )}
             >
@@ -171,7 +171,7 @@ export const NotificationsBell = ({
             <p className="text-sm font-semibold text-foreground">
               {unreadCount > 0 ? (
                 <>
-                  Notifications (<span className="text-red-400">{unreadCount}</span>)
+                  Notifications (<span className="text-destructive">{unreadCount}</span>)
                 </>
               ) : (
                 "Notifications"

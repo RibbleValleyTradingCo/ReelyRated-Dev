@@ -41,7 +41,7 @@ export const ConditionsSection = ({
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-4 mt-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="weather">Weather</Label>
             <Select value={formData.weather} onValueChange={(value) => onFormDataChange({ weather: value })}>
@@ -67,7 +67,7 @@ export const ConditionsSection = ({
             />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="waterClarity">Water Clarity</Label>
             <Select value={formData.waterClarity} onValueChange={(value) => onFormDataChange({ waterClarity: value })}>

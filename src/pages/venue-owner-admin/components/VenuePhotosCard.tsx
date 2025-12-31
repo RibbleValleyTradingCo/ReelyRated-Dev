@@ -8,12 +8,15 @@ import Text from "@/components/typography/Text";
 import { getPublicAssetUrl } from "@/lib/storage";
 import { Loader2, Upload, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { qk } from "@/lib/queryKeys";
 
 type VenuePhotoRow = {
   id: string;
   venue_id: string;
   image_path: string;
   caption: string | null;
+  is_primary?: boolean | null;
   created_at: string;
   created_by: string | null;
 };
@@ -31,14 +34,25 @@ const VENUE_PHOTOS_BUCKET = "venue-photos";
 
 interface VenuePhotosCardProps {
   venueId: string;
+  mode?: "owner" | "admin";
+  variant?: "card" | "embedded";
+  showHeader?: boolean;
 }
 
-const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
+const VenuePhotosCard = ({
+  venueId,
+  mode = "owner",
+  variant = "card",
+  showHeader = true,
+}: VenuePhotosCardProps) => {
+  const queryClient = useQueryClient();
+  const isEmbedded = variant === "embedded";
   const [photos, setPhotos] = useState<VenuePhotoRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadQueue, setUploadQueue] = useState<UploadItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const [settingPrimaryIds, setSettingPrimaryIds] = useState<Set<string>>(new Set());
 
   const loadPhotos = useCallback(async () => {
     if (!venueId) return;
@@ -112,9 +126,17 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
     return `${venueId}/${stamp}.${extension}`;
   };
 
+  const resolveStorageObjectPath = (imagePath: string) => {
+    const normalized = imagePath.replace(/^\/+/, "");
+    const prefix = `${VENUE_PHOTOS_BUCKET}/`;
+    if (!normalized.startsWith(prefix)) return null;
+    return normalized.slice(prefix.length);
+  };
+
   const handleUploadAll = async () => {
     if (!venueId || pendingCount === 0 || uploading) return;
     setUploading(true);
+    const addPhotoRpc = mode === "admin" ? "admin_add_venue_photo" : "owner_add_venue_photo";
     for (let i = 0; i < uploadQueue.length; i += 1) {
       const item = uploadQueue[i];
       if (item.status !== "pending") continue;
@@ -137,7 +159,7 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
         continue;
       }
       const dbPath = `${VENUE_PHOTOS_BUCKET}/${storagePath}`;
-      const { error: insertError } = await supabase.rpc("owner_add_venue_photo", {
+      const { error: insertError } = await supabase.rpc(addPhotoRpc, {
         p_venue_id: venueId,
         p_image_path: dbPath,
         p_caption: item.caption || null,
@@ -148,7 +170,17 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
           status: "error",
           error: "Save failed",
         });
-        toast.error(`Save failed for ${item.file.name}`);
+        const { error: cleanupError } = await supabase.storage
+          .from(VENUE_PHOTOS_BUCKET)
+          .remove([storagePath]);
+        if (cleanupError) {
+          console.error("Failed to cleanup venue photo upload", cleanupError);
+          toast.error(
+            `Save failed for ${item.file.name}. Cleanup failed for ${storagePath}.`
+          );
+        } else {
+          toast.error(`Save failed for ${item.file.name}. Upload rolled back.`);
+        }
         continue;
       }
       updateQueueItem(item.id, { status: "done" });
@@ -156,6 +188,7 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
     setUploading(false);
     setUploadQueue((prev) => prev.filter((item) => item.status !== "done"));
     await loadPhotos();
+    void queryClient.invalidateQueries({ queryKey: qk.venuePhotos(venueId) });
   };
 
   const handleDeletePhoto = async (photo: VenuePhotoRow) => {
@@ -163,70 +196,115 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
     const confirmed = window.confirm("Delete this venue photo?");
     if (!confirmed) return;
     setDeletingIds((prev) => new Set(prev).add(photo.id));
-    const { error } = await supabase.rpc("owner_delete_venue_photo", {
-      p_id: photo.id,
-    });
-    if (error) {
-      console.error("Failed to delete venue photo", error);
-      toast.error("Failed to delete venue photo");
-    } else {
+    try {
+      const objectPath = resolveStorageObjectPath(photo.image_path);
+      if (!objectPath) {
+        toast.error("Unable to delete photo: invalid storage path.");
+        return;
+      }
+      const { error: storageError } = await supabase.storage
+        .from(VENUE_PHOTOS_BUCKET)
+        .remove([objectPath]);
+      if (storageError) {
+        console.error("Failed to delete venue photo from storage", storageError);
+        toast.error("Failed to delete venue photo");
+        return;
+      }
+      const deletePhotoRpc =
+        mode === "admin" ? "admin_delete_venue_photo" : "owner_delete_venue_photo";
+      const { error } = await supabase.rpc(deletePhotoRpc, {
+        p_id: photo.id,
+      });
+      if (error) {
+        console.error("Failed to delete venue photo", error);
+        toast.error("Failed to delete venue photo");
+        return;
+      }
       toast.success("Venue photo deleted");
       await loadPhotos();
+      void queryClient.invalidateQueries({ queryKey: qk.venuePhotos(venueId) });
+    } finally {
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(photo.id);
+        return next;
+      });
     }
-    setDeletingIds((prev) => {
+  };
+
+  const handleSetPrimary = async (photo: VenuePhotoRow) => {
+    if (settingPrimaryIds.has(photo.id)) return;
+    setSettingPrimaryIds((prev) => new Set(prev).add(photo.id));
+    const rpcName =
+      mode === "admin" ? "admin_set_venue_photo_primary" : "owner_set_venue_photo_primary";
+    const { error } = await supabase.rpc(rpcName, { p_photo_id: photo.id });
+    if (error) {
+      console.error("Failed to set primary photo", error);
+      toast.error("Failed to set primary photo");
+    } else {
+      toast.success("Primary photo updated");
+      await loadPhotos();
+      void queryClient.invalidateQueries({ queryKey: qk.venuePhotos(venueId) });
+    }
+    setSettingPrimaryIds((prev) => {
       const next = new Set(prev);
       next.delete(photo.id);
       return next;
     });
   };
 
-  return (
-    <Card className="w-full border-border/70">
-      <CardHeader className="space-y-1">
-        <Heading as="h2" size="md" className="text-foreground">
-          Venue photos
-        </Heading>
-        <Text variant="muted" className="text-sm">
-          Upload photos for your venue page. Primary selection is coming soon.
-        </Text>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Loading venue photos…
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <Text className="text-sm text-muted-foreground">
-                  {photos.length > 0
-                    ? `${photos.length} photo${photos.length === 1 ? "" : "s"} uploaded`
-                    : "No photos uploaded yet."}
-                </Text>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={(event) => handleFileSelection(event.target.files)}
-                />
-                <Button
-                  type="button"
-                  onClick={handleUploadAll}
-                  disabled={uploading || pendingCount === 0}
-                >
-                  {uploading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Upload className="h-4 w-4" />
-                  )}
-                  Upload {pendingCount > 0 ? `(${pendingCount})` : ""}
-                </Button>
-              </div>
-            </div>
+  const header = showHeader ? (
+    <div className="space-y-1">
+      <Heading as="h2" size="md" className="text-foreground">
+        Venue photos
+      </Heading>
+      <Text variant="muted" className="text-sm">
+        Upload photos for your venue page. Set a primary photo to control the hero image.
+      </Text>
+    </div>
+  ) : null;
+
+  const body = loading ? (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Loader2 className="h-4 w-4 animate-spin" />
+      Loading venue photos…
+    </div>
+  ) : (
+    <>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <Text className="text-sm text-muted-foreground">
+            {photos.length > 0
+              ? `${photos.length} photo${photos.length === 1 ? "" : "s"} uploaded`
+              : "No photos uploaded yet."}
+          </Text>
+          {photos.length === 0 ? (
+            <Text className="text-xs text-muted-foreground">
+              Add a few venue shots so anglers can preview the venue.
+            </Text>
+          ) : null}
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(event) => handleFileSelection(event.target.files)}
+          />
+          <Button
+            type="button"
+            onClick={handleUploadAll}
+            disabled={uploading || pendingCount === 0}
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            Upload {pendingCount > 0 ? `(${pendingCount})` : ""}
+          </Button>
+        </div>
+      </div>
 
             {uploadQueue.length > 0 ? (
               <div className="space-y-3">
@@ -237,9 +315,9 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
                   {uploadQueue.map((item) => (
                     <div
                       key={item.id}
-                      className="rounded-lg border border-border/60 bg-card/60 p-3 space-y-2"
+                      className="rounded-xl border border-border bg-muted/40 p-3 space-y-2"
                     >
-                      <div className="aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
+                      <div className="aspect-[4/3] overflow-hidden rounded-md bg-muted">
                         <img
                           src={item.previewUrl}
                           alt={item.file.name}
@@ -249,16 +327,16 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
                       <div className="space-y-1 text-xs text-muted-foreground">
                         <p className="truncate">{item.file.name}</p>
                         {item.status === "uploading" ? (
-                          <p className="flex items-center gap-1 text-blue-600">
+                          <p className="flex items-center gap-1 text-primary">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             Uploading…
                           </p>
                         ) : item.status === "error" ? (
                           <p className="text-destructive">{item.error ?? "Error"}</p>
                         ) : item.status === "done" ? (
-                          <p className="text-emerald-600">Uploaded</p>
+                          <p className="text-secondary">Uploaded</p>
                         ) : (
-                          <p className="text-slate-500">Ready to upload</p>
+                          <p className="text-muted-foreground">Ready to upload</p>
                         )}
                       </div>
                       <Input
@@ -292,12 +370,13 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {photos.map((photo) => {
                     const publicUrl = getPublicAssetUrl(photo.image_path);
+                    const isPrimary = Boolean(photo.is_primary);
                     return (
-                      <div
-                        key={photo.id}
-                        className="rounded-lg border border-border/60 bg-card/60 p-3 space-y-2"
-                      >
-                        <div className="aspect-[4/3] overflow-hidden rounded-md bg-slate-100">
+                    <div
+                      key={photo.id}
+                      className="rounded-xl border border-border bg-muted/40 p-3 space-y-2"
+                    >
+                        <div className="aspect-[4/3] overflow-hidden rounded-md bg-muted">
                           {publicUrl ? (
                             <img
                               src={publicUrl}
@@ -305,23 +384,35 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
                               className="h-full w-full object-cover"
                             />
                           ) : (
-                            <div className="flex h-full items-center justify-center text-slate-400">
+                            <div className="flex h-full items-center justify-center text-muted-foreground">
                               <ImagePlus className="h-6 w-6" />
                             </div>
                           )}
                         </div>
                         {photo.caption ? (
-                          <Text className="text-xs text-slate-600">
+                          <Text className="text-xs text-muted-foreground">
                             {photo.caption}
                           </Text>
                         ) : (
-                          <Text className="text-xs text-slate-400">
+                          <Text className="text-xs text-muted-foreground/70">
                             No caption
                           </Text>
                         )}
                         <div className="flex flex-wrap gap-2">
-                          <Button type="button" variant="outline" size="sm" disabled>
-                            Set primary
+                          <Button
+                            type="button"
+                            variant={isPrimary ? "secondary" : "outline"}
+                            size="sm"
+                            onClick={() => void handleSetPrimary(photo)}
+                            disabled={isPrimary || settingPrimaryIds.has(photo.id)}
+                          >
+                            {settingPrimaryIds.has(photo.id) ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : isPrimary ? (
+                              "Primary"
+                            ) : (
+                              "Set primary"
+                            )}
                           </Button>
                           <Button
                             type="button"
@@ -343,9 +434,22 @@ const VenuePhotosCard = ({ venueId }: VenuePhotosCardProps) => {
                 </div>
               </div>
             ) : null}
-          </>
-        )}
-      </CardContent>
+    </>
+  );
+
+  if (isEmbedded) {
+    return (
+      <div className="space-y-4">
+        {header}
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Card className="w-full rounded-2xl border border-border bg-card p-6 shadow-card">
+      <CardHeader className="space-y-1 p-0">{header}</CardHeader>
+      <CardContent className="space-y-4 p-0 pt-4">{body}</CardContent>
     </Card>
   );
 };

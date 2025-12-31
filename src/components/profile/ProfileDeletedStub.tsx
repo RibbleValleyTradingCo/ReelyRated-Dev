@@ -10,13 +10,13 @@ const ProfileDeletedStub = ({ isOwnProfile }: ProfileDeletedStubProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted">
       <main className="section-container py-8 md:py-10">
-        <Card className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <Card className="mx-auto max-w-2xl rounded-2xl">
           <CardContent className="space-y-4 px-6 py-6">
             <div className="space-y-1">
-              <h1 className="text-2xl font-semibold text-slate-900">
+              <h1 className="text-2xl font-semibold text-foreground">
                 {isOwnProfile ? "Your account has been deleted" : "This account has been deleted"}
               </h1>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-muted-foreground">
                 {isOwnProfile
                   ? "Your account has been deleted. You may still see some of your past activity while we finish cleaning things up."
                   : "This angler chose to delete their account. Their catches and comments may have been anonymised or removed in line with our moderation and safety guidelines."}

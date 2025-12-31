@@ -49,6 +49,9 @@ type ModerationLogRow = {
   admin: { id: string | null; username: string | null } | null;
 };
 
+const WARNINGS_PAGE_SIZE = 20;
+const LOG_PAGE_SIZE = 20;
+
 const formatRelative = (value: string) => formatDistanceToNow(new Date(value), { addSuffix: true });
 const truncate = (value: string, max = 120) => (value.length > max ? `${value.slice(0, max - 1)}…` : value);
 
@@ -73,7 +76,10 @@ const AdminUserModeration = () => {
   const [logPage, setLogPage] = useState(1);
   const [warningsHasMore, setWarningsHasMore] = useState(true);
   const [logHasMore, setLogHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [warningsLoading, setWarningsLoading] = useState(true);
+  const [logLoading, setLogLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [showWarnDialog, setShowWarnDialog] = useState(false);
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
   const [showBanDialog, setShowBanDialog] = useState(false);
@@ -84,48 +90,25 @@ const AdminUserModeration = () => {
   const [banReason, setBanReason] = useState("");
   const [liftReason, setLiftReason] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
+  const isLoading = profileLoading || warningsLoading || logLoading;
 
-  const fetchData = useCallback(async () => {
-    if (!user || !isAdmin || !userId) return;
-    setIsLoading(true);
-    const warningsLimit = 20;
-    const logLimit = 20;
+  const fetchProfile = useCallback(async () => {
+    if (!user || !isAdmin || !userId) {
+      setProfileLoading(false);
+      return;
+    }
+    setProfileLoading(true);
 
-    const [profileResp, warningsResp, logResp] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("username, warn_count, moderation_status, suspension_until, avatar_path, avatar_url")
-        .eq("id", userId)
-        .maybeSingle(),
-      supabase
-        .from("user_warnings")
-        .select("id, reason, severity, duration_hours, created_at, admin:issued_by (id, username)")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .range((warningsPage - 1) * warningsLimit, warningsPage * warningsLimit - 1),
-      supabase.rpc("admin_list_moderation_log", {
-        p_user_id: userId,
-        p_action: null,
-        p_search: null,
-        p_from: null,
-        p_to: null,
-        p_sort_direction: "desc",
-        p_limit: logLimit,
-        p_offset: (logPage - 1) * logLimit,
-      }),
-    ]);
+    const profileResp = await supabase
+      .from("profiles")
+      .select("username, warn_count, moderation_status, suspension_until, avatar_path, avatar_url")
+      .eq("id", userId)
+      .maybeSingle();
 
     if (profileResp.error) {
       toast.error("Unable to load user moderation status");
-    }
-    if (warningsResp.error) {
-      toast.error("Unable to load warnings");
-    }
-    if (logResp.error) {
-      toast.error("Unable to load moderation history");
-    }
-
-    if (profileResp.data) {
+      setProfileStatus(null);
+    } else if (profileResp.data) {
       setProfileStatus({
         username: profileResp.data.username,
         warn_count: profileResp.data.warn_count ?? 0,
@@ -138,31 +121,113 @@ const AdminUserModeration = () => {
       setProfileStatus(null);
     }
 
-    const warningRows = ((warningsResp.data ?? []) as unknown as WarningRow[]) ?? [];
-    setWarnings((prev) => (warningsPage === 1 ? warningRows : [...prev, ...warningRows]));
-    setWarningsHasMore(warningRows.length === warningsLimit);
+    setProfileLoading(false);
+  }, [isAdmin, user, userId]);
 
-    const mappedLog = ((logResp.data ?? []) as unknown as ModerationLogRow[]).map((row) => {
-      const metadata = row.metadata ?? {};
-      const reason = typeof metadata["reason"] === "string" ? (metadata["reason"] as string) : "No reason provided";
-      return { ...row, reason } satisfies ModerationLogRow;
-    });
-    setLogRows((prev) => (logPage === 1 ? mappedLog : [...prev, ...mappedLog]));
-    setLogHasMore(mappedLog.length === logLimit);
+  const fetchWarnings = useCallback(
+    async (pageToFetch: number) => {
+      if (!user || !isAdmin || !userId) {
+        setWarningsLoading(false);
+        return;
+      }
+      setWarningsLoading(true);
 
-    setIsLoading(false);
-  }, [isAdmin, user, userId, warningsPage, logPage]);
+      const warningsResp = await supabase
+        .from("user_warnings")
+        .select("id, reason, severity, duration_hours, created_at, admin:issued_by (id, username)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .range((pageToFetch - 1) * WARNINGS_PAGE_SIZE, pageToFetch * WARNINGS_PAGE_SIZE - 1);
 
-  useEffect(() => {
-    setWarningsPage(1);
-    setLogPage(1);
+      if (warningsResp.error) {
+        toast.error("Unable to load warnings");
+        setWarningsLoading(false);
+        return;
+      }
+
+      const warningRows = ((warningsResp.data ?? []) as unknown as WarningRow[]) ?? [];
+      setWarnings((prev) => (pageToFetch === 1 ? warningRows : [...prev, ...warningRows]));
+      setWarningsHasMore(warningRows.length === WARNINGS_PAGE_SIZE);
+      setWarningsLoading(false);
+    },
+    [isAdmin, user, userId]
+  );
+
+  const fetchLog = useCallback(
+    async (pageToFetch: number) => {
+      if (!user || !isAdmin || !userId) {
+        setLogLoading(false);
+        return;
+      }
+      setLogLoading(true);
+
+      const logResp = await supabase.rpc("admin_list_moderation_log", {
+        p_user_id: userId,
+        p_action: null,
+        p_search: null,
+        p_from: null,
+        p_to: null,
+        p_sort_direction: "desc",
+        p_limit: LOG_PAGE_SIZE,
+        p_offset: (pageToFetch - 1) * LOG_PAGE_SIZE,
+      });
+
+      if (logResp.error) {
+        toast.error("Unable to load moderation history");
+        setLogLoading(false);
+        return;
+      }
+
+      const mappedLog = ((logResp.data ?? []) as unknown as ModerationLogRow[]).map((row) => {
+        const metadata = row.metadata ?? {};
+        const reason = typeof metadata["reason"] === "string" ? (metadata["reason"] as string) : "No reason provided";
+        return { ...row, reason } satisfies ModerationLogRow;
+      });
+
+      setLogRows((prev) => (pageToFetch === 1 ? mappedLog : [...prev, ...mappedLog]));
+      setLogHasMore(mappedLog.length === LOG_PAGE_SIZE);
+      setLogLoading(false);
+    },
+    [isAdmin, user, userId]
+  );
+
+  const handleRefresh = useCallback(() => {
+    setProfileLoading(true);
+    setWarningsLoading(true);
+    setLogLoading(true);
+    setWarnings([]);
+    setLogRows([]);
     setWarningsHasMore(true);
     setLogHasMore(true);
+    setWarningsPage(1);
+    setLogPage(1);
+    setRefreshKey((prev) => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    setProfileStatus(null);
+    setProfileLoading(true);
+    setWarningsLoading(true);
+    setLogLoading(true);
+    setWarnings([]);
+    setLogRows([]);
+    setWarningsHasMore(true);
+    setLogHasMore(true);
+    setWarningsPage(1);
+    setLogPage(1);
   }, [userId]);
 
   useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+    void fetchProfile();
+  }, [fetchProfile, refreshKey]);
+
+  useEffect(() => {
+    void fetchWarnings(warningsPage);
+  }, [fetchWarnings, refreshKey, warningsPage]);
+
+  useEffect(() => {
+    void fetchLog(logPage);
+  }, [fetchLog, logPage, refreshKey]);
 
   const warningsTable = useMemo(() => {
     if (warnings.length === 0) {
@@ -367,7 +432,7 @@ const AdminUserModeration = () => {
         setSuspendReason("");
         setSuspendDuration("24");
         setBanReason("");
-        await fetchData();
+        handleRefresh();
       } catch (error) {
         console.error(error);
         toast.error("Unable to apply moderation action");
@@ -375,7 +440,7 @@ const AdminUserModeration = () => {
         setActionLoading(false);
       }
     },
-    [fetchData, userId]
+    [handleRefresh, userId]
   );
 
   const handleLiftRestrictions = useCallback(async () => {
@@ -402,14 +467,14 @@ const AdminUserModeration = () => {
       toast.success("Restrictions lifted");
       setShowLiftDialog(false);
       setLiftReason("");
-      await fetchData();
+      handleRefresh();
     } catch (error) {
       console.error(error);
       toast.error("Unable to lift restrictions");
     } finally {
       setActionLoading(false);
     }
-  }, [fetchData, liftReason, userId]);
+  }, [handleRefresh, liftReason, userId]);
 
   if (adminLoading) {
     return (
@@ -463,12 +528,13 @@ const AdminUserModeration = () => {
               eyebrow={<Eyebrow className="text-muted-foreground">Admin</Eyebrow>}
               title={`Moderation for ${displayName}`}
               subtitle="Moderation overview and actions for this user."
+              titleAs="h1"
               actions={
                 <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                   <Button variant="outline" onClick={() => navigate(backDestination)} className="w-full sm:w-auto">
                     Back
                   </Button>
-                  <Button variant="ghost" onClick={() => window.location.reload()} disabled={isLoading} className="w-full sm:w-auto">
+                  <Button variant="ghost" onClick={handleRefresh} disabled={isLoading} className="w-full sm:w-auto">
                     Refresh
                   </Button>
                 </div>
@@ -498,9 +564,9 @@ const AdminUserModeration = () => {
                             (profileStatus?.moderation_status ?? "active") === "active"
                               ? "bg-muted text-foreground"
                               : (profileStatus?.moderation_status ?? "active") === "warned"
-                              ? "bg-amber-50 text-amber-700"
+                              ? "bg-secondary/20 text-secondary"
                               : (profileStatus?.moderation_status ?? "active") === "suspended"
-                              ? "bg-amber-100 text-amber-800"
+                              ? "bg-secondary/30 text-secondary"
                               : "bg-destructive/10 text-destructive"
                           }`}
                         >

@@ -47,13 +47,20 @@ const normalizeEntries = (entries: LeaderboardEntry[] | null | undefined) =>
     length: toNumber(entry.length),
   }));
 
+type UseLeaderboardRealtimeOptions = {
+  enableRealtime?: boolean;
+  refreshIntervalMs?: number;
+};
+
 export function useLeaderboardRealtime(
   selectedSpecies: string | null = null,
   limit = 50,
+  options: UseLeaderboardRealtimeOptions = {},
 ) {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { enableRealtime = true, refreshIntervalMs } = options;
 
   const speciesFilter = useMemo(
     () => (selectedSpecies ? selectedSpecies : null),
@@ -110,6 +117,8 @@ export function useLeaderboardRealtime(
   }, [fetchLeaderboard]);
 
   useEffect(() => {
+    if (!enableRealtime) return;
+
     const channel = supabase
       .channel("leaderboard_catches_realtime")
       .on(
@@ -145,7 +154,19 @@ export function useLeaderboardRealtime(
       }
       supabase.removeChannel(channel);
     };
-  }, [fetchLeaderboard]);
+  }, [fetchLeaderboard, enableRealtime]);
+
+  useEffect(() => {
+    if (enableRealtime || !refreshIntervalMs) return;
+
+    const interval = window.setInterval(() => {
+      void fetchLeaderboard(true);
+    }, refreshIntervalMs);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [fetchLeaderboard, enableRealtime, refreshIntervalMs]);
 
   return { entries, loading, error };
 }
