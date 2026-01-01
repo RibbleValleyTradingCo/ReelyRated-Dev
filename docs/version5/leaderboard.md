@@ -235,7 +235,7 @@ Stage 3 is deliberately about _read-path scalability_ (ORDER BY + LIMIT) while k
 
 **Species mapping:** the UI already uses canonical species slugs (`useSpeciesOptions`). Use that slug directly as `species_key`, and map the reserved sentinel back via `NULLIF(species_key,'__unknown__')` in the RPC.
 
-**Block logic:** keep `is_blocked_from_viewer` computed per request (do not materialize), and keep the existing client `.eq("is_blocked_from_viewer", false)` filter.
+**Block logic:** keep `is_blocked_from_viewer` computed per request (do not materialize). The view path remains filtered client-side via `.eq("is_blocked_from_viewer", false)` for safety. The RPC fast-path (2150/2151) also applies `is_blocked_from_viewer = false` server-side, so the client-side filter is now redundant on the RPC path but can remain as a safety belt.
 
 ### 3.5 RPC fast-path hardening (2150)
 
@@ -260,6 +260,7 @@ Stage 3 is deliberately about _read-path scalability_ (ORDER BY + LIMIT) while k
   - `is_blocked_from_viewer = false` (server-side)
 - Sentinel guardrail: `NULLIF(species_key, '__unknown__')` so sentinel never surfaces in `species_slug`
 - 2151: fix PL/pgSQL output-column ambiguity by qualifying `expanded` references (e.g., `e.is_blocked_from_viewer`, `e.total_score`).
+- 2151 resolves PL/pgSQL `RETURNS TABLE` name collisions by qualifying CTE output columns (e.g. `e.is_blocked_from_viewer`) to avoid "column reference ... is ambiguous" errors.
 
 **Acceptance criteria:**
 
@@ -270,6 +271,17 @@ Stage 3 is deliberately about _read-path scalability_ (ORDER BY + LIMIT) while k
 - Parity checks for a species (carp) show zero diffs (view vs RPC, both directions).
 - Privilege checks pass (`has_function_privilege` for anon/authenticated).
 - Sentinel guardrails: `__unknown__` not present in `public.catches` or `public.species`.
+
+**Evidence captured (2026-01-01, local):**
+
+- Privileges: `anon_can_exec = true`, `authed_can_exec = true` for `public.get_leaderboard_scores(text,int)`.
+- Candidate selection is index-driven:
+  - Unfiltered candidate set uses `idx_catch_leaderboard_scores_ordering` (Index Only Scan; `Heap Fetches: 0`).
+  - Species candidate set uses `idx_catch_leaderboard_scores_species_ordering` with `Index Cond: (species_key = 'carp')` (Index Only Scan; `Heap Fetches: 0`).
+- Expanded join path (EXPLAINing the RPC body) shows:
+  - `Limit -> top-N heapsort` over the 500-row candidate buffer, then nested loop joins into `catches` (by PK), `profiles` (memoized), and `catch_rating_stats` (by PK).
+  - Filters enforced on `catches`: `deleted_at IS NULL`, `visibility = 'public'`, and the per-viewer block predicate.
+- Timing (local): ~12–26ms for the expanded-body plan (500 candidates, final LIMIT 100). The plain `Function Scan` timing (~22–33ms) is not sufficient to prove index usage by itself; the inlined/expanded EXPLAIN above is the proof.
 
 **Verification SQL (RPC + parity + privileges):**
 
@@ -287,6 +299,8 @@ FROM public.get_leaderboard_scores(NULL, 100);
 EXPLAIN (ANALYZE, BUFFERS)
 SELECT *
 FROM public.get_leaderboard_scores('carp', 100);
+
+-- Note: EXPLAIN on the function call itself may show only a Function Scan; to prove index usage, EXPLAIN the inlined RPC body (see “Evidence captured” above) or use auto_explain/logging in a dev instance.
 
 -- Parity: view vs RPC (carp)
 WITH view_rows AS (
@@ -332,6 +346,8 @@ SELECT COUNT(*) AS unknown_species_table
 FROM public.species
 WHERE slug = '__unknown__';
 ```
+
+**Note:** A `Function Scan` plan line only summarizes the outer call; it won’t surface the internal joins/scans inside PL/pgSQL. For proof of index usage, rely on the expanded-body EXPLAIN (or server logs via `auto_explain`) rather than the top-level Function Scan.
 
 **Rollback:** revert species-filtered UI to view-only, and drop/disable the RPC in a follow-on migration (or leave unused).
 
