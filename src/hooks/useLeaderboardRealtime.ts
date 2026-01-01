@@ -21,6 +21,7 @@ interface LeaderboardEntry {
   method_tag: string | null;
   method: string | null;
   caught_at: string | null;
+  is_blocked_from_viewer?: boolean | null;
 }
 
 const toNumber = (value: unknown): number | null => {
@@ -68,30 +69,43 @@ export function useLeaderboardRealtime(
       }
 
       try {
-        let query = supabase
-          .from("leaderboard_scores_detailed")
-          .select(
-            "id, user_id, owner_username, title, species_slug, species, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, location_label, method_tag, method, caught_at",
-          )
-          .eq("is_blocked_from_viewer", false)
-          .order("total_score", { ascending: false })
-          .order("created_at", { ascending: true })
-          .order("id", { ascending: true })
-          .limit(limit);
-
         if (speciesFilter) {
-          query = query.eq("species_slug", speciesFilter);
+          const { data, error: queryError } = await supabase.rpc("get_leaderboard_scores", {
+            p_species_slug: speciesFilter,
+            p_limit: limit,
+          });
+
+          if (queryError) {
+            setError(queryError.message);
+            console.error("Leaderboard fetch error:", queryError);
+            return;
+          }
+
+          const filtered = (data ?? []).filter(
+            (entry) => !entry.is_blocked_from_viewer,
+          );
+
+          setEntries(normalizeEntries(filtered));
+        } else {
+          const { data, error: queryError } = await supabase
+            .from("leaderboard_scores_detailed")
+            .select(
+              "id, user_id, owner_username, title, species_slug, species, weight, weight_unit, length, length_unit, image_url, total_score, avg_rating, rating_count, location_label, method_tag, method, caught_at",
+            )
+            .eq("is_blocked_from_viewer", false)
+            .order("total_score", { ascending: false })
+            .order("created_at", { ascending: true })
+            .order("id", { ascending: true })
+            .limit(limit);
+
+          if (queryError) {
+            setError(queryError.message);
+            console.error("Leaderboard fetch error:", queryError);
+            return;
+          }
+
+          setEntries(normalizeEntries(data));
         }
-
-        const { data, error: queryError } = await query;
-
-        if (queryError) {
-          setError(queryError.message);
-          console.error("Leaderboard fetch error:", queryError);
-          return;
-        }
-
-        setEntries(normalizeEntries(data));
         setError(null);
       } catch (err) {
         console.error("Leaderboard fetch error:", err);

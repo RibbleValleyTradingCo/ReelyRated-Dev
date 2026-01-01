@@ -1,4 +1,4 @@
-# Page Audit — /leaderboard
+<file name=0 path=/Users/jamesoneill/Documents/ReelyRatedv3/docs/version5/leaderboard.md># Page Audit — /leaderboard
 
 ---
 
@@ -146,7 +146,7 @@ Completed items:
 Run and record (copy/paste output below):
 
 - 2.2a Unfiltered query (top N):
-  - Expectation: still sorts by computed `total_score`, but avoids pathological scans at scale.
+  - Expectation: Stage 3 precomputes total_score, so this is primarily a baseline check (no ratings aggregation).
 - 2.2b Species-filtered query:
   - Expectation: filter aligns with `idx_catches_species_coalesce` (at scale), and join work benefits from `idx_ratings_catch_id`.
 
@@ -155,7 +155,7 @@ What to capture:
 - Planning time + execution time
 - Presence/absence of Seq Scan on `ratings` and `catches`
 - Join strategy (Hash/Merge/Nested Loop) and whether `idx_ratings_catch_id` is used
-- Whether a big Sort dominates (expected until `total_score` is materialized in Stage 3)
+- Whether a big Sort dominates (should be reduced now that `total_score` is precomputed in Stage 3)
 
 Evidence captured (2025-12-31):
 
@@ -183,13 +183,20 @@ Even though the page is public, we should confirm:
 - [x] EXPLAIN evidence captured for both query patterns (unfiltered + species-filtered).
 - [x] Confirmed no unintended data exposure (public-only, deleted excluded, blocked respected in hook + spotlight).
 - [x] Confirmed payload + refresh behavior remains stable across landing + /leaderboard + spotlight.
-- [ ] Stage 3 precompute (2146) applied; view tuning (2147) applied after EXPLAIN validation.
+- [x] Stage 2 complete; Stage 3 tracked separately below.
+
+### Stage 2 status
+
+- Local: ✅ 2145 applied; EXPLAIN captured (note: tiny datasets may still choose Seq Scans).
+- Dev/Prod: ensure rollout plan covers Postgres restrictions (e.g., CREATE INDEX CONCURRENTLY cannot run in a transaction block).
 
 ---
 
 ## Stage 3 Implementation
 
 🎯 **Goal:** Make leaderboard reads index-driven at scale while keeping the public view contract stable and per-viewer block logic dynamic.
+
+Stage 3 is deliberately about _read-path scalability_ (ORDER BY + LIMIT) while keeping the public view contract stable. The precompute tables remove per-request aggregation over ratings; the view shape then aims to let Postgres use ordering indexes on the precomputed score table before joining wider catch/profile fields.
 
 ### 3.1 Precompute base (2146)
 
@@ -203,8 +210,169 @@ Even though the page is public, we should confirm:
 - The view now selects top 100 **per species** from `catch_leaderboard_scores` (ordered by total_score/created_at/id) before joining to `catches`, `profiles`, and `catch_rating_stats`.
 - Why: this pushes ordering into the score table indexes and avoids full joins/sorts before LIMIT.
 - Contract remains stable: same columns, same meanings, `is_blocked_from_viewer` stays dynamic.
+- The view should “LIMIT early”: select Top-N from score table first, then join wider fields.
 
-### 3.3 Verification (EXPLAIN)
+### 3.3 Species-key index tuning (2148)
+
+- Enforces `catch_leaderboard_scores.species_key` as NOT NULL with a reserved sentinel (`__unknown__`) to make equality predicates indexable.
+- View predicate uses strict equality (`species_key = ?`) so the composite ordering index can be used.
+- `species_slug` output maps back via `NULLIF(species_key, '__unknown__')` fallback.
+- Sentinel is **precompute-only** and must never appear in canonical species lists or UI output.
+
+### 3.4 App Query Alignment (2149)
+
+**Current behavior:** when a species filter is applied, the app calls `get_leaderboard_scores(p_species_slug, p_limit)` (2149). Unfiltered paths still use the view to preserve “top 100 per species” behavior.
+
+**RPC shape:** `public.get_leaderboard_scores(p_species_slug text default null, p_limit int default 100)`:
+
+- Starts from `catch_leaderboard_scores` (uses `species_key = p_species_slug` when provided).
+- Orders by `total_score DESC, created_at ASC, catch_id ASC` and LIMITs early.
+- Joins to `catches`, `profiles`, `catch_rating_stats` for details.
+- Computes `is_blocked_from_viewer` dynamically (same CASE as the view).
+- Returns the **same columns** as `leaderboard_scores_detailed` to keep the contract stable.
+
+**Why:** Aligns the app with the fast path (index-driven Top‑N), avoids per-species LATERAL work for all species, and keeps the view backward‑compatible.
+
+**Species mapping:** the UI already uses canonical species slugs (`useSpeciesOptions`). Use that slug directly as `species_key`, and map the reserved sentinel back via `NULLIF(species_key,'__unknown__')` in the RPC.
+
+**Block logic:** keep `is_blocked_from_viewer` computed per request (do not materialize), and keep the existing client `.eq("is_blocked_from_viewer", false)` filter.
+
+### 3.5 RPC fast-path hardening (2150)
+
+**Why this exists:** When a single species is selected, we should not pay the cost of “top-100 per species for all species.” The RPC fast-path uses a bounded candidate set from `catch_leaderboard_scores`, then joins and filters before the final LIMIT.
+
+**Call sites (species-filtered path):**
+
+- `src/hooks/useLeaderboardRealtime.ts` (species-filtered path calls `get_leaderboard_scores`)
+- `src/components/Leaderboard.tsx` (landing leaderboard via hook)
+- `/leaderboard` remains view-driven when unfiltered (preserves “top-100 per species” semantics)
+
+**Behavior summary (post‑2150):**
+
+- Two sargable branches (no OR):
+  - p_species_slug IS NULL → `idx_catch_leaderboard_scores_ordering`
+  - p_species_slug IS NOT NULL → `idx_catch_leaderboard_scores_species_ordering`
+- Buffered candidate set: `candidate_limit = LEAST(p_limit * 5, 1000)`
+- Join to `catches`, `profiles`, `catch_rating_stats`
+- Apply **public + blocked gates** before final LIMIT:
+  - `c.deleted_at IS NULL`
+  - `c.visibility = 'public'`
+  - `is_blocked_from_viewer = false` (server-side)
+- Sentinel guardrail: `NULLIF(species_key, '__unknown__')` so sentinel never surfaces in `species_slug`
+- 2151: fix PL/pgSQL output-column ambiguity by qualifying `expanded` references (e.g., `e.is_blocked_from_viewer`, `e.total_score`).
+
+**Acceptance criteria:**
+
+- EXPLAIN (ANALYZE, BUFFERS) shows:
+  - unfiltered uses `idx_catch_leaderboard_scores_ordering`
+  - filtered uses `idx_catch_leaderboard_scores_species_ordering`
+- No GroupAggregate/HashAggregate over ratings in the read path.
+- Parity checks for a species (carp) show zero diffs (view vs RPC, both directions).
+- Privilege checks pass (`has_function_privilege` for anon/authenticated).
+- Sentinel guardrails: `__unknown__` not present in `public.catches` or `public.species`.
+
+**Verification SQL (RPC + parity + privileges):**
+
+```sql
+-- Privilege checks
+SELECT has_function_privilege('anon', 'public.get_leaderboard_scores(text,int)', 'EXECUTE') AS anon_can_exec;
+SELECT has_function_privilege('authenticated', 'public.get_leaderboard_scores(text,int)', 'EXECUTE') AS authed_can_exec;
+
+-- EXPLAIN (unfiltered)
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT *
+FROM public.get_leaderboard_scores(NULL, 100);
+
+-- EXPLAIN (species-filtered)
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT *
+FROM public.get_leaderboard_scores('carp', 100);
+
+-- Parity: view vs RPC (carp)
+WITH view_rows AS (
+  SELECT id
+  FROM public.leaderboard_scores_detailed
+  WHERE species_slug = 'carp'
+    AND is_blocked_from_viewer = false
+  ORDER BY total_score DESC, created_at ASC, id ASC
+  LIMIT 100
+),
+rpc_rows AS (
+  SELECT id
+  FROM public.get_leaderboard_scores('carp', 100)
+  WHERE is_blocked_from_viewer = false
+)
+SELECT id FROM view_rows
+EXCEPT
+SELECT id FROM rpc_rows;
+
+WITH view_rows AS (
+  SELECT id
+  FROM public.leaderboard_scores_detailed
+  WHERE species_slug = 'carp'
+    AND is_blocked_from_viewer = false
+  ORDER BY total_score DESC, created_at ASC, id ASC
+  LIMIT 100
+),
+rpc_rows AS (
+  SELECT id
+  FROM public.get_leaderboard_scores('carp', 100)
+  WHERE is_blocked_from_viewer = false
+)
+SELECT id FROM rpc_rows
+EXCEPT
+SELECT id FROM view_rows;
+
+-- Sentinel guardrails
+SELECT COUNT(*) AS unknown_species_slug
+FROM public.catches
+WHERE species_slug = '__unknown__' OR species = '__unknown__';
+
+SELECT COUNT(*) AS unknown_species_table
+FROM public.species
+WHERE slug = '__unknown__';
+```
+
+**Rollback:** revert species-filtered UI to view-only, and drop/disable the RPC in a follow-on migration (or leave unused).
+
+### 3.6 View verification (EXPLAIN)
+
+**Why this step exists:** We want evidence that leaderboard reads are _index-driven_ (Top-N) and _do not aggregate ratings on every request_.
+
+#### Local prerequisites (so the planner has something real to optimize)
+
+- Seed volume: make sure `catches` and `catch_leaderboard_scores` are at “prod-ish” scale (e.g., 100k+ rows).
+- Stats: run `ANALYZE` after bulk inserts.
+- Index-only scans: if you want `Heap Fetches: 0`, you typically need VACUUM/visibility-map coverage. **VACUUM cannot run inside a transaction block**; run it as a standalone statement in a session that is not wrapping everything in BEGIN/COMMIT.
+
+Suggested maintenance commands (run one-at-a-time):
+
+```sql
+ANALYZE public.catches;
+ANALYZE public.catch_leaderboard_scores;
+ANALYZE public.catch_rating_stats;
+ANALYZE public.ratings;
+```
+
+```sql
+VACUUM (ANALYZE) public.catch_leaderboard_scores;
+VACUUM (ANALYZE) public.catch_rating_stats;
+VACUUM (ANALYZE) public.ratings;
+```
+
+#### Reserved sentinel guardrails (SQL editor safe)
+
+```sql
+SELECT COUNT(*) AS unknown_species_slug
+FROM public.catches
+WHERE species_slug = '__unknown__';
+
+SELECT COUNT(*) AS unknown_species_table
+FROM public.species
+WHERE slug = '__unknown__';
+```
+
+#### EXPLAIN checks
 
 Unfiltered top 100:
 
@@ -227,10 +395,14 @@ ORDER BY total_score DESC, created_at ASC, id ASC
 LIMIT 100;
 ```
 
-Expected:
-- Planner uses `idx_catch_leaderboard_scores_ordering` (unfiltered).
-- Planner uses `idx_catch_leaderboard_scores_species_ordering` (filtered).
-- No GroupAggregate over `ratings`; no temp spill for top 100.
+**What “good” looks like (Stage 3):**
+
+- No `GroupAggregate` / `HashAggregate` over `ratings` in the read path.
+- `catch_leaderboard_scores` is accessed via ordering indexes (unfiltered uses `idx_catch_leaderboard_scores_ordering`; filtered uses `idx_catch_leaderboard_scores_species_ordering`).
+- Sorts should be over a _small working set_ (Top-N), with **no temp spill** for the LIMIT 100 query.
+- Joins to `catches` / `profiles` should be against the Top-N set (avoid “join everything then sort” patterns).
+
+**Note:** If you still see Seq Scans on `catches` locally, that can be a cost-based choice (especially if everything is cached). Focus primarily on (1) no ratings aggregation and (2) the ordering indexes being used on the score table.
 
 ### 3.4 Rollback (2147)
 
