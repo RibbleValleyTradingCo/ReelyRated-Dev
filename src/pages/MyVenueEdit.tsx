@@ -93,6 +93,19 @@ type MetadataSnapshot = {
   payment_notes: string;
 };
 
+const SECTION_KEYS = {
+  species: "species",
+  facilities: "facilities",
+  pricing: "pricing",
+  contact: "contact",
+  hours: "hours",
+  rules: "rules",
+  photos: "photos",
+  events: "events",
+} as const;
+
+type SectionKey = typeof SECTION_KEYS[keyof typeof SECTION_KEYS];
+
 const defaultEventForm = {
   id: "" as string | "",
   title: "",
@@ -132,6 +145,7 @@ const MyVenueEdit = () => {
   const [eventJustSaved, setEventJustSaved] = useState(false);
   const eventSavedTimeoutRef = useRef<number | null>(null);
   const [eventSaving, setEventSaving] = useState(false);
+  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
   const [metadataBaseline, setMetadataBaseline] = useState<MetadataSnapshot | null>(null);
   const [metadataStatus, setMetadataStatus] = useState<MetadataStatus>("clean");
   const [rowSectionDirty, setRowSectionDirty] = useState({
@@ -140,14 +154,16 @@ const MyVenueEdit = () => {
     openingHours: false,
   });
   const [rowSectionResetSignal, setRowSectionResetSignal] = useState(0);
-  const [accordionValue, setAccordionValue] = useState<string[]>(["species"]);
+  const [accordionValue, setAccordionValue] = useState<string[]>([SECTION_KEYS.species]);
+  const [openedSections, setOpenedSections] = useState<Set<SectionKey>>(
+    () => new Set([SECTION_KEYS.species])
+  );
   const savedStatusTimeoutRef = useRef<number | null>(null);
   const [pricingSectionSaving, setPricingSectionSaving] = useState(false);
   const [pricingSectionJustSaved, setPricingSectionJustSaved] = useState(false);
   const pricingSavedTimeoutRef = useRef<number | null>(null);
   const pricingTiersRef = useRef<PricingTiersCardHandle | null>(null);
-  const [pendingAction, setPendingAction] = useState<"navigation" | "accordion" | null>(null);
-  const [pendingAccordionValue, setPendingAccordionValue] = useState<string[] | null>(null);
+  const [pendingAction, setPendingAction] = useState<"navigation" | null>(null);
   const [form, setForm] = useState({
     short_tagline: "",
     description: "",
@@ -171,6 +187,12 @@ const MyVenueEdit = () => {
 
   const normalizeList = (value: string[] | null | undefined) =>
     (value ?? []).map((item) => item.trim()).filter(Boolean);
+
+  const toInputId = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "");
 
   const buildMetadataSnapshotFromForm = (nextForm: typeof form): MetadataSnapshot => ({
     short_tagline: nextForm.short_tagline,
@@ -375,28 +397,20 @@ const MyVenueEdit = () => {
     const loadVenue = async () => {
       if (!slug || !user) return;
       setIsLoading(true);
-      const { data, error } = await supabase.rpc("get_venue_by_slug", { p_slug: slug });
+      const { data, error } = await supabase.rpc("owner_get_venue_by_slug", { p_slug: slug });
       if (error) {
         console.error("Failed to load venue", error);
         toast.error("Unable to load venue");
         setVenue(null);
+        setIsOwner(false);
         setIsLoading(false);
         return;
       }
       const row = (data as Venue[] | null)?.[0] ?? null;
       hydrateVenueState(row);
+      setIsOwner(Boolean(row?.id));
       setMetadataStatus("clean");
       clearSavedStatusTimeout();
-      if (row?.id) {
-        const { data: ownerRow } = await supabase
-          .from("venue_owners")
-          .select("venue_id")
-          .eq("venue_id", row.id)
-          .eq("user_id", user.id)
-          .maybeSingle();
-        const { data: adminRow } = await supabase.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
-        setIsOwner(Boolean(ownerRow) || Boolean(adminRow));
-      }
       setIsLoading(false);
     };
     void loadVenue();
@@ -408,7 +422,6 @@ const MyVenueEdit = () => {
   useEffect(() => {
     if (blocker.state !== "blocked") return;
     setPendingAction("navigation");
-    setPendingAccordionValue(null);
   }, [blocker.state]);
 
   useBeforeUnload(
@@ -424,13 +437,22 @@ const MyVenueEdit = () => {
 
   const handleAccordionChange = (nextValue: string[]) => {
     if (arraysEqual(nextValue, accordionValue)) return;
-    if (!isAnyDirty) {
-      setAccordionValue(nextValue);
-      return;
-    }
-    setPendingAction("accordion");
-    setPendingAccordionValue(nextValue);
+    setAccordionValue(nextValue);
   };
+
+  useEffect(() => {
+    setOpenedSections((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      accordionValue.forEach((value) => {
+        if (!next.has(value as SectionKey)) {
+          next.add(value as SectionKey);
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [accordionValue]);
 
   const handleDiscard = () => {
     resetMetadataDraftToBaseline();
@@ -438,11 +460,7 @@ const MyVenueEdit = () => {
     setRowSectionDirty({ species: false, pricing: false, openingHours: false });
     setPricingSectionJustSaved(false);
     clearPricingSavedStatus();
-    if (pendingAction === "accordion" && pendingAccordionValue) {
-      setAccordionValue(pendingAccordionValue);
-    }
     setPendingAction(null);
-    setPendingAccordionValue(null);
     if (blocker.state === "blocked") {
       blocker.proceed();
     }
@@ -450,7 +468,6 @@ const MyVenueEdit = () => {
 
   const handleStay = () => {
     setPendingAction(null);
-    setPendingAccordionValue(null);
     if (blocker.state === "blocked") {
       blocker.reset();
     }
@@ -463,9 +480,17 @@ const MyVenueEdit = () => {
     }
   };
 
+  const shouldRenderEvents =
+    openedSections.has(SECTION_KEYS.events) ||
+    accordionValue.includes(SECTION_KEYS.events);
+
+  useEffect(() => {
+    setHasLoadedEvents(false);
+  }, [venue?.id]);
+
   useEffect(() => {
     const loadEvents = async () => {
-      if (!venue?.id || !isOwner) return;
+      if (!venue?.id || !isOwner || !shouldRenderEvents || hasLoadedEvents) return;
       setEventsLoading(true);
       const { data, error } = await supabase.rpc("owner_get_venue_events", { p_venue_id: venue.id });
       if (error) {
@@ -476,9 +501,10 @@ const MyVenueEdit = () => {
         setEvents((data as VenueEvent[]) ?? []);
       }
       setEventsLoading(false);
+      setHasLoadedEvents(true);
     };
     void loadEvents();
-  }, [isOwner, venue?.id]);
+  }, [hasLoadedEvents, isOwner, shouldRenderEvents, venue?.id]);
 
   const paymentOptions = [
     { value: "cash", label: "Cash" },
@@ -552,6 +578,21 @@ const MyVenueEdit = () => {
   const customFacilities = Array.from(selectedFacilities).filter(
     (value) => !knownFacilityValues.has(value)
   );
+  const shouldRenderSpecies =
+    openedSections.has(SECTION_KEYS.species) ||
+    accordionValue.includes(SECTION_KEYS.species);
+  const shouldRenderPricing =
+    openedSections.has(SECTION_KEYS.pricing) ||
+    accordionValue.includes(SECTION_KEYS.pricing);
+  const shouldRenderHours =
+    openedSections.has(SECTION_KEYS.hours) ||
+    accordionValue.includes(SECTION_KEYS.hours);
+  const shouldRenderRules =
+    openedSections.has(SECTION_KEYS.rules) ||
+    accordionValue.includes(SECTION_KEYS.rules);
+  const shouldRenderPhotos =
+    openedSections.has(SECTION_KEYS.photos) ||
+    accordionValue.includes(SECTION_KEYS.photos);
 
   const toggleFacility = (value: string, checked: boolean) => {
     setForm((prev) => {
@@ -598,9 +639,8 @@ const MyVenueEdit = () => {
         return false;
       }
       toast.success("Venue updated");
-      console.log("Updated venue from owner_update_venue_metadata", data);
       if (slug) {
-        const { data: refreshed, error: refreshError } = await supabase.rpc("get_venue_by_slug", { p_slug: slug });
+        const { data: refreshed, error: refreshError } = await supabase.rpc("owner_get_venue_by_slug", { p_slug: slug });
         if (refreshError) {
           console.error("Failed to refresh venue", refreshError);
           toast.info("Saved, but refresh failed — changes still marked unsaved. Please reload.");
@@ -610,7 +650,7 @@ const MyVenueEdit = () => {
         } else {
           const row = (refreshed as Venue[] | null)?.[0] ?? null;
           if (!row) {
-            console.error("No venue returned from get_venue_by_slug");
+            console.error("No venue returned from owner_get_venue_by_slug");
             toast.info("Saved, but refresh failed — changes still marked unsaved. Please reload.");
             setMetadataStatus("error");
             void queryClient.invalidateQueries({ queryKey: qk.venueBySlug(slug) });
@@ -783,7 +823,7 @@ const MyVenueEdit = () => {
 
   const renderSectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
     <div className="space-y-1 border-b border-border pb-4">
-      <Heading as="h3" size="sm" className="text-foreground">
+      <Heading as="h2" size="sm" className="text-foreground">
         {title}
       </Heading>
       <Text className="text-sm text-muted-foreground">{subtitle}</Text>
@@ -813,7 +853,7 @@ const MyVenueEdit = () => {
         <PageContainer className="px-4 sm:px-6 py-12">
           <Card className="w-full border-border/70">
             <CardHeader>
-              <Heading as="h2" size="md" className="text-foreground">
+              <Heading as="h1" size="md" className="text-foreground">
                 Access denied
               </Heading>
             </CardHeader>
@@ -850,6 +890,7 @@ const MyVenueEdit = () => {
                 </div>
               }
               title={venue.name || "Manage venue"}
+              titleAs="h1"
               subtitle="Manage venue details and events."
               actions={
                 <div className="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:justify-end">
@@ -872,31 +913,36 @@ const MyVenueEdit = () => {
               className="space-y-3"
             >
               <AccordionItem
-                value="species"
+                value={SECTION_KEYS.species}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Species Stocked</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.species)}
+                  className="px-4 pb-4 pt-2"
+                >
                   <div className="space-y-6">
                     {renderSectionHeader({
                       title: "Species Stocked",
                       subtitle: "Record weights, ranges, and density for anglers.",
                     })}
-                    <SpeciesStockCard
-                      venueId={venue.id}
-                      variant="embedded"
-                      showHeader={false}
-                      onDirtyChange={(dirty) => handleRowSectionDirtyChange("species", dirty)}
-                      resetSignal={rowSectionResetSignal}
-                    />
+                    {shouldRenderSpecies ? (
+                      <SpeciesStockCard
+                        venueId={venue.id}
+                        variant="embedded"
+                        showHeader={false}
+                        onDirtyChange={(dirty) => handleRowSectionDirtyChange("species", dirty)}
+                        resetSignal={rowSectionResetSignal}
+                      />
+                    ) : null}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem
-                value="facilities"
+                value={SECTION_KEYS.facilities}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
@@ -918,12 +964,15 @@ const MyVenueEdit = () => {
                             {group.options.map((option) => {
                               const Icon = option.icon;
                               const isSelected = selectedFacilities.has(option.value);
+                              const facilityId = `facility-${toInputId(option.value)}`;
                               return (
                                 <label
                                   key={option.value}
+                                  htmlFor={facilityId}
                                   className="group cursor-pointer rounded-xl focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background"
                                 >
                                   <input
+                                    id={facilityId}
                                     type="checkbox"
                                     className="peer sr-only"
                                     checked={isSelected}
@@ -951,12 +1000,15 @@ const MyVenueEdit = () => {
                           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                             {customFacilities.map((facility) => {
                               const isSelected = selectedFacilities.has(facility);
+                              const facilityId = `facility-custom-${toInputId(facility)}`;
                               return (
                                 <label
                                   key={facility}
+                                  htmlFor={facilityId}
                                   className="group cursor-pointer rounded-xl focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background"
                                 >
                                   <input
+                                    id={facilityId}
                                     type="checkbox"
                                     className="peer sr-only"
                                     checked={isSelected}
@@ -978,10 +1030,11 @@ const MyVenueEdit = () => {
                       ) : null}
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-semibold text-foreground">
+                      <label htmlFor="venue-facilities" className="text-sm font-semibold text-foreground">
                         Facilities (comma separated)
                       </label>
                       <Input
+                        id="venue-facilities"
                         value={form.facilities}
                         onChange={(e) => setForm((prev) => ({ ...prev, facilities: e.target.value }))}
                         placeholder="Toilets, Café, Tackle shop"
@@ -1002,13 +1055,16 @@ const MyVenueEdit = () => {
               </AccordionItem>
 
               <AccordionItem
-                value="pricing"
+                value={SECTION_KEYS.pricing}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Pricing & Tickets</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.pricing)}
+                  className="px-4 pb-4 pt-2"
+                >
                   <div className="space-y-6">
                     {renderSectionHeader({
                       title: "Pricing & Tickets",
@@ -1016,8 +1072,9 @@ const MyVenueEdit = () => {
                     })}
                     <div className="grid gap-4 md:grid-cols-2 min-w-0">
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Ticket type</label>
+                        <label htmlFor="ticket-type" className="text-sm font-semibold text-foreground">Ticket type</label>
                         <Input
+                          id="ticket-type"
                           value={form.ticket_type}
                           onChange={(e) => setForm((prev) => ({ ...prev, ticket_type: e.target.value }))}
                           placeholder="Day ticket, Syndicate, Club water, Coaching venue"
@@ -1027,8 +1084,9 @@ const MyVenueEdit = () => {
                         </Text>
                       </div>
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Price from</label>
+                        <label htmlFor="price-from" className="text-sm font-semibold text-foreground">Price from</label>
                         <Input
+                          id="price-from"
                           value={form.price_from}
                           onChange={(e) => setForm((prev) => ({ ...prev, price_from: e.target.value }))}
                           placeholder="from £10 / day"
@@ -1040,25 +1098,31 @@ const MyVenueEdit = () => {
                       <div className="space-y-2 min-w-0 md:col-span-2">
                         <label className="text-sm font-semibold text-foreground">Payment methods</label>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          {paymentOptions.map((option) => (
-                            <label
-                              key={option.value}
-                              className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
-                            >
-                              <Checkbox
-                                checked={form.payment_methods.includes(option.value)}
-                                onCheckedChange={(checked) =>
-                                  togglePaymentMethod(option.value, Boolean(checked))
-                                }
-                              />
-                              <span>{option.label}</span>
-                            </label>
-                          ))}
+                          {paymentOptions.map((option) => {
+                            const paymentId = `payment-${option.value}`;
+                            return (
+                              <label
+                                key={option.value}
+                                htmlFor={paymentId}
+                                className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm text-foreground"
+                              >
+                                <Checkbox
+                                  id={paymentId}
+                                  checked={form.payment_methods.includes(option.value)}
+                                  onCheckedChange={(checked) =>
+                                    togglePaymentMethod(option.value, Boolean(checked))
+                                  }
+                                />
+                                <span>{option.label}</span>
+                              </label>
+                            );
+                          })}
                         </div>
                       </div>
                       <div className="space-y-2 min-w-0 md:col-span-2">
-                        <label className="text-sm font-semibold text-foreground">Payment notes</label>
+                        <label htmlFor="payment-notes" className="text-sm font-semibold text-foreground">Payment notes</label>
                         <Textarea
+                          id="payment-notes"
                           value={form.payment_notes}
                           onChange={(e) => setForm((prev) => ({ ...prev, payment_notes: e.target.value }))}
                           placeholder="Cash only on bank. No card facilities."
@@ -1067,15 +1131,17 @@ const MyVenueEdit = () => {
                       </div>
                     </div>
                     <div className="rounded-xl border border-border bg-muted/40 p-4">
-                      <PricingTiersCard
-                        ref={pricingTiersRef}
-                        venueId={venue.id}
-                        variant="embedded"
-                        showHeader={false}
-                        showFooter={false}
-                        onDirtyChange={(dirty) => handleRowSectionDirtyChange("pricing", dirty)}
-                        resetSignal={rowSectionResetSignal}
-                      />
+                      {shouldRenderPricing ? (
+                        <PricingTiersCard
+                          ref={pricingTiersRef}
+                          venueId={venue.id}
+                          variant="embedded"
+                          showHeader={false}
+                          showFooter={false}
+                          onDirtyChange={(dirty) => handleRowSectionDirtyChange("pricing", dirty)}
+                          resetSignal={rowSectionResetSignal}
+                        />
+                      ) : null}
                     </div>
                     <SectionSaveFooter
                       dirty={pricingSectionDirty}
@@ -1089,7 +1155,7 @@ const MyVenueEdit = () => {
               </AccordionItem>
 
               <AccordionItem
-                value="contact"
+                value={SECTION_KEYS.contact}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
@@ -1103,8 +1169,9 @@ const MyVenueEdit = () => {
                     })}
                     <div className="grid gap-4 md:grid-cols-2 min-w-0">
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Short tagline</label>
+                        <label htmlFor="short-tagline" className="text-sm font-semibold text-foreground">Short tagline</label>
                         <Input
+                          id="short-tagline"
                           value={form.short_tagline}
                           onChange={(e) => setForm((prev) => ({ ...prev, short_tagline: e.target.value }))}
                           placeholder="Big carp day-ticket venue with 3 main lakes"
@@ -1126,8 +1193,9 @@ const MyVenueEdit = () => {
                         />
                       </div>
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Website URL</label>
+                        <label htmlFor="website-url" className="text-sm font-semibold text-foreground">Website URL</label>
                         <Input
+                          id="website-url"
                           value={form.website_url}
                           onChange={(e) => setForm((prev) => ({ ...prev, website_url: e.target.value }))}
                           placeholder="https://example.com"
@@ -1137,8 +1205,9 @@ const MyVenueEdit = () => {
                         </Text>
                       </div>
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Booking URL</label>
+                        <label htmlFor="booking-url" className="text-sm font-semibold text-foreground">Booking URL</label>
                         <Input
+                          id="booking-url"
                           value={form.booking_url}
                           onChange={(e) => setForm((prev) => ({ ...prev, booking_url: e.target.value }))}
                           placeholder="https://example.com/book"
@@ -1148,8 +1217,9 @@ const MyVenueEdit = () => {
                         </Text>
                       </div>
                       <div className="space-y-2 min-w-0">
-                        <label className="text-sm font-semibold text-foreground">Contact phone</label>
+                        <label htmlFor="contact-phone" className="text-sm font-semibold text-foreground">Contact phone</label>
                         <Input
+                          id="contact-phone"
                           value={form.contact_phone}
                           onChange={(e) => setForm((prev) => ({ ...prev, contact_phone: e.target.value }))}
                           placeholder="+44 ..."
@@ -1187,254 +1257,287 @@ const MyVenueEdit = () => {
               </AccordionItem>
 
               <AccordionItem
-                value="hours"
+                value={SECTION_KEYS.hours}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Opening Hours</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.hours)}
+                  className="px-4 pb-4 pt-2"
+                >
                   <div className="space-y-6">
                     {renderSectionHeader({
                       title: "Opening Hours",
                       subtitle: "Seasonal or day-by-day hours with grouping support.",
                     })}
-                    <OpeningHoursCard
-                      venueId={venue.id}
-                      variant="embedded"
-                      showHeader={false}
-                      onDirtyChange={(dirty) => handleRowSectionDirtyChange("openingHours", dirty)}
-                      resetSignal={rowSectionResetSignal}
-                    />
+                    {shouldRenderHours ? (
+                      <OpeningHoursCard
+                        venueId={venue.id}
+                        variant="embedded"
+                        showHeader={false}
+                        onDirtyChange={(dirty) => handleRowSectionDirtyChange("openingHours", dirty)}
+                        resetSignal={rowSectionResetSignal}
+                      />
+                    ) : null}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem
-                value="rules"
+                value={SECTION_KEYS.rules}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Rules</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.rules)}
+                  className="px-4 pb-4 pt-2"
+                >
                   <div className="space-y-6">
-                    <RulesCard
-                      venueId={venue.id}
-                      venueName={venue.name}
-                      variant="embedded"
-                      showHeader
-                      actionsPlacement="footer"
-                    />
+                    {shouldRenderRules ? (
+                      <RulesCard
+                        venueId={venue.id}
+                        venueName={venue.name}
+                        variant="embedded"
+                        showHeader
+                        actionsPlacement="footer"
+                      />
+                    ) : null}
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem
-                value="photos"
+                value={SECTION_KEYS.photos}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Photos</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.photos)}
+                  className="px-4 pb-4 pt-2"
+                >
                   <div className="space-y-6">
                     {renderSectionHeader({
                       title: "Photos",
                       subtitle: "Upload and manage venue imagery.",
                     })}
-                    <VenuePhotosCard venueId={venue.id} mode="owner" variant="embedded" showHeader={false} />
+                    {shouldRenderPhotos ? (
+                      <VenuePhotosCard
+                        venueId={venue.id}
+                        mode="owner"
+                        variant="embedded"
+                        showHeader={false}
+                      />
+                    ) : null}
                     <SectionSaveFooter hideSave secondaryActions={<AutoSaveChip variant="auto" />} />
                   </div>
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem
-                value="events"
+                value={SECTION_KEYS.events}
                 className="rounded-2xl border border-border bg-card shadow-card overflow-hidden"
               >
                 <AccordionTrigger className="flex w-full min-h-[44px] items-center justify-between px-4 py-3 text-left text-sm font-semibold text-foreground hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
                   <span>Events</span>
                 </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4 pt-2">
-                  <div className="space-y-6">
-                    {renderSectionHeader({
-                      title: "Events",
-                      subtitle: "Publish upcoming events and announcements.",
-                    })}
-                    <div className="space-y-2">
-                      <Heading as="h3" size="sm" className="text-foreground">
-                        Create / edit event
-                      </Heading>
-                      <div className="grid gap-4 md:grid-cols-2 min-w-0">
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Title*</label>
-                          <Input
-                            value={eventForm.title}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Event type</label>
-                          <Input
-                            value={eventForm.event_type}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, event_type: e.target.value }))}
-                            placeholder="Match, open_day, maintenance..."
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Starts at*</label>
-                          <Input
-                            type="datetime-local"
-                            value={eventForm.starts_at}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, starts_at: e.target.value }))}
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Ends at</label>
-                          <Input
-                            type="datetime-local"
-                            value={eventForm.ends_at}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, ends_at: e.target.value }))}
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Ticket info</label>
-                          <Input
-                            value={eventForm.ticket_info}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_info: e.target.value }))}
-                            placeholder="£25, 30 pegs, payout to top 3"
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Website URL</label>
-                          <Input
-                            value={eventForm.website_url}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, website_url: e.target.value }))}
-                            placeholder="https://example.com"
-                          />
-                        </div>
-                        <div className="space-y-1 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Booking URL</label>
-                          <Input
-                            value={eventForm.booking_url}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, booking_url: e.target.value }))}
-                            placeholder="https://example.com/book"
-                          />
-                        </div>
-                        <div className="space-y-1 md:col-span-2 min-w-0">
-                          <label className="text-sm font-semibold text-foreground">Description</label>
-                          <Textarea
-                            value={eventForm.description}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
-                            rows={3}
-                          />
-                        </div>
-                        <div className="flex items-center gap-2 rounded-md bg-muted/40 px-3 py-2 w-full sm:w-auto">
-                          <input
-                            id="is_published"
-                            type="checkbox"
-                            checked={eventForm.is_published}
-                            onChange={(e) => setEventForm((prev) => ({ ...prev, is_published: e.target.checked }))}
-                          />
-                          <label htmlFor="is_published" className="text-sm font-semibold text-foreground">
-                            Published
-                          </label>
+                <AccordionContent
+                  forceMount={openedSections.has(SECTION_KEYS.events)}
+                  className="px-4 pb-4 pt-2"
+                >
+                  {shouldRenderEvents ? (
+                    <div className="space-y-6">
+                      {renderSectionHeader({
+                        title: "Events",
+                        subtitle: "Publish upcoming events and announcements.",
+                      })}
+                      <div className="space-y-2">
+                        <Heading as="h3" size="sm" className="text-foreground">
+                          Create / edit event
+                        </Heading>
+                        <div className="grid gap-4 md:grid-cols-2 min-w-0">
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-title" className="text-sm font-semibold text-foreground">Title*</label>
+                            <Input
+                              id="event-title"
+                              value={eventForm.title}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, title: e.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-type" className="text-sm font-semibold text-foreground">Event type</label>
+                            <Input
+                              id="event-type"
+                              value={eventForm.event_type}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, event_type: e.target.value }))}
+                              placeholder="Match, open_day, maintenance..."
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-starts-at" className="text-sm font-semibold text-foreground">Starts at*</label>
+                            <Input
+                              id="event-starts-at"
+                              type="datetime-local"
+                              value={eventForm.starts_at}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, starts_at: e.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-ends-at" className="text-sm font-semibold text-foreground">Ends at</label>
+                            <Input
+                              id="event-ends-at"
+                              type="datetime-local"
+                              value={eventForm.ends_at}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, ends_at: e.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-ticket-info" className="text-sm font-semibold text-foreground">Ticket info</label>
+                            <Input
+                              id="event-ticket-info"
+                              value={eventForm.ticket_info}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, ticket_info: e.target.value }))}
+                              placeholder="£25, 30 pegs, payout to top 3"
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-website-url" className="text-sm font-semibold text-foreground">Website URL</label>
+                            <Input
+                              id="event-website-url"
+                              value={eventForm.website_url}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, website_url: e.target.value }))}
+                              placeholder="https://example.com"
+                            />
+                          </div>
+                          <div className="space-y-1 min-w-0">
+                            <label htmlFor="event-booking-url" className="text-sm font-semibold text-foreground">Booking URL</label>
+                            <Input
+                              id="event-booking-url"
+                              value={eventForm.booking_url}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, booking_url: e.target.value }))}
+                              placeholder="https://example.com/book"
+                            />
+                          </div>
+                          <div className="space-y-1 md:col-span-2 min-w-0">
+                            <label htmlFor="event-description" className="text-sm font-semibold text-foreground">Description</label>
+                            <Textarea
+                              id="event-description"
+                              value={eventForm.description}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, description: e.target.value }))}
+                              rows={3}
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 rounded-md bg-muted/40 px-3 py-2 w-full sm:w-auto">
+                            <input
+                              id="is_published"
+                              type="checkbox"
+                              checked={eventForm.is_published}
+                              onChange={(e) => setEventForm((prev) => ({ ...prev, is_published: e.target.checked }))}
+                            />
+                            <label htmlFor="is_published" className="text-sm font-semibold text-foreground">
+                              Published
+                            </label>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <Heading as="h3" size="sm" className="text-foreground">
-                          All events
-                        </Heading>
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <Heading as="h3" size="sm" className="text-foreground">
+                            All events
+                          </Heading>
+                          {eventsLoading ? (
+                            <Text variant="muted" className="text-xs">
+                              Loading…
+                            </Text>
+                          ) : (
+                            <Text variant="muted" className="text-xs">
+                              {events.length} event{events.length === 1 ? "" : "s"}
+                            </Text>
+                          )}
+                        </div>
                         {eventsLoading ? (
-                          <Text variant="muted" className="text-xs">
-                            Loading…
-                          </Text>
+                          <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading events…
+                          </div>
+                        ) : events.length === 0 ? (
+                          <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
+                            No events yet.
+                          </div>
                         ) : (
-                          <Text variant="muted" className="text-xs">
-                            {events.length} event{events.length === 1 ? "" : "s"}
-                          </Text>
+                          <div className="space-y-2">
+                            {events.map((event) => {
+                              const status = classifyEventStatus(event);
+                              const statusStyle =
+                                status === "draft"
+                                  ? "bg-accent/20 text-accent"
+                                  : status === "upcoming"
+                                  ? "bg-secondary/20 text-secondary"
+                                  : "bg-muted text-foreground";
+                              return (
+                                <div
+                                  key={event.id}
+                                  className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                                >
+                                  <div className="space-y-1 min-w-0">
+                                    <Heading as="h4" size="sm" className="text-foreground line-clamp-1">
+                                      {event.title}
+                                    </Heading>
+                                    <Text variant="muted" className="text-xs truncate">
+                                      {new Date(event.starts_at).toLocaleString()} {event.event_type ? `• ${event.event_type}` : ""}
+                                    </Text>
+                                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusStyle}`}>
+                                      {status === "draft" ? "Draft" : status === "upcoming" ? "Upcoming" : "Past"}
+                                    </span>
+                                  </div>
+                                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="rounded-full w-full sm:w-auto"
+                                      onClick={() => handleEditEvent(event)}
+                                    >
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="rounded-full text-destructive hover:text-destructive/90 w-full sm:w-auto"
+                                      onClick={() => void handleDeleteEvent(event.id)}
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
-                      {eventsLoading ? (
-                        <div className="flex items-center justify-center rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Loading events…
-                        </div>
-                      ) : events.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-border bg-card p-4 text-sm text-muted-foreground">
-                          No events yet.
-                        </div>
-                      ) : (
-                        <div className="space-y-2">
-                          {events.map((event) => {
-                            const status = classifyEventStatus(event);
-                            const statusStyle =
-                              status === "draft"
-                                ? "bg-accent/20 text-accent"
-                                : status === "upcoming"
-                                ? "bg-secondary/20 text-secondary"
-                                : "bg-muted text-foreground";
-                            return (
-                              <div
-                                key={event.id}
-                                className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-card p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
-                              >
-                                <div className="space-y-1 min-w-0">
-                                  <Heading as="h4" size="sm" className="text-foreground line-clamp-1">
-                                    {event.title}
-                                  </Heading>
-                                  <Text variant="muted" className="text-xs truncate">
-                                    {new Date(event.starts_at).toLocaleString()} {event.event_type ? `• ${event.event_type}` : ""}
-                                  </Text>
-                                  <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${statusStyle}`}>
-                                    {status === "draft" ? "Draft" : status === "upcoming" ? "Upcoming" : "Past"}
-                                  </span>
-                                </div>
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="rounded-full w-full sm:w-auto"
-                                    onClick={() => handleEditEvent(event)}
-                                  >
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="rounded-full text-destructive hover:text-destructive/90 w-full sm:w-auto"
-                                    onClick={() => void handleDeleteEvent(event.id)}
-                                  >
-                                    Delete
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                      <SectionSaveFooter
+                        dirty={isEventDirty}
+                        saving={eventSaving}
+                        justSaved={eventJustSaved}
+                        onSave={() => void handleSaveEvent()}
+                        saveDisabled={!isEventDirty}
+                        secondaryActions={
+                          <Button
+                            variant="outline"
+                            onClick={() => handleEditEvent(undefined)}
+                            className="h-11 rounded-xl border border-border bg-card px-4 font-semibold text-foreground hover:bg-muted/40"
+                          >
+                            Clear form
+                          </Button>
+                        }
+                      />
                     </div>
-                    <SectionSaveFooter
-                      dirty={isEventDirty}
-                      saving={eventSaving}
-                      justSaved={eventJustSaved}
-                      onSave={() => void handleSaveEvent()}
-                      saveDisabled={!isEventDirty}
-                      secondaryActions={
-                        <Button
-                          variant="outline"
-                          onClick={() => handleEditEvent(undefined)}
-                          className="h-11 rounded-xl border border-border bg-card px-4 font-semibold text-foreground hover:bg-muted/40"
-                        >
-                          Clear form
-                        </Button>
-                      }
-                    />
-                  </div>
+                  ) : null}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

@@ -2,7 +2,7 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps, sanitizeExternalUrl } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 import type {
   VenueOpeningHour,
@@ -86,9 +86,9 @@ const PlanYourVisitSection = ({
   const [rulesExpanded, setRulesExpanded] = useState(false);
   const [primaryPrice, ...restPrices] = pricingLines;
   const secondaryPrices = restPrices.filter((line) => line !== ticketType);
-  const safeBookingUrl = normalizeExternalUrl(bookingUrl);
-  const safeWebsiteUrl = normalizeExternalUrl(websiteUrl);
-  const safeMapsUrl = normalizeExternalUrl(mapsUrl);
+  const safeBookingUrl = sanitizeExternalUrl(bookingUrl);
+  const safeWebsiteUrl = sanitizeExternalUrl(websiteUrl);
+  const safeMapsUrl = sanitizeExternalUrl(mapsUrl);
   const hasRecentWindow = typeof recentWindow === "number" && recentWindow > 0;
   const sortedPricingTiers = [...pricingTiers].sort(
     (a, b) => a.order_index - b.order_index
@@ -420,13 +420,16 @@ const PlanYourVisitSection = ({
   );
 
   const primaryWebsiteUrl = safeWebsiteUrl || safeBookingUrl;
+  const primaryWebsiteLink = externalLinkProps(primaryWebsiteUrl);
+  const mapsLink = externalLinkProps(safeMapsUrl);
+  const bookingLink = externalLinkProps(safeBookingUrl);
   const bookingMethodCopy = contactPhone
     ? "Pre-booking is essential via phone."
     : primaryWebsiteUrl
     ? "Book online via the venue website."
     : "Booking details coming soon.";
   const websiteButtonLabel = safeWebsiteUrl ? "Visit venue website" : "Booking page";
-  const canShowWebsiteButton = Boolean(primaryWebsiteUrl);
+  const canShowWebsiteButton = Boolean(primaryWebsiteLink);
   const disableWebsiteButton =
     !bookingEnabled && Boolean(safeBookingUrl) && !safeWebsiteUrl;
 
@@ -479,11 +482,9 @@ const PlanYourVisitSection = ({
         ) : (
           <p className="text-sm text-muted-foreground">Phone booking details coming soon.</p>
         )}
-        {canShowWebsiteButton ? (
+        {canShowWebsiteButton && primaryWebsiteLink ? (
           <a
-            href={primaryWebsiteUrl ?? undefined}
-            target="_blank"
-            rel="noreferrer"
+            {...primaryWebsiteLink}
             className={cn(
               "inline-flex items-center gap-2 text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               disableWebsiteButton && "pointer-events-none opacity-60"
@@ -503,7 +504,7 @@ const PlanYourVisitSection = ({
         </p>
         {openingHoursContent}
       </div>
-      {!contactPhone && !primaryWebsiteUrl && (isOwner || isAdmin) ? (
+      {!contactPhone && !primaryWebsiteLink && (isOwner || isAdmin) ? (
         <p className="text-xs text-muted-foreground/70">Add booking details in Manage venue.</p>
       ) : null}
     </div>
@@ -549,7 +550,7 @@ const PlanYourVisitSection = ({
             Call venue
           </Button>
         )}
-        {canShowWebsiteButton ? (
+        {canShowWebsiteButton && primaryWebsiteLink ? (
           <Button
             asChild
             disabled={disableWebsiteButton}
@@ -558,7 +559,7 @@ const PlanYourVisitSection = ({
               disableWebsiteButton && "pointer-events-none opacity-60"
             )}
           >
-            <a href={primaryWebsiteUrl ?? undefined} target="_blank" rel="noreferrer">
+            <a {...primaryWebsiteLink}>
               {websiteButtonLabel}
             </a>
           </Button>
@@ -572,14 +573,14 @@ const PlanYourVisitSection = ({
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Quick links
           </p>
-          {safeMapsUrl ? (
-            <a href={safeMapsUrl} target="_blank" rel="noreferrer" className={linkRowClass}>
+          {mapsLink ? (
+            <a {...mapsLink} className={linkRowClass}>
               <span>Get directions</span>
               <ChevronRight className="h-4 w-4 text-muted-foreground/70" />
             </a>
           ) : null}
-          {safeBookingUrl ? (
-            <a href={safeBookingUrl} target="_blank" rel="noreferrer" className={linkRowClass}>
+          {bookingLink ? (
+            <a {...bookingLink} className={linkRowClass}>
               <span>Booking page</span>
               <ChevronRight className="h-4 w-4 text-muted-foreground/70" />
             </a>
@@ -651,6 +652,8 @@ const PlanYourVisitSection = ({
       ? "Check availability"
       : "Get directions";
     const bannerSecondaryUrl = safeWebsiteUrl || safeMapsUrl;
+    const bannerPrimaryLink = externalLinkProps(bannerPrimaryUrl);
+    const bannerSecondaryLink = externalLinkProps(bannerSecondaryUrl);
     const bannerSubtextParts = [
       activeAnglers > 0
         ? `See ${activeAnglers} angler${
@@ -696,16 +699,12 @@ const PlanYourVisitSection = ({
             </p>
           ) : null}
           <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-            {bannerPrimaryUrl ? (
+            {bannerPrimaryLink ? (
               <Button
                 asChild
                 className="h-12 w-full rounded-xl bg-inverse text-inverse-foreground shadow-card transition hover:bg-inverse/90 sm:w-auto dark:bg-inverse-foreground dark:text-inverse"
               >
-                <a
-                  href={bannerPrimaryUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a {...bannerPrimaryLink}>
                   {bannerPrimaryLabel}
                 </a>
               </Button>
@@ -717,16 +716,12 @@ const PlanYourVisitSection = ({
                 {bannerPrimaryLabel}
               </Button>
             )}
-            {bannerSecondaryUrl ? (
+            {bannerSecondaryLink ? (
               <Button
                 asChild
                 className="h-12 w-full rounded-xl border border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground shadow-card hover:bg-primary-foreground/20 sm:w-auto"
               >
-                <a
-                  href={bannerSecondaryUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a {...bannerSecondaryLink}>
                   {bannerSecondaryLabel}
                 </a>
               </Button>

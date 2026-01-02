@@ -10,8 +10,8 @@ const AutoSaveChip = ({ variant = "auto", label, className }: AutoSaveChipProps)
   const text = label ?? (variant === "saving" ? "Saving…" : "Auto-saves");
   const toneClasses =
     variant === "saving"
-      ? "border-primary/30 bg-primary/10 text-primary"
-      : "border-border bg-muted/70 text-muted-foreground";
+      ? "border-primary/50 bg-primary/15 text-foreground"
+      : "border-border/80 bg-muted/50 text-foreground/80";
 
   return (
     <span

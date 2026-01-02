@@ -2,7 +2,7 @@ import Section from "@/components/layout/Section";
 import SectionHeader from "@/components/layout/SectionHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps } from "@/lib/urls";
 import type { VenueEvent } from "@/pages/venue-detail/types";
 import { formatEventDate } from "@/pages/venue-detail/utils";
 import { Loader2 } from "lucide-react";
@@ -19,10 +19,10 @@ type EventsSectionProps = {
 };
 
 const resolveEventLink = (event: VenueEvent) => {
-  const bookingUrl = normalizeExternalUrl(event.booking_url);
-  if (bookingUrl) return { url: bookingUrl, label: "Book now" };
-  const websiteUrl = normalizeExternalUrl(event.website_url);
-  if (websiteUrl) return { url: websiteUrl, label: "More details" };
+  const bookingLink = externalLinkProps(event.booking_url);
+  if (bookingLink) return { props: bookingLink, label: "Book now" };
+  const websiteLink = externalLinkProps(event.website_url);
+  if (websiteLink) return { props: websiteLink, label: "More details" };
   return null;
 };
 
@@ -108,9 +108,7 @@ const EventsSection = ({
                     <div>
                       {featuredLink ? (
                         <a
-                          href={featuredLink.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          {...featuredLink.props}
                           className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                         >
                           {featuredLink.label}
@@ -158,9 +156,7 @@ const EventsSection = ({
                           <div>
                             {eventLink ? (
                               <a
-                                href={eventLink.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                {...eventLink.props}
                                 className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                               >
                                 {eventLink.label}
@@ -225,9 +221,7 @@ const EventsSection = ({
                         <div>
                           {eventLink ? (
                             <a
-                              href={eventLink.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
+                              {...eventLink.props}
                               className="text-sm font-semibold text-primary underline underline-offset-4 hover:text-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                             >
                               {eventLink.label}

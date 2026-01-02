@@ -31,6 +31,7 @@ type UploadItem = {
 };
 
 const VENUE_PHOTOS_BUCKET = "venue-photos";
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 interface VenuePhotosCardProps {
   venueId: string;
@@ -53,6 +54,15 @@ const VenuePhotosCard = ({
   const [uploading, setUploading] = useState(false);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [settingPrimaryIds, setSettingPrimaryIds] = useState<Set<string>>(new Set());
+  const getFileValidationError = (file: File) => {
+    if (!file.type || !file.type.startsWith("image/")) {
+      return "Only image files are allowed.";
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return "Max file size is 10MB.";
+    }
+    return "";
+  };
 
   const loadPhotos = useCallback(async () => {
     if (!venueId) return;
@@ -90,17 +100,26 @@ const VenuePhotosCard = ({
 
   const handleFileSelection = (files: FileList | null) => {
     if (!files?.length) return;
-    const items = Array.from(files)
-      .filter((file) => file.type.startsWith("image/"))
-      .map((file) => ({
+    const rejected: string[] = [];
+    const items = Array.from(files).reduce<UploadItem[]>((acc, file) => {
+      const error = getFileValidationError(file);
+      if (error) {
+        rejected.push(`${file.name}: ${error}`);
+        return acc;
+      }
+      acc.push({
         id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         file,
         previewUrl: URL.createObjectURL(file),
         caption: "",
         status: "pending" as const,
-      }));
+      });
+      return acc;
+    }, []);
+    if (rejected.length > 0) {
+      toast.error("Some files were skipped. Only image files up to 10MB are allowed.");
+    }
     if (items.length === 0) {
-      toast.error("Please choose image files only.");
       return;
     }
     setUploadQueue((prev) => [...prev, ...items]);
@@ -140,6 +159,12 @@ const VenuePhotosCard = ({
     for (let i = 0; i < uploadQueue.length; i += 1) {
       const item = uploadQueue[i];
       if (item.status !== "pending") continue;
+      const validationError = getFileValidationError(item.file);
+      if (validationError) {
+        updateQueueItem(item.id, { status: "error", error: validationError });
+        toast.error(`${item.file.name}: ${validationError}`);
+        continue;
+      }
       updateQueueItem(item.id, { status: "uploading", error: undefined });
       const storagePath = buildStoragePath(item.file, i);
       const { error: uploadError } = await supabase.storage
@@ -290,6 +315,7 @@ const VenuePhotosCard = ({
             multiple
             accept="image/*"
             onChange={(event) => handleFileSelection(event.target.files)}
+            aria-label="Upload venue photos"
           />
           <Button
             type="button"
@@ -345,6 +371,7 @@ const VenuePhotosCard = ({
                           updateQueueItem(item.id, { caption: event.target.value })
                         }
                         placeholder="Caption (optional)"
+                        aria-label={`Caption for ${item.file.name}`}
                         disabled={item.status === "uploading"}
                       />
                       <Button
@@ -381,6 +408,8 @@ const VenuePhotosCard = ({
                             <img
                               src={publicUrl}
                               alt={photo.caption ?? "Venue photo"}
+                              loading="lazy"
+                              decoding="async"
                               className="h-full w-full object-cover"
                             />
                           ) : (

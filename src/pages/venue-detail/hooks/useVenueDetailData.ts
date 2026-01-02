@@ -59,6 +59,7 @@ type UseVenueDetailDataResult = {
   lastKnownCount: number | null;
   isAdmin: boolean;
   isOwner: boolean;
+  ownershipResolved: boolean;
   setShowPastEvents: Dispatch<SetStateAction<boolean>>;
   setRatingModalOpen: Dispatch<SetStateAction<boolean>>;
   setPendingRating: Dispatch<SetStateAction<number | null>>;
@@ -70,7 +71,7 @@ type UseVenueDetailDataResult = {
 export const useVenueDetailData = (
   slug: string | undefined
 ): UseVenueDetailDataResult => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const debugVenue =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("debugVenue");
@@ -113,6 +114,8 @@ export const useVenueDetailData = (
   const userId = user?.id ?? null;
   const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [adminChecked, setAdminChecked] = useState(false);
+  const [ownerChecked, setOwnerChecked] = useState(false);
   const [showPastEvents, setShowPastEvents] = useState(false);
   const [avgRating, setAvgRating] = useState<number | null>(
     venue?.avg_rating ?? null
@@ -411,14 +414,27 @@ export const useVenueDetailData = (
     void pastEventsQuery.fetchNextPage();
   };
 
+  const ownershipResolved =
+    !authLoading && (!user || (adminChecked && ownerChecked));
+
   useEffect(() => {
+    let cancelled = false;
     const checkAdmin = async () => {
-      if (!user) {
+      if (authLoading) {
         setIsAdmin(false);
+        setAdminChecked(false);
         return;
       }
+      if (!user) {
+        setIsAdmin(false);
+        setAdminChecked(true);
+        return;
+      }
+      setAdminChecked(false);
       const adminStatus = await isAdminUser(user.id);
+      if (cancelled) return;
       setIsAdmin(adminStatus);
+      setAdminChecked(true);
       if (debugVenue) {
         console.log("[VenueDetail] admin status", {
           userId: user.id,
@@ -427,22 +443,35 @@ export const useVenueDetailData = (
       }
     };
     void checkAdmin();
-  }, [debugVenue, user]);
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, debugVenue, user]);
 
   useEffect(() => {
+    let cancelled = false;
     const checkOwner = async () => {
-      if (!venue?.id || !user) {
+      if (authLoading) {
         setIsOwner(false);
+        setOwnerChecked(false);
         return;
       }
+      if (!venue?.id || !user) {
+        setIsOwner(false);
+        setOwnerChecked(!user);
+        return;
+      }
+      setOwnerChecked(false);
       const { data, error } = await supabase
         .from("venue_owners")
         .select("venue_id")
         .eq("venue_id", venue.id)
         .eq("user_id", user.id)
         .maybeSingle();
+      if (cancelled) return;
       if (error || !data) {
         setIsOwner(false);
+        setOwnerChecked(true);
         if (debugVenue) {
           console.log("[VenueDetail] owner status", {
             userId: user.id,
@@ -453,6 +482,7 @@ export const useVenueDetailData = (
         return;
       }
       setIsOwner(true);
+      setOwnerChecked(true);
       if (debugVenue) {
         console.log("[VenueDetail] owner status", {
           userId: user.id,
@@ -462,7 +492,10 @@ export const useVenueDetailData = (
       }
     };
     void checkOwner();
-  }, [debugVenue, user, venue?.id]);
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, debugVenue, user, venue?.id]);
 
   const handleRatingSelect = useCallback(
     async (rating: number) => {
@@ -566,6 +599,7 @@ export const useVenueDetailData = (
     lastKnownCount,
     isAdmin,
     isOwner,
+    ownershipResolved,
     setShowPastEvents,
     setRatingModalOpen,
     setPendingRating,

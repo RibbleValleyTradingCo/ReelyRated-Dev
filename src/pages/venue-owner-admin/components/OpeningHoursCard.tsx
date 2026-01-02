@@ -641,7 +641,7 @@ const OpeningHoursCard = ({
             }}
             disabled={saving}
           >
-            <SelectTrigger className="min-w-[200px]">
+            <SelectTrigger className="min-w-[200px]" aria-label="Add preset">
               <SelectValue placeholder="Add preset" />
             </SelectTrigger>
             <SelectContent>
@@ -689,6 +689,9 @@ const OpeningHoursCard = ({
               closesMinutes <= opensMinutes;
             const copyOpen = copyTarget?.groupId === row.id;
             const copyDays = copyTarget?.groupId === row.id ? copyTarget.days : [];
+            const labelId = `opening-label-${row.id}`;
+            const opensId = `opening-opens-${row.id}`;
+            const closesId = `opening-closes-${row.id}`;
 
             return (
               <div key={row.id} className="rounded-xl border border-border bg-muted/40 p-4 space-y-4">
@@ -745,8 +748,9 @@ const OpeningHoursCard = ({
 
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
                   <div className="space-y-2 lg:col-span-4">
-                    <label className="text-sm font-semibold text-foreground">Label</label>
+                    <label htmlFor={labelId} className="text-sm font-semibold text-foreground">Label</label>
                     <Input
+                      id={labelId}
                       value={row.label}
                       onChange={(e) => updateGroup(row.id, { label: e.target.value })}
                       placeholder="Summer"
@@ -774,8 +778,9 @@ const OpeningHoursCard = ({
                     </label>
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <label className="text-sm font-semibold text-foreground">Opens</label>
+                    <label htmlFor={opensId} className="text-sm font-semibold text-foreground">Opens</label>
                     <Input
+                      id={opensId}
                       type="time"
                       value={row.opens_at}
                       onChange={(e) => updateGroup(row.id, { opens_at: e.target.value })}
@@ -784,8 +789,9 @@ const OpeningHoursCard = ({
                     />
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <label className="text-sm font-semibold text-foreground">Closes</label>
+                    <label htmlFor={closesId} className="text-sm font-semibold text-foreground">Closes</label>
                     <Input
+                      id={closesId}
                       type="time"
                       value={row.closes_at}
                       onChange={(e) => updateGroup(row.id, { closes_at: e.target.value })}

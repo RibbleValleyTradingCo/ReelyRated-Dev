@@ -30,8 +30,8 @@ const SectionSaveFooter = ({
   const statusText = justSaved ? "Changes saved" : dirty ? "Unsaved changes" : "";
   const StatusIcon = justSaved ? CheckCircle2 : CircleDot;
   const statusTone = justSaved
-    ? "border-secondary/40 bg-secondary/15 text-secondary"
-    : "border-primary/40 bg-primary/10 text-primary";
+    ? "border-secondary/50 bg-secondary/20 text-foreground"
+    : "border-primary/50 bg-primary/15 text-foreground";
 
   return (
     <div className={cn("border-t border-border pt-4", className)}>

@@ -1,7 +1,7 @@
 import Heading from "@/components/typography/Heading";
 import Text from "@/components/typography/Text";
 import { Button } from "@/components/ui/button";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps } from "@/lib/urls";
 import type { Venue } from "@/pages/venue-detail/types";
 import {
   ExternalLink,
@@ -23,6 +23,7 @@ type VenueHeroProps = {
   onOpenRatingModal: (trigger?: HTMLButtonElement | null) => void;
   isOwner: boolean;
   isAdmin: boolean;
+  ownershipResolved: boolean;
   primaryCtaUrl: string;
   secondaryCtaUrl: string;
   secondaryCtaLabel: string;
@@ -51,6 +52,7 @@ const VenueHero = ({
   onOpenRatingModal,
   isOwner,
   isAdmin,
+  ownershipResolved,
   primaryCtaUrl,
   secondaryCtaUrl,
   secondaryCtaLabel,
@@ -68,12 +70,10 @@ const VenueHero = ({
   onHeroImageLoad,
   onHeroImageError,
 }: VenueHeroProps) => {
-  const safePrimaryCtaUrl = normalizeExternalUrl(primaryCtaUrl);
-  const safeSecondaryCtaUrl = normalizeExternalUrl(secondaryCtaUrl);
-  const safeMapsUrl = normalizeExternalUrl(mapsUrl);
-  const safePhoneUrl = normalizeExternalUrl(
-    contactPhone ? `tel:${contactPhone}` : null
-  );
+  const primaryCtaLink = externalLinkProps(primaryCtaUrl);
+  const secondaryCtaLink = externalLinkProps(secondaryCtaUrl);
+  const mapsLink = externalLinkProps(mapsUrl);
+  const phoneLink = externalLinkProps(contactPhone ? `tel:${contactPhone}` : null);
 
   const outlineButtonClass =
     "h-12 w-full rounded-xl border border-inverse/30 bg-inverse/10 text-inverse shadow-card backdrop-blur-sm transition hover:bg-inverse/15 sm:w-[180px] dark:border-inverse-foreground/30 dark:bg-inverse-foreground/10 dark:text-inverse-foreground dark:hover:bg-inverse-foreground/15";
@@ -201,103 +201,107 @@ const VenueHero = ({
                   </Text>
                 )}
               </div>
-              <div className="mt-4 flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
-                {safePrimaryCtaUrl && bookingEnabled ? (
-                  <Button
-                    asChild
-                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
-                  >
-                    <a href={safePrimaryCtaUrl} target="_blank" rel="noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                      Book Now
-                    </a>
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
-                  >
-                    Book Now
-                  </Button>
-                )}
-                {safePhoneUrl ? (
-                  <Button
-                    asChild
-                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
-                  >
-                    <a href={safePhoneUrl}>
-                      <Phone className="h-4 w-4" />
-                      Call Venue
-                    </a>
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
-                  >
-                    Call Venue
-                  </Button>
-                )}
-                {safeSecondaryCtaUrl ? (
-                  <Button
-                    asChild
-                    className={outlineButtonClass}
-                  >
-                    <a href={safeSecondaryCtaUrl} target="_blank" rel="noreferrer">
-                      <Globe2 className="h-4 w-4" />
-                      {secondaryCtaLabel}
-                    </a>
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className={outlineButtonClass}
-                  >
-                    {secondaryCtaLabel}
-                  </Button>
-                )}
-                {safeMapsUrl ? (
-                  <Button
-                    asChild
-                    className={outlineButtonClass}
-                  >
-                    <a href={safeMapsUrl} target="_blank" rel="noreferrer">
-                      <MapPin className="h-4 w-4" />
-                      Get Directions
-                    </a>
-                  </Button>
-                ) : (
-                  <Button
-                    disabled
-                    className={outlineButtonClass}
-                  >
-                    Get Directions
-                  </Button>
-                )}
-                {isOwner ? (
-                  <Button
-                    asChild
-                    className={outlineButtonClass}
-                  >
-                    <Link to={`/my/venues/${venue.slug}`}>
-                      Manage venue
-                    </Link>
-                  </Button>
-                ) : isAdmin ? (
-                  <Button
-                    asChild
-                    className={outlineButtonClass}
-                  >
-                    <Link to={`/admin/venues/${venue.slug}`}>
-                      Edit Venue
-                    </Link>
-                  </Button>
-                ) : null}
-              </div>
-              {!bookingEnabled ? (
-                <Text className="text-xs text-inverse/80 dark:text-inverse-foreground/80">
-                  Bookings currently closed.
-                </Text>
+              {ownershipResolved ? (
+                <>
+                  <div className="mt-4 flex w-full flex-col items-center gap-3 sm:flex-row sm:flex-wrap sm:justify-center">
+                    {primaryCtaLink && bookingEnabled ? (
+                      <Button
+                        asChild
+                        className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
+                      >
+                        <a {...primaryCtaLink}>
+                          <ExternalLink className="h-4 w-4" />
+                          Book Now
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled
+                        className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
+                      >
+                        Book Now
+                      </Button>
+                    )}
+                    {phoneLink ? (
+                      <Button
+                        asChild
+                        className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
+                      >
+                        <a {...phoneLink}>
+                          <Phone className="h-4 w-4" />
+                          Call Venue
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled
+                        className="h-12 w-full rounded-xl shadow-card sm:w-[180px]"
+                      >
+                        Call Venue
+                      </Button>
+                    )}
+                    {secondaryCtaLink ? (
+                      <Button
+                        asChild
+                        className={outlineButtonClass}
+                      >
+                        <a {...secondaryCtaLink}>
+                          <Globe2 className="h-4 w-4" />
+                          {secondaryCtaLabel}
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled
+                        className={outlineButtonClass}
+                      >
+                        {secondaryCtaLabel}
+                      </Button>
+                    )}
+                    {mapsLink ? (
+                      <Button
+                        asChild
+                        className={outlineButtonClass}
+                      >
+                        <a {...mapsLink}>
+                          <MapPin className="h-4 w-4" />
+                          Get Directions
+                        </a>
+                      </Button>
+                    ) : (
+                      <Button
+                        disabled
+                        className={outlineButtonClass}
+                      >
+                        Get Directions
+                      </Button>
+                    )}
+                    {isOwner ? (
+                      <Button
+                        asChild
+                        className={outlineButtonClass}
+                      >
+                        <Link to={`/my/venues/${venue.slug}`}>
+                          Manage venue
+                        </Link>
+                      </Button>
+                    ) : isAdmin ? (
+                      <Button
+                        asChild
+                        className={outlineButtonClass}
+                      >
+                        <Link to={`/admin/venues/${venue.slug}`}>
+                          Edit Venue
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
+                  {!bookingEnabled ? (
+                    <Text className="text-xs text-inverse/80 dark:text-inverse-foreground/80">
+                      Bookings currently closed.
+                    </Text>
+                  ) : null}
+                </>
               ) : null}
             </div>
           </div>

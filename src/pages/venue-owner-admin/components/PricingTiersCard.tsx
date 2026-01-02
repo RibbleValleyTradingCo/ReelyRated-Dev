@@ -423,12 +423,17 @@ const PricingTiersCard = forwardRef<PricingTiersCardHandle, PricingTiersCardProp
             const errorMessage = rowErrors[row.id];
             const canMoveUp = index > 0;
             const canMoveDown = index < rows.length - 1;
+            const labelId = `pricing-label-${row.id}`;
+            const priceId = `pricing-price-${row.id}`;
+            const unitId = `pricing-unit-${row.id}`;
+            const audienceId = `pricing-audience-${row.id}`;
             return (
               <div key={row.id} className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
                 <div className="grid gap-3 lg:grid-cols-12 lg:items-end">
                   <div className="space-y-2 lg:col-span-4">
-                    <label className="text-sm font-semibold text-foreground">Label</label>
+                    <label htmlFor={labelId} className="text-sm font-semibold text-foreground">Label</label>
                     <Input
+                      id={labelId}
                       value={row.label}
                       onChange={(e) => updateRow(row.id, { label: e.target.value })}
                       placeholder="Day ticket"
@@ -436,8 +441,9 @@ const PricingTiersCard = forwardRef<PricingTiersCardHandle, PricingTiersCardProp
                     />
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <label className="text-sm font-semibold text-foreground">Price</label>
+                    <label htmlFor={priceId} className="text-sm font-semibold text-foreground">Price</label>
                     <Input
+                      id={priceId}
                       value={row.price}
                       onChange={(e) => updateRow(row.id, { price: e.target.value })}
                       placeholder="£40"
@@ -445,8 +451,9 @@ const PricingTiersCard = forwardRef<PricingTiersCardHandle, PricingTiersCardProp
                     />
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <label className="text-sm font-semibold text-foreground">Unit</label>
+                    <label htmlFor={unitId} className="text-sm font-semibold text-foreground">Unit</label>
                     <Input
+                      id={unitId}
                       value={row.unit}
                       onChange={(e) => updateRow(row.id, { unit: e.target.value })}
                       placeholder="per day"
@@ -454,7 +461,7 @@ const PricingTiersCard = forwardRef<PricingTiersCardHandle, PricingTiersCardProp
                     />
                   </div>
                   <div className="space-y-2 lg:col-span-2">
-                    <label className="text-sm font-semibold text-foreground">Audience</label>
+                    <label htmlFor={audienceId} className="text-sm font-semibold text-foreground">Audience</label>
                     <Select
                       value={row.audience || "none"}
                       onValueChange={(value) =>
@@ -462,7 +469,7 @@ const PricingTiersCard = forwardRef<PricingTiersCardHandle, PricingTiersCardProp
                       }
                       disabled={isSaving}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id={audienceId}>
                         <SelectValue placeholder="Optional" />
                       </SelectTrigger>
                       <SelectContent>

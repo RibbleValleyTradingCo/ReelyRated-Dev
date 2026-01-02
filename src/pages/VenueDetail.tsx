@@ -3,7 +3,7 @@ import PageSpinner from "@/components/loading/PageSpinner";
 import Text from "@/components/typography/Text";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps } from "@/lib/urls";
 import AboutSection from "@/pages/venue-detail/components/AboutSection";
 import EventsSection from "@/pages/venue-detail/components/EventsSection";
 import HeroStatsStrip from "@/pages/venue-detail/components/HeroStatsStrip";
@@ -56,6 +56,7 @@ const VenueDetail = () => {
     lastKnownCount,
     isAdmin,
     isOwner,
+    ownershipResolved,
     setShowPastEvents,
     setRatingModalOpen,
     setPendingRating,
@@ -189,7 +190,7 @@ const VenueDetail = () => {
     hasPlanContent || hasOperationalContent || operationalLoading;
 
   const featuredCatch = topCatches[0];
-  const safeMapsUrl = normalizeExternalUrl(mapsUrl);
+  const mapsLink = externalLinkProps(mapsUrl);
 
   useEffect(() => {
     setHeroIndex(0);
@@ -350,6 +351,7 @@ const VenueDetail = () => {
         onOpenRatingModal={openRatingModal}
         isOwner={isOwner}
         isAdmin={isAdmin}
+        ownershipResolved={ownershipResolved}
         primaryCtaUrl={primaryCtaUrl}
         secondaryCtaUrl={secondaryCtaUrl}
         secondaryCtaLabel={secondaryCtaLabel}
@@ -516,15 +518,13 @@ const VenueDetail = () => {
                 Log catch
               </Link>
             </Button>
-            {safeMapsUrl ? (
+            {mapsLink ? (
               <Button
                 asChild
                 variant="outline"
                 className="h-12 rounded-full"
               >
-                <a href={safeMapsUrl} target="_blank" rel="noreferrer">
-                  Maps
-                </a>
+                <a {...mapsLink}>Maps</a>
               </Button>
             ) : (
               <Button

@@ -423,6 +423,14 @@ const SpeciesStockCard = ({
 
       {rows.map((row) => {
         const isSaving = saving;
+        const speciesNameId = `species-name-${row.id}`;
+        const stockDensityId = `stock-density-${row.id}`;
+        const recordWeightId = `record-weight-${row.id}`;
+        const recordUnitId = `record-unit-${row.id}`;
+        const avgWeightId = `avg-weight-${row.id}`;
+        const sizeMinId = `size-range-min-${row.id}`;
+        const sizeMaxId = `size-range-max-${row.id}`;
+        const notesId = `stock-notes-${row.id}`;
         return (
           <div key={row.id} className="space-y-4 rounded-xl border border-border bg-muted/40 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -443,8 +451,9 @@ const SpeciesStockCard = ({
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Species name</label>
+                <label htmlFor={speciesNameId} className="text-sm font-semibold text-foreground">Species name</label>
                 <Input
+                  id={speciesNameId}
                   value={row.species_name}
                   onChange={(e) => updateRow(row.id, { species_name: e.target.value })}
                   placeholder="Carp (Mirror/Common)"
@@ -452,7 +461,7 @@ const SpeciesStockCard = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Stock density</label>
+                <label htmlFor={stockDensityId} className="text-sm font-semibold text-foreground">Stock density</label>
                 <Select
                   value={row.stock_density}
                   onValueChange={(value) =>
@@ -460,7 +469,7 @@ const SpeciesStockCard = ({
                   }
                   disabled={isSaving}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id={stockDensityId}>
                     <SelectValue placeholder="Select density" />
                   </SelectTrigger>
                   <SelectContent>
@@ -473,8 +482,9 @@ const SpeciesStockCard = ({
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Record weight</label>
+                <label htmlFor={recordWeightId} className="text-sm font-semibold text-foreground">Record weight</label>
                 <Input
+                  id={recordWeightId}
                   type="number"
                   inputMode="decimal"
                   value={row.record_weight}
@@ -487,8 +497,9 @@ const SpeciesStockCard = ({
                 </Text>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Record unit</label>
+                <label htmlFor={recordUnitId} className="text-sm font-semibold text-foreground">Record unit</label>
                 <Input
+                  id={recordUnitId}
                   value={row.record_unit}
                   onChange={(e) => updateRow(row.id, { record_unit: e.target.value })}
                   placeholder="lb"
@@ -496,8 +507,9 @@ const SpeciesStockCard = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Average weight</label>
+                <label htmlFor={avgWeightId} className="text-sm font-semibold text-foreground">Average weight</label>
                 <Input
+                  id={avgWeightId}
                   type="number"
                   inputMode="decimal"
                   value={row.avg_weight}
@@ -507,8 +519,9 @@ const SpeciesStockCard = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Size range min</label>
+                <label htmlFor={sizeMinId} className="text-sm font-semibold text-foreground">Size range min</label>
                 <Input
+                  id={sizeMinId}
                   type="number"
                   inputMode="decimal"
                   value={row.size_range_min}
@@ -518,8 +531,9 @@ const SpeciesStockCard = ({
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Size range max</label>
+                <label htmlFor={sizeMaxId} className="text-sm font-semibold text-foreground">Size range max</label>
                 <Input
+                  id={sizeMaxId}
                   type="number"
                   inputMode="decimal"
                   value={row.size_range_max}
@@ -529,8 +543,9 @@ const SpeciesStockCard = ({
                 />
               </div>
               <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-                <label className="text-sm font-semibold text-foreground">Notes</label>
+                <label htmlFor={notesId} className="text-sm font-semibold text-foreground">Notes</label>
                 <Textarea
+                  id={notesId}
                   value={row.stock_notes}
                   onChange={(e) => updateRow(row.id, { stock_notes: e.target.value })}
                   placeholder="Runs water, specimen, etc."

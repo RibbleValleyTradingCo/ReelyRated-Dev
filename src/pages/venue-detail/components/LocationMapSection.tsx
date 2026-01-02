@@ -1,6 +1,6 @@
 import SectionHeader from "@/components/layout/SectionHeader";
 import { Button } from "@/components/ui/button";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps } from "@/lib/urls";
 
 type LocationMapSectionProps = {
   mapEmbedUrl: string | null;
@@ -19,7 +19,8 @@ const LocationMapSection = ({
   contactPhone,
   stickyCtaOffset = 0,
 }: LocationMapSectionProps) => {
-  const safeMapsUrl = normalizeExternalUrl(mapsUrl) ?? mapsUrl;
+  const mapsLink = externalLinkProps(mapsUrl);
+  const phoneLink = externalLinkProps(contactPhone ? `tel:${contactPhone}` : null);
   return (
     <div
       className="bg-muted/40 space-y-6 border-t border-border pt-12 pb-[calc(16px+env(safe-area-inset-bottom))] md:pt-14"
@@ -66,21 +67,25 @@ const LocationMapSection = ({
                   {venueLocation || "Location details coming soon."}
                 </p>
               </div>
-              <Button
-                asChild
-                className="h-11 w-full rounded-lg shadow-card"
-              >
-                <a href={safeMapsUrl} target="_blank" rel="noreferrer">
+              {mapsLink ? (
+                <Button
+                  asChild
+                  className="h-11 w-full rounded-lg shadow-card"
+                >
+                  <a {...mapsLink}>Get Directions</a>
+                </Button>
+              ) : (
+                <Button disabled className="h-11 w-full rounded-lg shadow-card">
                   Get Directions
-                </a>
-              </Button>
-              {contactPhone ? (
+                </Button>
+              )}
+              {phoneLink ? (
                 <Button
                   asChild
                   variant="outline"
                   className="h-11 w-full rounded-lg"
                 >
-                  <a href={`tel:${contactPhone}`}>Call Venue</a>
+                  <a {...phoneLink}>Call Venue</a>
                 </Button>
               ) : (
                 <Button

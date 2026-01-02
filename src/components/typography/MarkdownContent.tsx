@@ -1,6 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { normalizeExternalUrl } from "@/lib/urls";
+import { externalLinkProps } from "@/lib/urls";
 import { cn } from "@/lib/utils";
 
 type MarkdownContentProps = {
@@ -23,34 +23,20 @@ const MarkdownContent = ({ content, className }: MarkdownContentProps) => {
           p: ({ node, ...props }) => (
             <p className="text-slate-700 whitespace-pre-line" {...props} />
           ),
-          a: ({ node, ...props }) => {
-            const href = props.href ?? "";
-            const isInternal =
-              href.startsWith("/") || href.startsWith("#");
-            if (isInternal) {
-              return (
-                <a
-                  className="text-blue-600 underline underline-offset-4 hover:text-blue-800"
-                  {...props}
-                />
-              );
-            }
-            const normalized = normalizeExternalUrl(href);
-            if (!normalized) {
+          a: ({ node, href, ...props }) => {
+            const linkProps = externalLinkProps(href ?? "");
+            if (!linkProps) {
               return (
                 <span className="text-blue-600 underline underline-offset-4">
                   {props.children}
                 </span>
               );
             }
-            const isMailOrTel =
-              normalized.startsWith("mailto:") || normalized.startsWith("tel:");
             return (
               <a
                 className="text-blue-600 underline underline-offset-4 hover:text-blue-800"
-                href={normalized}
-                target={isMailOrTel ? undefined : "_blank"}
-                rel={isMailOrTel ? undefined : "noopener noreferrer"}
+                {...props}
+                {...linkProps}
               >
                 {props.children}
               </a>
