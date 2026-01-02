@@ -146,10 +146,10 @@ select count(*) as non_owner_rows
 from public.owner_get_venue_by_slug('VENUE_SLUG');
 ```
 
-- Verification (browser/network):
-- Non-owner visits `/my/venues/:slug`: Access denied UI, and the `owner_get_venue_by_slug` response body is an empty array (zero rows).
-- Owner/admin visits `/my/venues/:slug`: venue data loads normally and owner sections work as before.
-- Network proof: on `/my/venues/:slug`, confirm there is **no** request to `get_venue_by_slug` and the page only calls `owner_get_venue_by_slug` for the venue read.
+- Verification (browser/network) — pending (expected outcomes):
+- Expected: Non-owner visits `/my/venues/:slug`: Access denied UI, and the `owner_get_venue_by_slug` response body is an empty array (zero rows).
+- Expected: Owner/admin visits `/my/venues/:slug`: venue data loads normally and owner sections work as before.
+- Expected: Network proof: on `/my/venues/:slug`, confirm there is **no** request to `get_venue_by_slug` and the page only calls `owner_get_venue_by_slug` for the venue read.
 
 ## Phased Implementation Plan (Draft)
 
@@ -183,7 +183,7 @@ from public.owner_get_venue_by_slug('VENUE_SLUG');
   } as const;
   ```
 
-  - Add `openedSections` state seeded with default open keys; update it only when the accordion value is committed (post-blocker) so unsaved-change logic stays accurate.
+  - Add `openedSections` state seeded with default open keys; update it from committed `accordionValue` via `useEffect` (current implementation does not block accordion changes).
   - Use mount-on-first-open, never-unmount: `AccordionContent` `forceMount` gated by `openedSections` and only render heavy cards when the section has been opened.
   - Gate heavy fetches: cards that fetch on mount should not mount until opened; `owner_get_venue_events` should only run after the Events section opens.
   - Loading UX on first open: rely on existing spinners/skeletons in cards; add a minimal placeholder only if any section flashes empty.
@@ -194,7 +194,7 @@ from public.owner_get_venue_by_slug('VENUE_SLUG');
 
 - **Risks + mitigations:**
   - Unsaved state loss if unmounted; mitigate with `openedSections` + `forceMount` (mount once, never unmount).
-  - Interaction with `useBlocker`/`useBeforeUnload`; update `openedSections` only from committed `accordionValue` to avoid opening sections while blocked.
+  - Interaction with `useBlocker`/`useBeforeUnload`; current implementation allows accordion changes even when dirty (blocker is navigation-only).
 - **Verification checklist:**
 
   - #### Network proof runbook (HAR required)
@@ -241,7 +241,7 @@ from public.owner_get_venue_by_slug('VENUE_SLUG');
 
   **First open (expected reads per section):**
 
-  - Species → `rest/v1/venue_species_stock`
+  - Species → `rest/v1/venue_species_stock` (already on initial load if `species` is default-open)
   - Pricing → `rest/v1/venue_pricing_tiers`
   - Hours → `rest/v1/venue_opening_hours`
   - Rules → `rest/v1/venue_rules`
@@ -287,24 +287,20 @@ from public.owner_get_venue_by_slug('VENUE_SLUG');
   - Responsive & Interaction Check items (all)
   - Remaining checklist items: "Review dark-mode contrast..." + "Manual responsive/touch verification..."
 
-### Phase 3: Security hardening (sanitization + safe URLs)
+### Phase 3: Security verification (sanitization + safe URLs)
 
-- **Files likely to touch:** `src/components/typography/MarkdownContent.tsx`, `src/lib/urls.ts`, plus discovered render surfaces (venue detail sections, events, rules, etc.)
-- **Implementation approach:**
-  - Discovery first: enumerate all markdown renderers and all user-provided URL render locations via repo search.
-  - Implement a single shared render-time sanitization approach for markdown links and URL fields (block `javascript:`/`data:`, allow `http/https/mailto/tel` and internal `/#`).
-  - **Remove any raw URL fallbacks that bypass sanitization.** Example: `LocationMapSection` currently does `normalizeExternalUrl(mapsUrl) ?? mapsUrl`; remove the `?? mapsUrl` fallback so invalid URLs never render as clickable links.
-  - Apply consistently for preview/public render and for website/booking/event links.
-  - Test vectors: `<script>`, `onerror=`, `[x](javascript:...)`, `[x](data:...)`, and `javascript:` in URL fields.
-  - Frontend-first; no DB changes. Optional follow-up: server-side sanitization if required later.
-  - Rel standardization: ensure all `target="_blank"` links outside markdown renderers use `rel="noopener noreferrer"` for security.
-- **Risks + mitigations:**
-  - Valid URLs without scheme; normalize by prepending `https://` consistently.
-- **Verification checklist:**
-  - All discovered locations use the shared sanitizer.
-  - Malicious vectors render inert; valid links remain functional.
-- **Exit criteria:**
-  - Sanitization is consistent across renderers; test vectors are neutralized.
+- **Files already updated (code-level):** `src/components/typography/MarkdownContent.tsx`, `src/lib/urls.ts`, and venue detail link render surfaces (VenueHero / PlanYourVisitSection / LocationMapSection / EventsSection).
+- **Implementation summary (completed):**
+  - Shared render-time sanitizer now blocks `javascript:`/`data:` (allows `http/https/mailto/tel` and internal `/#`) for markdown links and URL fields.
+  - Markdown links use the shared helper; invalid links render inert.
+  - External links standardize `target="_blank"` + `rel="noopener noreferrer"` via the shared helper.
+  - Raw URL fallbacks that bypass sanitization were removed (e.g., `normalizeExternalUrl(x) ?? x`).
+  - Frontend-only; no DB changes.
+- **Verification checklist (pending):**
+  - Test vectors render inert with no execution: `<script>`, `onerror=`, `[x](javascript:...)`, `[x](data:...)`, and `javascript:` in URL fields.
+  - Valid links remain functional.
+- **Exit criteria (after verification):**
+  - Test vectors are neutralized across all render surfaces.
 - **Checklist updates after phase (only after verification):**
   - Security: "Inputs validated/sanitized..."
   - Remaining checklist items: "Review markdown/URL sanitization strategy..."
