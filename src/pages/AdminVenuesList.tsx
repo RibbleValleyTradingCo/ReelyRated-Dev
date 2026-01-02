@@ -77,7 +77,7 @@ const AdminVenuesList = () => {
       }
 
       const trimmedSearch = searchTerm.trim();
-      const { data, error } = await supabase.rpc("get_venues", {
+      const { data, error } = await supabase.rpc("admin_get_venues", {
         p_search: trimmedSearch.length > 0 ? trimmedSearch : null,
         p_limit: limit,
         p_offset: nextOffset,
@@ -88,6 +88,16 @@ const AdminVenuesList = () => {
       }
 
       if (error) {
+        const isUnauthorized =
+          error.code === "42501" ||
+          error.code === "28000" ||
+          (error.message && error.message.toLowerCase().includes("admin"));
+        if (isUnauthorized) {
+          toast.error("You must be an admin to view this page.");
+          setAdminStatus("unauthorized");
+          navigate("/");
+          return;
+        }
         console.error("Failed to load venues", error);
         setVenues((prev) => (append ? prev : []));
         setHasMore(false);

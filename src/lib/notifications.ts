@@ -115,42 +115,21 @@ export const clearAllNotifications = async (userId: string) => {
   return !error;
 };
 
-const loadAdminUserIds = async () => {
-  const { data, error } = await supabase
-    .from("admin_users")
-    .select("user_id")
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    logger.error("Failed to load admin users", error);
-    return [];
-  }
-
-  const adminIds = (data ?? [])
-    .map((row) => row.user_id)
-    .filter((value): value is string => Boolean(value));
-
-  return adminIds;
-};
-
 export const notifyAdmins = async (payload: NotificationInsert["extra_data"]) => {
-  const adminIds = await loadAdminUserIds();
-
-  if (adminIds.length === 0) {
-    logger.warn("No admin users configured to receive notifications");
+  const reportId = (payload as { report_id?: string } | null | undefined)?.report_id;
+  if (!reportId) {
+    logger.warn("Missing report_id for admin notification");
     return;
   }
 
-  await Promise.all(
-    adminIds.map((adminId) =>
-      createNotification({
-        userId: adminId,
-        type: "admin_report",
-        payload: {
-          message: (payload as { message?: string } | null | undefined)?.message ?? "A new report has been submitted.",
-          extraData: (payload ?? undefined) as Record<string, unknown> | undefined,
-        },
-      })
-    )
-  );
+  const message = (payload as { message?: string } | null | undefined)?.message ?? null;
+  const { error } = await supabase.rpc("notify_admins_for_report", {
+    p_report_id: reportId,
+    p_message: message,
+    p_extra_data: payload ?? null,
+  });
+
+  if (error) {
+    logger.error("Failed to notify admins", error);
+  }
 };
