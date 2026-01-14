@@ -1,9 +1,0 @@
-{
-  "name": "homepage",
-  "url": "http://localhost:8080/",
-  "consoleErrors": [
-    "WebSocket connection to 'ws://127.0.0.1:54321/realtime/v1/websocket?apikey=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH&vsn=1.0.0' failed: WebSocket is closed before the connection is established."
-  ],
-  "failedRequests": [],
-  "timestamp": "2025-12-30T12:47:03.886Z"
-}

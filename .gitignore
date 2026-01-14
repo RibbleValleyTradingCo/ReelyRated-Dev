@@ -30,3 +30,15 @@ dist-ssr
 supabase/.temp/
 supabase/_dump_*.sql
 docs/db/data.sql
+
+# Local-only security evidence
+_local_evidence/
+har-files/
+artifacts/
+**/*.har
+*.har
+*.har.gz
+*.har.zip
+docs/version5/hardening/**/evidence/
+*.patch
+codex.patch

@@ -1,4 +1,0 @@
-catch_comments_with_admin
-catch_mention_candidates
-leaderboard_scores_detailed
-venue_stats
