@@ -1,0 +1,406 @@
+diff --git a/docs/version5/my-venues.md b/docs/version5/my-venues.md
+index 65f0c26..c175ac7 100644
+--- a/docs/version5/my-venues.md
++++ b/docs/version5/my-venues.md
+@@ -3,12 +3,21 @@
+ ---
+ 
+ ## Purpose
++
+ Owner dashboard listing venues the user manages.
+ 
++## Verification Log
++
++Record per-persona verification evidence (HAR, screenshots, SQL/RLS proofs, UI checks) here:
++
++- [my-venues-verification-log.md](./my-venues-verification-log.md)
++
+ ---
+ 
+ ## Dark Mode Contrast Checklist
++
+ Use `DARK-MODE-CONTRAST-CHECKLIST.md` as reference:
++
+ - [ ] Page background (`bg-background`)
+ - [ ] Card surfaces (`bg-card`, `border-border`)
+ - [ ] Primary text contrast (`text-foreground`)
+@@ -18,7 +27,9 @@ Use `DARK-MODE-CONTRAST-CHECKLIST.md` as reference:
+ ---
+ 
+ ## Token Usage
++
+ Use `TOKEN-REFERENCE.md` as reference:
++
+ - [ ] No raw palette classes (`bg-white`, `text-slate-*`, etc.)
+ - [ ] Semantic tokens applied consistently
+ - [ ] Shadow and focus states tokenized (`shadow-card`, `ring-ring`)
+@@ -26,6 +37,7 @@ Use `TOKEN-REFERENCE.md` as reference:
+ ---
+ 
+ ## Code Quality
++
+ - [ ] Components are readable and maintainable
+ - [ ] No redundant or hacky logic
+ - [ ] Semantic HTML elements used
+@@ -34,7 +46,9 @@ Use `TOKEN-REFERENCE.md` as reference:
+ ---
+ 
+ ## Accessibility
++
+ Use `ACCESSIBILITY-STANDARDS.md` as reference:
++
+ - [ ] Headings hierarchy (H1 → H2 → H3)
+ - [ ] Keyboard focus visible
+ - [ ] ALT text on all images/icons
+@@ -43,7 +57,9 @@ Use `ACCESSIBILITY-STANDARDS.md` as reference:
+ ---
+ 
+ ## Security
++
+ Use `OWASP‑TOP‑10‑CHECKLIST.md` as reference:
++
+ - [ ] Auth and authorization enforced appropriately
+ - [ ] Inputs validated/sanitized
+ - [ ] Sensitive data not exposed in UI or logs
+@@ -52,7 +68,9 @@ Use `OWASP‑TOP‑10‑CHECKLIST.md` as reference:
+ ---
+ 
+ ## Charts & Data Visualizations (if applicable)
++
+ Use `CHART-STYLE-GUIDELINES.md` as reference:
++
+ - [ ] Background tokens for chart panels
+ - [ ] Axis/label contrast
+ - [ ] Legend readability
+@@ -61,6 +79,7 @@ Use `CHART-STYLE-GUIDELINES.md` as reference:
+ ---
+ 
+ ## Responsive & Interaction Check
++
+ - [ ] Layout holds at mobile breakpoints
+ - [ ] Dark mode persists on orientation change
+ - [ ] Touch/hover states remain visible
+@@ -68,6 +87,7 @@ Use `CHART-STYLE-GUIDELINES.md` as reference:
+ ---
+ 
+ ## Performance
++
+ - [ ] Lazy loading used for heavy sections
+ - [ ] Images and media optimized
+ - [ ] Avoid unnecessary re-renders
+@@ -75,9 +95,11 @@ Use `CHART-STYLE-GUIDELINES.md` as reference:
+ ---
+ 
+ ## Notes
+-*(Leave blank — fill this in after review.)*
++
++_(Leave blank — fill this in after review.)_
+ 
+ ---
+ 
+ ## Actions
+-*(Leave blank — fill in planned fixes here.)*
++
++_(Leave blank — fill in planned fixes here.)_
+diff --git a/docs/version5/my-venues/admin-venues-verification-log.md b/docs/version5/my-venues/admin-venues-verification-log.md
+index 42ea95a..ec60794 100644
+--- a/docs/version5/my-venues/admin-venues-verification-log.md
++++ b/docs/version5/my-venues/admin-venues-verification-log.md
+@@ -12,14 +12,15 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+ 
+ - Date: 2026-01-02
+ - Environment: local
+-- Branch / commit:
++- Branch / commit: main (or your branch) — Commit 1: d57e126, Commit 2: dc38884
+ - Tester: James
+ - Browser + version: Chrome (desktop)
+ - Device(s): desktop
+ - Notes:
+   - Admin, non-admin, and anonymous HARs captured and attached (see Evidence index). Network gating verified ✅.
+-  - Non-admin (authenticated) run: visiting `/admin/venues` redirects to `/index` in the UI. HAR shows repeated `rest/v1/admin_users?select=user_id&user_id=eq.<NON_ADMIN_ID>` calls returning `[]` (200) and **no** calls to `rest/v1/rpc/get_venues`.
+-  - Anonymous run: cleared site data and visited `/admin/venues` while signed out; redirected to `/index` observed in UI. HAR shows no Supabase calls (`rest/v1/*` or `auth/v1/*`) and no `rpc/get_venues` payload.
++  - Non-admin (authenticated) run: visiting `/admin/venues` redirects to `/index` in the UI. Network filtered to `admin_users` (including preflight and fetch rows) shows repeated calls returning `[]` (200) and **no** calls to `rest/v1/rpc/admin_get_venues`.
++  - Owner (authenticated, non-admin) run: attempted `/admin/venues` then redirected to `/index` in the UI. Network filtered to `admin_users` shows repeated requests returning `[]` (200). Network filtered to `admin_get_venues` shows **no rows**.
++  - Anonymous run: cleared site data and visited `/admin/venues` while signed out; redirected to `/auth` (login screen) observed in UI. Network filtered to `admin_users` shows **no rows**; network filtered to `admin_get_venues` shows **no rows**. HAR confirms no Supabase admin payloads and no `rpc/admin_get_venues` request.
+ 
+ ---
+ 
+@@ -29,6 +30,8 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+   - user id / email:
+ - Non-admin (authenticated):
+   - user id / email:
++- Owner (authenticated, non-admin):
++  - user id / email:
+ - Anonymous:
+   - (signed out)
+ 
+@@ -36,21 +39,48 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+ 
+ ## Evidence index (files)
+ 
+-### HAR exports
+-
+-- Admin: `admin-venues-admin-2026-01-02.har`
++- Admin: `admin-venue-admin.har` (final admin sweep; includes admin_users gate + rpc/admin_get_venues 200)
++- Admin (superseded): `admin-venues-admin-2026-01-02.har`
+ - Non-admin: `admin-venues-non-admin-non-user-2026-01-02.har`
+-- Anonymous: `admin-venues-anon-2026-01-02.har`
++- Owner (non-admin): `admin-venues-owner-2026-01-02.har`
++- Owner extra (filtered capture): `admin-users-network-list-owner.har`
++- Owner (attempted re-export, empty): owner.har (155 bytes — ignore)
++- Anonymous (clean run): `anon.har`
++- Anonymous (attempted re-export, empty): anon.har (155 bytes — ignore)
++- Anonymous (superseded / likely signed-in): `admin-venues-anon-2026-01-02.har`
+ 
+ ### Screenshots (filenames)
+ 
+-- Network list filtered to `admin_users` + `rpc/get_venues` (per persona):
+-- Response preview for `rest/v1/admin_users` (per persona):
+-- Response preview for `rest/v1/rpc/get_venues` (per persona):
+-- UI states:
+-  - Admin venues list visible:
+-  - Non-admin redirect target visible in address bar (/index):
+-  - Anon redirect target visible in address bar (/index or /auth):
++- Admin (evidence):
++
++  - Network list filtered to `admin_users` (200): `Screenshot 2026-01-02 at 20.42.36.png`
++  - Response preview for admin_users (shows admin row): `Screenshot 2026-01-02 at 20.44.20.png`
++  - Response preview for `admin_users` (shows admin row): `Screenshot 2026-01-02 at 20.43.58.png`
++  - Network list filtered to `admin_get_venues` (200): `Screenshot 2026-01-02 at 20.45.02.png`
++  - Response view for admin_get_venues (expanded JSON): `Screenshot 2026-01-02 at 20.45.14.png`
++  - Response preview for `admin_get_venues` (venues JSON): `Screenshot 2026-01-02 at 20.45.37.png`
++
++- Non-admin (authenticated) (evidence):
++
++  - UI redirected to `/index` (address bar): `redirected-to-index-as-non-admin-user.jpeg`
++  - Network list filtered to `admin_users` (200): `Screenshot 2026-01-02 at 20.48.59.png`
++  - Response for `admin_users` (empty `[]`): `Screenshot 2026-01-02 at 20.50.21.png`
++  - Network list filtered to `admin_get_venues` (none): `Screenshot 2026-01-02 at 20.51.06.png`
++
++- Owner (authenticated, non-admin) (evidence):
++
++  - UI redirected to /index (address bar): owner-redirect.jpeg (supersedes rediterected-to-index-as-owner.jpeg)
++  - Network list filtered to `admin_users` (200): `Screenshot 2026-01-02 at 20.54.39.png`
++  - Response for `admin_users` (empty `[]`): `Screenshot 2026-01-02 at 20.54.51.png`
++  - Preview for `admin_users` (empty `[]`): `Screenshot 2026-01-02 at 20.54.59.png`
++  - Network list filtered to `admin_get_venues` (none): `Screenshot 2026-01-02 at 20.55.16.png`
++  - Network list filtered to admin_users (shows preflight + fetch rows): Screenshot 2026-01-02 at 21.17.29.png
++  - Network list filtered to admin_get_venues (none): Screenshot 2026-01-02 at 21.17.45.png
++
++- Anonymous (evidence):
++  - UI redirected to /auth (login screen): `anon-reditec-to-index.jpeg`
++  - Network list filtered to `admin_users` (no rows): `Screenshot 2026-01-02 at 20.59.25.png`
++  - HAR captured (clean anon run): `anon.har`
+ 
+ ### SQL / RLS evidence (notes or saved output)
+ 
+@@ -58,17 +88,20 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+   - `public.admin_users`: relrowsecurity = true / relforcerowsecurity = false
+   - `public.venue_owners`: relrowsecurity = true / relforcerowsecurity = false
+   - `public.venues`: relrowsecurity = true / relforcerowsecurity = true
++  - `public.venue_stats`: relrowsecurity = false / relforcerowsecurity = false (view)
++  - `public.venue_stats_public`: relrowsecurity = false / relforcerowsecurity = false (view)
+ - Policies listed (public):
+-  - `admin_users`: `admin_users_select_all` (SELECT, qual=true), `admin_users_self_select` (SELECT, qual=uid()=user_id)
++  - `admin_users`: `admin_users_self_select` (SELECT, qual=uid()=user_id)
+   - `venue_owners`: `venue_owners_admin_all` (ALL, qual/admin gate), `venue_owners_self_select` (SELECT, qual=uid()=user_id)
+   - `venues`: `venues_select_published`, `venues_select_owner`, `venues_select_admin_all`, plus update/insert policies
+ - RPC definition inspected:
+-  - `public.get_venues(p_search, p_limit, p_offset)` is a SQL function with `SET search_path TO 'public','extensions'`.
+-  - It selects from `public.venues` and left-joins `public.venue_stats`, with no explicit admin predicate.
+-  - Result rows are therefore controlled by **RLS on `public.venues`** (published/owner/admin).
+-- Anomalies / risks:
+-  - `admin_users_select_all` allows any role to SELECT all rows from `admin_users` (admin user list is publicly readable).
+-  - `get_venues` has EXECUTE granted to `PUBLIC` (and `anon`/`authenticated`), so non-admin/anon can call it directly; they will receive at least published venues due to `venues_select_published`.
++  - Post-2153 evidence:
++    - admin_users policies: only admin_users_self_select present
++    - has_table_privilege('anon','public.venue_stats','select') = false
++    - has_table_privilege('anon','public.venue_stats_public','select') = true
++    - admin_get_venues: admin returns rows; non-admin raises 42501
++    - get_venue_by_slug: LEFT JOIN venue_stats_public
++    - Routine grants snapshot: admin_get_venues EXECUTE → authenticated; get_venues/get_venue_by_slug EXECUTE → anon+authenticated; notify_admins_for_report EXECUTE → authenticated
+ 
+ ---
+ 
+@@ -78,17 +111,18 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+ 
+ ### 1) Network / data reads (HAR)
+ 
+-| Persona   | Expected request(s)                                                                                  | Observed                                                                                                                                                                          | Status  | Evidence                                         |
+-| --------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------ |
+-| Admin     | `rest/v1/admin_users?select=user_id&user_id=eq.<ADMIN_ID>` (200) then `rest/v1/rpc/get_venues` (200) | `admin_users` (200) returned admin row; `rpc/get_venues` (200) called with `{p_search:null,p_limit:20,p_offset:0}`. App-shell reads also present (profiles/notifications/auth).   | ✅ PASS | `admin-venues-admin-2026-01-02.har`              |
+-| Non-admin | `admin_users` returns `[]` or denied; `rpc/get_venues` must NOT return venue data                    | `admin_users (200) returned [] (no admin row). No rpc/get_venues call. Redirected to /index observed in UI (SPA redirect may not show as separate network doc request).`          | ✅ PASS | `admin-venues-non-admin-non-user-2026-01-02.har` |
+-| Anonymous | Redirect to `/auth` or `/index`; no successful admin payload or `get_venues` result                  | No Supabase calls observed (`rest/v1/*` or `auth/v1/*`); no rpc/get_venues call. Redirected to /index observed in UI (SPA redirect may not show as separate network doc request). | ✅ PASS | `admin-venues-anon-2026-01-02.har`               |
++| Persona           | Expected request(s)                                                                                        | Observed                                                                                                                                                                                                                                                         | Status  | Evidence                                                                                          |
++| ----------------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------- |
++| Admin             | `rest/v1/admin_users?select=user_id&user_id=eq.<ADMIN_ID>` (200) then `rest/v1/rpc/admin_get_venues` (200) | HAR shows repeated admin gate reads restricted to `user_id=eq.<ADMIN_ID>` returning a row (no roster queries), and a successful `POST /rest/v1/rpc/admin_get_venues` (200) returning a JSON array of venues. No `rpc/get_venues` call observed on /admin/venues. | ✅ PASS | HAR: `admin-venue-admin.har`; Screenshots: 20.42–20.45 set                                        |
++| Non-admin         | `admin_users` returns `[]` or denied; `rpc/admin_get_venues` must NOT return venue data                    | `admin_users (200) returned [] (no admin row). No rpc/admin_get_venues call. Redirected to /index observed in UI (SPA redirect may not show as separate network doc request).`                                                                                   | ✅ PASS | `admin-venues-non-admin-non-user-2026-01-02.har`                                                  |
++| Owner (non-admin) | `admin_users` returns `[]` or denied; `rpc/admin_get_venues` must NOT return venue data                    | Redirected to /index. admin_users requests return [] (200). No admin_get_venues rows when filtered; no admin venues payload returned.                                                                                                                            | ✅ PASS | Screenshots: owner-redirect.jpeg; 20.54–20.55 + 21.17 set; HAR: admin-venues-owner-2026-01-02.har |
++| Anonymous         | Redirect to `/auth` or `/index`; no successful admin payload or `admin_get_venues` result                  | Redirected to /auth (login). Network filter 'admin_users' shows no rows; no `rpc/admin_get_venues` request observed. HAR contains no Supabase admin payloads.                                                                                                    | ✅ PASS | `anon.har`                                                                                        |
+ 
+ **Notes (network):**
+ 
+-- Expected endpoints for `/admin/venues` are `rest/v1/admin_users` (admin gate) and `rest/v1/rpc/get_venues` (listing). Additional app-shell reads (profiles/notifications/auth) are acceptable if RLS is correct.
+-- Go/No-Go: Non-admin must not receive a successful `get_venues` payload.
+-- Evidence captured: Admin/non-admin/anon HARs (see Evidence index). Add 2–3 UI screenshots (address bar + page state) to strengthen redirect evidence.
++- Expected endpoints for `/admin/venues` are `rest/v1/admin_users` (admin gate) and `rest/v1/rpc/admin_get_venues` (listing). Additional app-shell reads (profiles/notifications/auth) are acceptable if RLS is correct.
++- Go/No-Go: Non-admin must not receive a successful `admin_get_venues` payload.
++- Evidence captured: Admin/non-admin/owner/anon HARs (see Evidence index). Add 2–3 UI screenshots (address bar + page state) to strengthen redirect evidence.
+ 
+ ---
+ 
+@@ -97,7 +131,7 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+ #### Hypotheses
+ 
+ - H1: Anonymous cannot access `/admin/venues` UI and cannot fetch admin data.
+-- H2: Authenticated non-admin cannot read admin-only data (cannot pass admin gate; cannot call `get_venues` successfully).
++- H2: Authenticated non-admin cannot read admin-only data (cannot pass admin gate; cannot call `admin_get_venues` successfully).
+ - H3: Admin can read venues via an admin-safe pathway (RPC gated by admin status).
+ 
+ #### RLS enabled checks (introspection)
+@@ -105,93 +139,95 @@ Do not mark items as DONE unless evidence is attached (HAR/screenshots/SQL outpu
+ - `public.admin_users`: relrowsecurity = true / relforcerowsecurity = false
+ - `public.venues`: relrowsecurity = true / relforcerowsecurity = true
+ - `public.venue_owners`: relrowsecurity = true / relforcerowsecurity = false
+-- Note: `get_venues` also reads `public.venue_stats` (RLS status not yet recorded here).
++- `public.venue_stats`: relrowsecurity = false / relforcerowsecurity = false (view)
++- `public.venue_stats_public`: relrowsecurity = false / relforcerowsecurity = false (view)
+ 
+ #### Policies present
+ 
+ - `admin_users` SELECT policies:
+-  - `admin_users_select_all` (qual = true)
+   - `admin_users_self_select` (qual = uid() = user_id)
+ - `venues` SELECT policies:
+   - `venues_select_published` (qual = is_published = true)
+   - `venues_select_owner` (qual = exists venue_owners for auth uid)
+   - `venues_select_admin_all` (qual = exists admin_users for auth uid)
+ 
+-#### RPC definition sanity
+-
+-- `get_venues` should enforce admin gate at the DB layer (e.g., is_admin check) and be safe against payload leakage.
+-- Confirm SECURITY DEFINER/search_path hardening if applicable.
+-- Current state: `get_venues` is **not** admin-only by itself (no admin WHERE clause) and is executable by `PUBLIC`; it relies on `venues` RLS to limit rows.
+-
+-| Persona   | Expected                                                                     | Observed                                                                                                                                                                                 | Status     | Evidence                  |
+-| --------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ------------------------- |
+-| Admin     | Can pass admin gate; `get_venues` returns venue list (including unpublished) | `get_venues` has no explicit gate, but `venues_select_admin_all` allows admin to SELECT all venues; function will return all venue rows + stats for admins.                              | ⚠️ PARTIAL | SQL outputs A/B/C/D above |
+-| Non-admin | Should not be able to retrieve admin venue list via `get_venues`             | `get_venues` is executable by `PUBLIC`; non-admin can call it and will receive at least published venues via `venues_select_published` (and any owned venues via `venues_select_owner`). | ❌ FAIL    | SQL outputs A/B/C/D above |
+-| Anonymous | Should not be able to retrieve admin venue list via `get_venues`             | `get_venues` is executable by `PUBLIC`; anon can call it and will receive published venues via `venues_select_published`.                                                                | ❌ FAIL    | SQL outputs A/B/C/D above |
++#### RPC definition sanity (post-2153)
++
++- Admin UI uses `public.admin_get_venues(p_search, p_limit, p_offset)`.
++  - SECURITY INVOKER.
++  - Explicit admin gate: raises SQLSTATE `42501` (`Admin privileges required`) for non-admins.
++  - EXECUTE granted to `authenticated` only.
++  - Returns unpublished venues for admins (verified).
++- Public directory uses `public.get_venues(...)` (intentionally executable by `anon`/`authenticated`) and is constrained by `venues` RLS (`venues_select_published` for anon; `venues_select_owner`/`venues_select_admin_all` when applicable).
++- Stats containment:
++  - `anon` cannot SELECT `public.venue_stats`.
++  - `anon` can SELECT `public.venue_stats_public` (published-only wrapper view).
++  - Public RPCs join `venue_stats_public`.
++
++| Persona   | Expected                                                                 | Observed                                                                                                | Status  | Evidence                                |
++| --------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- | ------- | --------------------------------------- |
++| Admin     | `admin_get_venues` returns venue list (including unpublished if present) | `select count(*) from admin_get_venues(null,20,0)` returned `20` and includes unpublished where present | ✅ PASS | SQL outputs (2026-01-02)                |
++| Non-admin | `admin_get_venues` blocked at DB layer                                   | `admin_get_venues` raises SQLSTATE `42501: Admin privileges required`                                   | ✅ PASS | SQL outputs (2026-01-02)                |
++| Anonymous | Cannot execute `admin_get_venues` and receives no admin payload          | Redirected to `/index`; no `rpc/admin_get_venues` payload in HAR                                        | ✅ PASS | HAR: `admin-venues-anon-2026-01-02.har` |
+ 
+ **Notes (authZ):**
+ 
+-- Access control must be enforced at the data layer (RLS/RPC), not just UI routing.
+-- If non-admin sees any venue rows via `get_venues`: **Go/No-Go FAIL** until fixed.
+-- Recommendation: split RPCs (e.g., `admin_get_venues` for admin UI; `public_get_venues` for public directory) OR add an explicit admin predicate inside `get_venues` and revoke EXECUTE from `PUBLIC`/`anon`.
+-- Recommendation: remove `admin_users_select_all` (keep only self-select and/or admin-only select) to avoid exposing the admin roster.
++- Access control for `/admin/venues` is enforced at the data layer via `admin_get_venues` (not UI routing).
++- Public `get_venues` being executable by `anon` is expected for `/venues` and is limited to published venues by RLS + `venue_stats_public` join.
+ 
+ ---
+ 
+ ### 3) Dark mode contrast (manual)
+ 
+-| Area                        | Status | Notes | Evidence |
+-| --------------------------- | ------ | ----- | -------- |
+-| Page background / container | ⏳     |       |          |
+-| Table/list row contrast     | ⏳     |       |          |
+-| Primary + muted text        | ⏳     |       |          |
+-| Buttons/CTAs                | ⏳     |       |          |
+-| Focus ring visibility       | ⏳     |       |          |
++| Area                        | Status  | Notes                                  | Evidence             |
++| --------------------------- | ------- | -------------------------------------- | -------------------- |
++| Page background / container | ✅ PASS | Dark mode readable; no low-contrast UI | dark-mode-admin.jpeg |
++| Table/list row contrast     | ✅ PASS | Card borders + separators remain clear | dark-mode-admin.jpeg |
++| Primary + muted text        | ✅ PASS | Muted text still legible               | dark-mode-admin.jpeg |
++| Buttons/CTAs                | ✅ PASS | CTAs readable and distinct             | dark-mode-admin.jpeg |
++| Focus ring visibility       | ✅ PASS | Keyboard focus visible (manual check)  | tester notes         |
+ 
+ ---
+ 
+ ### 4) Responsive / touch (manual)
+ 
+-| Scenario             | Status | Notes | Evidence |
+-| -------------------- | ------ | ----- | -------- |
+-| 360px portrait       | ⏳     |       |          |
+-| 390px portrait       | ⏳     |       |          |
+-| 414px portrait       | ⏳     |       |          |
+-| Landscape rotation   | ⏳     |       |          |
+-| No horizontal scroll | ⏳     |       |          |
+-| Tap targets usable   | ⏳     |       |          |
++| Scenario             | Status  | Notes                         | Evidence       |
++| -------------------- | ------- | ----------------------------- | -------------- |
++| 360px portrait       | ✅ PASS | Layout stacks; no overlap     | iphone14.jpeg  |
++| 390px portrait       | ✅ PASS | Search + cards usable         | iphone14.jpeg  |
++| 414px portrait       | ✅ PASS | No horizontal scroll observed | iphone14.jpeg  |
++| Landscape rotation   | ✅ PASS | Usable in wider view (manual) | tester notes   |
++| No horizontal scroll | ✅ PASS | Verified on mobile screenshot | iphone14.jpeg  |
++| Tap targets usable   | ✅ PASS | Buttons/links tappable        | iphone14.jpeg  |
++| Tablet (iPad mini)   | ✅ PASS | Cards + spacing scale cleanly | ipad-mini.jpeg |
+ 
+ ---
+ 
+ ### 5) Accessibility (manual + light DOM inspection)
+ 
+-| Check                           | Status | Notes | Evidence |
+-| ------------------------------- | ------ | ----- | -------- |
+-| Exactly one H1 present          | ⏳     |       |          |
+-| Heading order sensible (H1→H2…) | ⏳     |       |          |
+-| Keyboard tab order sane         | ⏳     |       |          |
+-| Table/list semantics reasonable | ⏳     |       |          |
++| Check                           | Status  | Notes                              | Evidence     |
++| ------------------------------- | ------- | ---------------------------------- | ------------ |
++| Exactly one H1 present          | ✅ PASS | Verified (manual DOM inspection)   | tester notes |
++| Heading order sensible (H1→H2…) | ✅ PASS | No skipped levels observed         | tester notes |
++| Keyboard tab order sane         | ✅ PASS | Can reach search + cards + buttons | tester notes |
++| Table/list semantics reasonable | ✅ PASS | List/cards are navigable           | tester notes |
+ 
+ ---
+ 
+ ## Go / No-Go gates (for marking /admin/venues DONE)
+ 
+-- [x] Non-admin cannot access admin venue list (no successful `get_venues` payload)
++- [x] Non-admin cannot access admin venue list (no successful `admin_get_venues` payload)
+ - [x] Anonymous redirected to `/auth` or `/index` with no successful payload
+-- [x] Admin access works and uses only expected endpoints (admin gate + `get_venues`)
+-- [ ] Data-layer authZ proven (policies/RLS and RPC gating) — currently blocked: `get_venues` executable by PUBLIC and `admin_users_select_all` exposes admin roster
+-- [ ] Dark mode contrast checks logged
+-- [ ] Responsive/touch checks logged
+-- [ ] Accessibility checks logged
++- [x] Admin access works and uses only expected endpoints (admin gate + admin_get_venues) — screenshots + HAR captured
++- [x] Data-layer authZ proven (policies/RLS + admin_get_venues gating + stats containment) — SQL evidence captured
++- [x] Dark mode contrast checks logged
++- [x] Responsive/touch checks logged
++- [x] Accessibility checks logged
+ 
+ ---
+ 
+ ## Outcome summary
+ 
+-- Current status: NOT READY
+-- Blockers:
+-  - Data-layer authZ remediation required: restrict `get_venues` (admin-only) and remove `admin_users_select_all`
+-  - Dark mode contrast checks pending
+-  - Responsive/touch checks pending
+-  - Accessibility checks pending
++- Current status: READY (security + UI verification complete)
++- Blockers: none
+ - Follow-ups / tickets:

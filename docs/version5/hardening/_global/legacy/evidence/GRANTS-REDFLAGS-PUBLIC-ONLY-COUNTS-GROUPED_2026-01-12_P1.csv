@@ -1,0 +1,11 @@
+object_type,schema_name,grantee,privilege_type,row_count
+column,public,anon,INSERT,185
+column,public,anon,UPDATE,185
+column,public,authenticated,INSERT,136
+column,public,authenticated,UPDATE,148
+table,public,anon,DELETE,21
+table,public,anon,INSERT,21
+table,public,anon,UPDATE,21
+table,public,authenticated,DELETE,15
+table,public,authenticated,INSERT,12
+table,public,authenticated,UPDATE,13

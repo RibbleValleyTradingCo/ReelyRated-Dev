@@ -1,0 +1,48 @@
+# Surface: my-venues
+
+## Route patterns
+- `/my/venues`
+
+## Router entry files
+- `src/App.tsx`
+- `src/pages/MyVenues.tsx`
+
+## Personas
+- Auth required; owner expectation UNKNOWN
+
+## Deny UX
+- Redirect to /auth (RequireAuth)
+
+## Entrypoints
+
+### RPCs
+None found in route/feature files.
+
+### PostgREST
+| Table | Operations | File | DB posture | Notes |
+| --- | --- | --- | --- | --- |
+| venue_owners | select | `src/pages/MyVenues.tsx:41` | UNKNOWN |  |
+
+### Storage
+None found in route/feature files.
+
+### Realtime
+None found in route/feature files.
+
+## Test checklist
+- Persona sweeps: Anon / Auth / Owner / Admin
+- Expected allow/deny outcomes documented
+- Evidence to capture: HAR + SQL + screenshots
+
+## Decisions/Exceptions
+- TBD
+
+## Discovery methods
+- Route discovery: `src/App.tsx` (createBrowserRouter / <Route>)
+- Entrypoint discovery commands:
+  - `rg -n "supabase\.rpc\(" src -S`
+  - `rg -n "supabase\.from\(" src -S`
+  - `rg -n "storage\.from\(" src -S`
+  - `rg -n "channel\(|realtime" src -S`
+  - `rg -n "<Route|createBrowserRouter|path=" src -S`
+
