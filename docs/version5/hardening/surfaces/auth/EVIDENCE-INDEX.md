@@ -1,3 +1,6 @@
+Note: Raw evidence is stored locally under `_local_evidence/` and is not committed.
+References here are pointers only.
+
 # Evidence Index
 
 > Sweep-ready evidence plan for `/auth` and `/account-deleted`.
