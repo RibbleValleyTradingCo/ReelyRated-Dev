@@ -9,7 +9,7 @@ fi
 DATABASE_URL="$1"
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-SQL_PATH="$ROOT_DIR/docs/version5/hardening/_global/sql/56_RPC_PUBLIC_EXECUTE_RECHECK.sql"
+SQL_PATH="$ROOT_DIR/docs/version6/hardening/_global/sql/56_RPC_PUBLIC_EXECUTE_RECHECK.sql"
 
 NEXT_ID="$(ROOT_DIR="$ROOT_DIR" python3 - <<'PY'
 import re

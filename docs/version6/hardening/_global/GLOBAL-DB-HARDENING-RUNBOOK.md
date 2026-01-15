@@ -12,9 +12,9 @@
 ---
 
 ## Repo conventions
-- Probes live in: `docs/version5/hardening/_global/sql/probes/`
-- Probe outputs live in: `docs/version5/hardening/_global/sql/results/`
-- Global probe runner: `docs/version5/hardening/_global/sql/run_global_probes.sh`
+- Probes live in: `docs/version6/hardening/_global/sql/probes/`
+- Probe outputs live in: `docs/version6/hardening/_global/sql/results/`
+- Global probe runner: `docs/version6/hardening/_global/sql/run_global_probes.sh`
 - All changes: **Codex writes code**, humans verify + capture evidence.
 
 ---
@@ -42,7 +42,7 @@ Codex must produce a report (Markdown) with:
 4) Any risks (breaking changes) and how to verify safely.
 
 Output file suggestion:
-`docs/version5/hardening/_global/COMPARE-REPORT.md`
+`docs/version6/hardening/_global/COMPARE-REPORT.md`
 
 ## A2. Inventory queries Codex should run (read-only)
 > Note: exact SQL can reuse your existing probe pack; below is the minimum inventory.
@@ -159,7 +159,7 @@ If a table+cmd has >1 PERMISSIVE policy applying to the same role set:
 # Part E — Codex instructions (copy/paste to Codex)
 
 ## E1. Compare pass (PLAN ONLY)
-“Read this runbook and compare to the current local Supabase DB. Produce `docs/version5/hardening/_global/COMPARE-REPORT.md` containing:
+“Read this runbook and compare to the current local Supabase DB. Produce `docs/version6/hardening/_global/COMPARE-REPORT.md` containing:
 - Current state inventory: tables/views/functions used by PostgREST; grants; RLS enabled/policies; SECURITY DEFINER RPCs + pinned search_path; view security posture.
 - Identify mismatches vs intended baseline in this doc.
 - Propose an ordered list of minimal migrations to resolve mismatches, clearly marked as GLOBAL vs SURFACE-SCOPED.

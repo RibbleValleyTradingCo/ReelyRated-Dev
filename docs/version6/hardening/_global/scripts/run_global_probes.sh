@@ -8,7 +8,7 @@ fi
 
 DATABASE_URL="$1"
 DATE="$2"
-BASE_DIR="docs/version5/hardening/_global"
+BASE_DIR="docs/version6/hardening/_global"
 SQL_DIR="$BASE_DIR/sql"
 OUT_DIR="$BASE_DIR/evidence/$DATE"
 

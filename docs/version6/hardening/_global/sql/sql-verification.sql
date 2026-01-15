@@ -1,7 +1,7 @@
 -- Global SQL verification — HARDENING SYSTEM POSTURE
 -- Each block emits JSON and is labeled with an evidence filename.
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_default-acl-deep-dive_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_default-acl-deep-dive_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as default_acl_deep_dive
 from (
   select
@@ -19,7 +19,7 @@ from (
   order by defaclrole::regrole::text, n.nspname, d.defaclobjtype
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_publication-coverage_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_publication-coverage_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as publication_coverage
 from (
   select
@@ -33,7 +33,7 @@ from (
   order by p.pubname, n.nspname, c.relname
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_rls-coverage_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_rls-coverage_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as rls_coverage
 from (
   select
@@ -55,7 +55,7 @@ from (
   order by n.nspname, c.relname
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_table-grants_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_table-grants_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as table_grants
 from (
   select
@@ -73,7 +73,7 @@ from (
   order by n.nspname, c.relname, grantee, privilege_type
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_function-exec-grants_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_function-exec-grants_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as function_exec_grants
 from (
   select
@@ -101,7 +101,7 @@ from (
   order by p.proname, identity_args
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_public-exec-on-admin-owner-rpcs_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_public-exec-on-admin-owner-rpcs_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as public_exec_on_admin_owner_rpcs
 from (
   select
@@ -131,7 +131,7 @@ from (
   order by p.proname, identity_args
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_security-definer-hazards_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_security-definer-hazards_2026-01-07.json
 select jsonb_pretty(jsonb_agg(to_jsonb(t))) as security_definer_hazards
 from (
   select
@@ -166,7 +166,7 @@ from (
   order by p.proname, identity_args
 ) t;
 
--- OUTPUT: docs/version5/hardening/_global/evidence/sql/_global_sql_pg-stat-statements_2026-01-07.json
+-- OUTPUT: docs/version6/hardening/_global/evidence/sql/_global_sql_pg-stat-statements_2026-01-07.json
 select
   case
     when to_regclass('public.pg_stat_statements') is null then

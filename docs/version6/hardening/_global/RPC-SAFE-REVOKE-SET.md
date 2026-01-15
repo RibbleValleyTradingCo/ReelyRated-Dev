@@ -3,7 +3,7 @@
 How to re-run:
 
 ```
-bash docs/version5/hardening/_global/scripts/build_rpc_usage_map.sh
+bash docs/version6/hardening/_global/scripts/build_rpc_usage_map.sh
 ```
 
 ## Principle

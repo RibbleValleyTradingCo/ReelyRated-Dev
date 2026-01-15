@@ -2,9 +2,9 @@
 set -euo pipefail
 
 ROOT_DIR="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-WORKSHEET_PATH="${1:-$ROOT_DIR/docs/version5/hardening/_global/evidence/2026-01-14/55_RPC_SCOPING_WORKSHEET.md}"
-OUT_USAGE="$ROOT_DIR/docs/version5/hardening/_global/RPC-USAGE-MAP.md"
-OUT_SAFE="$ROOT_DIR/docs/version5/hardening/_global/RPC-SAFE-REVOKE-SET.md"
+WORKSHEET_PATH="${1:-$ROOT_DIR/docs/version6/hardening/_global/evidence/2026-01-14/55_RPC_SCOPING_WORKSHEET.md}"
+OUT_USAGE="$ROOT_DIR/docs/version6/hardening/_global/RPC-USAGE-MAP.md"
+OUT_SAFE="$ROOT_DIR/docs/version6/hardening/_global/RPC-SAFE-REVOKE-SET.md"
 
 ROOT_DIR="$ROOT_DIR" WORKSHEET_PATH="$WORKSHEET_PATH" OUT_USAGE="$OUT_USAGE" OUT_SAFE="$OUT_SAFE" python3 - <<'PY'
 import os
@@ -107,7 +107,7 @@ for fn in sorted(usage.keys()):
 
 not_found = [fn for fn in worksheet_functions if fn not in usage]
 
-rerun_cmd = "bash docs/version5/hardening/_global/scripts/build_rpc_usage_map.sh"
+rerun_cmd = "bash docs/version6/hardening/_global/scripts/build_rpc_usage_map.sh"
 
 with open(out_usage, "w", encoding="utf-8") as f:
     f.write("# RPC Usage Map (static repo scan)\n\n")

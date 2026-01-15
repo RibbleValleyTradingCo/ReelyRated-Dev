@@ -13,14 +13,14 @@ Links:
 
 ## Evidence checklist (2026-01-07)
 
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_default-acl-deep-dive_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_publication-coverage_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_pg-stat-statements_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_rls-coverage_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_table-grants_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_function-exec-grants_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_security-definer-hazards_2026-01-07.json
-- [ ] docs/version5/hardening/_global/evidence/sql/_global_sql_public-exec-on-admin-owner-rpcs_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_default-acl-deep-dive_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_publication-coverage_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_pg-stat-statements_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_rls-coverage_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_table-grants_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_function-exec-grants_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_security-definer-hazards_2026-01-07.json
+- [ ] docs/version6/hardening/_global/evidence/sql/_global_sql_public-exec-on-admin-owner-rpcs_2026-01-07.json
 
 ## Global gates
 

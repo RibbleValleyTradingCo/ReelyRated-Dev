@@ -4,19 +4,19 @@ This folder contains the v2 global DB hardening artifacts: baseline invariants, 
 
 ## Quickstart (local)
 1) Run the global probe pack:
-   - `docs/version5/hardening/_global/scripts/run_global_probes.sh "${DATABASE_URL}" YYYY-MM-DD`
+   - `docs/version6/hardening/_global/scripts/run_global_probes.sh "${DATABASE_URL}" YYYY-MM-DD`
 2) Evidence CSVs are written to:
-   - `docs/version5/hardening/_global/evidence/YYYY-MM-DD/`
+   - `docs/version6/hardening/_global/evidence/YYYY-MM-DD/`
 3) PASS means the relevant gate query returns **0 rows**. Any rows are actionable failures.
 
 ## Core docs
-- Baseline invariants: `docs/version5/hardening/_global/BASELINE-INVARIANTS.md`
-- Persona access matrix: `docs/version5/hardening/_global/PERSONA-ACCESS-MATRIX.md`
-- Gate catalog: `docs/version5/hardening/_global/GATES.md`
-- Local runbook: `docs/version5/hardening/_global/RUNBOOK-GLOBAL-LOCAL.md`
+- Baseline invariants: `docs/version6/hardening/_global/BASELINE-INVARIANTS.md`
+- Persona access matrix: `docs/version6/hardening/_global/PERSONA-ACCESS-MATRIX.md`
+- Gate catalog: `docs/version6/hardening/_global/GATES.md`
+- Local runbook: `docs/version6/hardening/_global/RUNBOOK-GLOBAL-LOCAL.md`
 
 ## Probe pack (SQL)
-- All probes live in: `docs/version5/hardening/_global/sql/`
+- All probes live in: `docs/version6/hardening/_global/sql/`
 - Each file produces a single, deterministic result set (stable ORDER BY).
 
 ## Evidence

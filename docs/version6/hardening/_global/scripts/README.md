@@ -4,13 +4,13 @@
 
 ```
 export DATABASE_URL="postgresql://..."
-./docs/version5/hardening/_global/scripts/run_global_probes.sh "$DATABASE_URL" YYYY-MM-DD
+./docs/version6/hardening/_global/scripts/run_global_probes.sh "$DATABASE_URL" YYYY-MM-DD
 ```
 
 ## Output
 
 CSV files are written to:
-- `docs/version5/hardening/_global/evidence/YYYY-MM-DD/`
+- `docs/version6/hardening/_global/evidence/YYYY-MM-DD/`
 
 ## Notes
 - The script is read-only (no DDL/DML).
@@ -19,5 +19,5 @@ CSV files are written to:
 
 ```
 psql -X -v ON_ERROR_STOP=1 "$DATABASE_URL" \
-  -c "\\copy ( $(cat docs/version5/hardening/_global/sql/20_RLS_COVERAGE.sql) ) TO 'docs/version5/hardening/_global/evidence/YYYY-MM-DD/20_RLS_COVERAGE.csv' WITH CSV HEADER"
+  -c "\\copy ( $(cat docs/version6/hardening/_global/sql/20_RLS_COVERAGE.sql) ) TO 'docs/version6/hardening/_global/evidence/YYYY-MM-DD/20_RLS_COVERAGE.csv' WITH CSV HEADER"
 ```

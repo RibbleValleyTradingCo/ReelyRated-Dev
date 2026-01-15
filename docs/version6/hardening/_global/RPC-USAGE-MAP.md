@@ -3,7 +3,7 @@
 How to re-run:
 
 ```
-bash docs/version5/hardening/_global/scripts/build_rpc_usage_map.sh
+bash docs/version6/hardening/_global/scripts/build_rpc_usage_map.sh
 ```
 
 ## Purpose
@@ -11,7 +11,7 @@ bash docs/version5/hardening/_global/scripts/build_rpc_usage_map.sh
 - Used to reconcile DB exposure vs actual app usage.
 
 ## Generation notes
-- Worksheet source: `docs/version5/hardening/_global/evidence/2026-01-14/55_RPC_SCOPING_WORKSHEET.md`
+- Worksheet source: `docs/version6/hardening/_global/evidence/2026-01-14/55_RPC_SCOPING_WORKSHEET.md`
 - Scanned roots: src, app, lib, utils
 - Patterns: `supabase.rpc(...)`, `.rpc(...)`, `/rest/v1/rpc/<fn>`
 
