@@ -8,7 +8,7 @@ with target_schemas as (
 ),
 functions as (
   select
-    n.nspname as schema_name,
+    n.schema_name as schema_name,
     p.proname as function_name,
     pg_get_function_identity_arguments(p.oid) as identity_args,
     p.prokind,
@@ -52,8 +52,8 @@ registry as (
     f.identity_args,
     f.prokind::text as prokind,
     f.is_security_definer,
-    f.owner_role,
-    f.language,
+    f.owner_role::text as owner_role,
+    f.language::text as language,
     f.search_path_value,
     f.search_path_pinned,
     f.proacl::text as proacl_text,

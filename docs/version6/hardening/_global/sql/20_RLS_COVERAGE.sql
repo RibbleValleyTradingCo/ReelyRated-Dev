@@ -8,7 +8,7 @@ with non_system_schemas as (
 ),
 rels as (
   select
-    n.nspname as schema_name,
+    n.schema_name as schema_name,
     c.relname as relation_name,
     c.relkind,
     c.relowner::regrole as owner_role,

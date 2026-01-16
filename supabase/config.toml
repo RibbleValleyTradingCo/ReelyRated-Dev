@@ -16,3 +16,10 @@ additional_redirect_urls = [
 # pass = ""
 # admin_email = "no-reply@localhost"
 # sender_name = "ReelyRated (Local Dev)"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000

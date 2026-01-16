@@ -3,10 +3,10 @@
 with buckets as (
   select
     'bucket' as record_type,
-    b.id as bucket_id,
+    b.id::text as bucket_id,
     b.name as bucket_name,
     b.public as bucket_public,
-    b.owner as bucket_owner,
+    b.owner::text as bucket_owner,
     b.created_at as bucket_created_at,
     null::text as policyname,
     null::text as polcmd,
@@ -26,7 +26,14 @@ policies as (
     null::text as bucket_owner,
     null::timestamptz as bucket_created_at,
     pol.polname as policyname,
-    pol.polcmd,
+    case pol.polcmd
+      when 'r'::"char" then 'SELECT'::text
+      when 'a'::"char" then 'INSERT'::text
+      when 'w'::"char" then 'UPDATE'::text
+      when 'd'::"char" then 'DELETE'::text
+      when '*'::"char" then 'ALL'::text
+      else null::text
+    end as polcmd,
     pol.polroles::regrole[]::text as roles,
     pg_get_expr(pol.polqual, pol.polrelid) as qual,
     pg_get_expr(pol.polwithcheck, pol.polrelid) as with_check,
