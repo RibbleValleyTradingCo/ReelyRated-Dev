@@ -1,0 +1,8 @@
+gate_id,gate_name,status,failure_count
+G1,Schema CREATE grants restricted,PASS,0
+G2,No PUBLIC/anon DML grants,PASS,0
+G3,No PUBLIC/anon EXECUTE on RPCs,PASS,0
+G5,Public views are security_invoker or not granted,PASS,0
+G6,RLS enabled on exposed tables,PASS,0
+G7,RLS tables have policies,PASS,0
+G8,SECURITY DEFINER has pinned search_path,PASS,0

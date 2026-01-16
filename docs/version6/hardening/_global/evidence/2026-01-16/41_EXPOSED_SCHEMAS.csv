@@ -1,0 +1,3 @@
+schema_name,exposed_schema,in_db_extra_search_path,anon_schema_usage,authenticated_schema_usage
+graphql_public,t,f,t,t
+public,t,f,t,t

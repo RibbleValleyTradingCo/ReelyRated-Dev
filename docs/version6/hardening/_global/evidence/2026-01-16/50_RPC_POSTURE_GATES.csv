@@ -1,0 +1,18 @@
+gate_id,schema_name,function_name,identity_args,grantee,is_security_definer,search_path_pinned,referenced_in_policies,referenced_in_views,referenced_in_triggers
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_feed_catches,"p_limit integer, p_offset integer, p_scope text, p_sort text, p_species text, p_custom_species text, p_venue_id uuid, p_session_id uuid",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_leaderboard_scores,"p_species_slug text, p_limit integer",anon,t,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_species_options,"p_only_active boolean, p_only_with_catches boolean",anon,t,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_by_slug,p_slug text,anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_past_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer, p_offset integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_photos,"p_venue_id uuid, p_limit integer, p_offset integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_recent_catches,"p_venue_id uuid, p_limit integer, p_offset integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_top_anglers,"p_venue_id uuid, p_limit integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_top_catches,"p_venue_id uuid, p_limit integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venue_upcoming_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer",anon,f,t,f,f,f
+GATE_ANON_EXECUTE_NOT_ALLOWLISTED,public,get_venues,"p_search text, p_limit integer, p_offset integer",anon,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_feed_catches,"p_limit integer, p_offset integer, p_scope text, p_sort text, p_species text, p_custom_species text, p_venue_id uuid, p_session_id uuid",PUBLIC,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_venue_past_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer, p_offset integer",PUBLIC,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_venue_recent_catches,"p_venue_id uuid, p_limit integer, p_offset integer",PUBLIC,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_venue_top_anglers,"p_venue_id uuid, p_limit integer",PUBLIC,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_venue_top_catches,"p_venue_id uuid, p_limit integer",PUBLIC,f,t,f,f,f
+GATE_PUBLIC_EXECUTE_NOT_ALLOWLISTED,public,get_venue_upcoming_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer",PUBLIC,f,t,f,f,f

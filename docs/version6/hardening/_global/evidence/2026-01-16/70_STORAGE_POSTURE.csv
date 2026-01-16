@@ -1,0 +1,24 @@
+record_type,bucket_id,bucket_name,bucket_public,bucket_owner,bucket_created_at,policyname,polcmd,roles,qual,with_check,object_name,object_created_at
+bucket,avatars,avatars,t,,2026-01-14 14:41:55.553958+00,,,,,,,
+bucket,catches,catches,t,,2026-01-14 14:41:55.153715+00,,,,,,,
+bucket,venue-photos,venue-photos,t,,2026-01-14 14:41:55.610254+00,,,,,,,
+object_sample,avatars,,,,,,,,,,542951b3-813e-49a5-9eba-a9417dae6712/1768414054785-3xe3yi.png,2026-01-14 18:07:34.857389+00
+object_sample,avatars,,,,,,,,,,542951b3-813e-49a5-9eba-a9417dae6712/1768414064676-hvcm3e.png,2026-01-14 18:07:44.732433+00
+object_sample,catches,,,,,,,,,,542951b3-813e-49a5-9eba-a9417dae6712-1768404268408.jpg,2026-01-14 15:24:28.47474+00
+object_sample,catches,,,,,,,,,,542951b3-813e-49a5-9eba-a9417dae6712-1768405097656.jpg,2026-01-14 15:38:17.778391+00
+policy,,,,,,avatars_authenticated_manage_own,ALL,{authenticated},"((bucket_id = 'avatars'::text) AND ((auth.uid())::text = split_part(name, '/'::text, 1)))","((bucket_id = 'avatars'::text) AND ((auth.uid())::text = split_part(name, '/'::text, 1)))",,
+policy,,,,,,avatars_public_read,SELECT,{-},(bucket_id = 'avatars'::text),,,
+policy,,,,,,catches_authenticated_delete_own,DELETE,{authenticated},((bucket_id = 'catches'::text) AND ((owner_id = (auth.uid())::text) OR (owner = auth.uid()))),,,
+policy,,,,,,catches_authenticated_insert_own,INSERT,{authenticated},,((bucket_id = 'catches'::text) AND ((owner_id = (auth.uid())::text) OR (owner = auth.uid()))),,
+policy,,,,,,catches_authenticated_select_own,SELECT,{authenticated},((bucket_id = 'catches'::text) AND ((owner_id = (auth.uid())::text) OR (owner = auth.uid()))),,,
+policy,,,,,,catches_authenticated_update_own,UPDATE,{authenticated},((bucket_id = 'catches'::text) AND ((owner_id = (auth.uid())::text) OR (owner = auth.uid()))),((bucket_id = 'catches'::text) AND ((owner_id = (auth.uid())::text) OR (owner = auth.uid()))),,
+policy,,,,,,venue_photos_authenticated_manage,ALL,{authenticated},"((bucket_id = 'venue-photos'::text) AND is_venue_admin_or_owner(
+CASE
+    WHEN (split_part(name, '/'::text, 1) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'::text) THEN (split_part(name, '/'::text, 1))::uuid
+    ELSE NULL::uuid
+END))","((bucket_id = 'venue-photos'::text) AND is_venue_admin_or_owner(
+CASE
+    WHEN (split_part(name, '/'::text, 1) ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'::text) THEN (split_part(name, '/'::text, 1))::uuid
+    ELSE NULL::uuid
+END))",,
+policy,,,,,,venue_photos_public_read,SELECT,{-},(bucket_id = 'venue-photos'::text),,,

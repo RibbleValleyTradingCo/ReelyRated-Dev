@@ -1,0 +1,220 @@
+record_type,schema_name,view_name,relkind,owner_role,security_invoker,reloptions_text,grantee,privilege_type,definition,table_schema,table_name
+view_def,public,catch_comments_with_admin,v,postgres,,{security_invoker=true},,," SELECT cc.id,
+    cc.catch_id,
+    cc.user_id,
+    cc.body,
+    cc.created_at,
+    cc.deleted_at,
+    cc.parent_comment_id,
+    cc.updated_at,
+    cc.is_admin_author
+   FROM catch_comments cc
+     JOIN catches c ON c.id = cc.catch_id
+  WHERE is_admin(auth.uid()) OR NOT is_blocked_either_way(auth.uid(), cc.user_id) AND NOT is_blocked_either_way(auth.uid(), c.user_id);",,
+view_def,public,catch_mention_candidates,v,postgres,,{security_invoker=true},,," WITH owner AS (
+         SELECT c.id AS catch_id,
+            p.id AS user_id,
+            p.username,
+            p.avatar_path,
+            p.avatar_url,
+            c.created_at AS last_interacted_at
+           FROM catches c
+             JOIN profiles p ON p.id = c.user_id
+        ), commenters AS (
+         SELECT cc.catch_id,
+            p.id AS user_id,
+            p.username,
+            p.avatar_path,
+            p.avatar_url,
+            cc.created_at AS last_interacted_at
+           FROM catch_comments cc
+             JOIN profiles p ON p.id = cc.user_id
+        )
+ SELECT catch_id,
+    user_id,
+    username,
+    avatar_path,
+    avatar_url,
+    max(last_interacted_at) AS last_interacted_at
+   FROM ( SELECT owner.catch_id,
+            owner.user_id,
+            owner.username,
+            owner.avatar_path,
+            owner.avatar_url,
+            owner.last_interacted_at
+           FROM owner
+        UNION ALL
+         SELECT commenters.catch_id,
+            commenters.user_id,
+            commenters.username,
+            commenters.avatar_path,
+            commenters.avatar_url,
+            commenters.last_interacted_at
+           FROM commenters) combined
+  GROUP BY catch_id, user_id, username, avatar_path, avatar_url;",,
+view_def,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},,," WITH species_list AS (
+         SELECT DISTINCT cls_1.species_key
+           FROM catch_leaderboard_scores cls_1
+        ), top_scores AS (
+         SELECT cls_1.catch_id,
+            cls_1.species_key,
+            cls_1.created_at,
+            cls_1.total_score,
+            cls_1.updated_at
+           FROM species_list s
+             JOIN LATERAL ( SELECT cls_2.catch_id,
+                    cls_2.species_key,
+                    cls_2.created_at,
+                    cls_2.total_score,
+                    cls_2.updated_at
+                   FROM catch_leaderboard_scores cls_2
+                  WHERE cls_2.species_key = s.species_key
+                  ORDER BY cls_2.total_score DESC, cls_2.created_at, cls_2.catch_id
+                 LIMIT 100) cls_1 ON true
+        )
+ SELECT c.id,
+    c.user_id,
+    p.username AS owner_username,
+    c.title,
+    COALESCE(NULLIF(cls.species_key, '__unknown__'::text), c.species_slug, c.species) AS species_slug,
+    c.species,
+    c.weight,
+    c.weight_unit,
+    c.length,
+    c.length_unit,
+    c.image_url,
+        CASE
+            WHEN COALESCE(crs.rating_count, 0) > 0 THEN COALESCE(crs.rating_sum, 0::numeric) / crs.rating_count::numeric
+            ELSE 0::numeric
+        END AS avg_rating,
+    COALESCE(crs.rating_count, 0) AS rating_count,
+    COALESCE(cls.total_score, 0::numeric) AS total_score,
+    COALESCE(cls.created_at, c.created_at) AS created_at,
+    COALESCE(c.location_label, c.location) AS location_label,
+    c.location,
+    COALESCE(c.method_tag, c.method) AS method_tag,
+    c.method,
+    c.water_type_code,
+    c.description,
+    c.gallery_photos,
+    c.tags,
+    c.video_url,
+    c.conditions,
+    c.caught_at,
+        CASE
+            WHEN is_admin(auth.uid()) THEN false
+            WHEN auth.uid() IS NULL THEN false
+            ELSE is_blocked_either_way(c.user_id, auth.uid())
+        END AS is_blocked_from_viewer
+   FROM top_scores cls
+     JOIN catches c ON c.id = cls.catch_id
+     LEFT JOIN profiles p ON p.id = c.user_id
+     LEFT JOIN catch_rating_stats crs ON crs.catch_id = c.id
+  WHERE c.deleted_at IS NULL AND c.visibility = 'public'::visibility_type;",,
+view_def,public,venue_stats,v,postgres,,{security_invoker=true},,," WITH published_venues AS (
+         SELECT venues.id
+           FROM venues
+          WHERE venues.is_published = true
+        ), base AS (
+         SELECT c.venue_id,
+            count(*)::integer AS total_catches,
+            count(*) FILTER (WHERE c.created_at >= (now() - '30 days'::interval))::integer AS recent_catches_30d,
+            count(DISTINCT c.user_id) FILTER (WHERE c.user_id IS NOT NULL)::integer AS active_anglers_all_time,
+            count(DISTINCT c.user_id) FILTER (WHERE c.user_id IS NOT NULL AND c.created_at >= (now() - '30 days'::interval))::integer AS active_anglers_30d,
+            max(c.weight) FILTER (WHERE c.weight IS NOT NULL) AS headline_pb_weight,
+            ( SELECT c2.weight_unit
+                   FROM catches c2
+                  WHERE c2.venue_id = c.venue_id AND c2.deleted_at IS NULL AND c2.visibility = 'public'::visibility_type AND c2.weight IS NOT NULL
+                  ORDER BY c2.weight DESC NULLS LAST, c2.created_at DESC
+                 LIMIT 1) AS headline_pb_unit,
+            ( SELECT c3.species
+                   FROM catches c3
+                  WHERE c3.venue_id = c.venue_id AND c3.deleted_at IS NULL AND c3.visibility = 'public'::visibility_type AND c3.weight IS NOT NULL
+                  ORDER BY c3.weight DESC NULLS LAST, c3.created_at DESC
+                 LIMIT 1) AS headline_pb_species
+           FROM catches c
+          WHERE c.venue_id IS NOT NULL AND c.deleted_at IS NULL AND c.visibility = 'public'::visibility_type AND (EXISTS ( SELECT 1
+                   FROM published_venues pv
+                  WHERE pv.id = c.venue_id))
+          GROUP BY c.venue_id
+        ), species AS (
+         SELECT c.venue_id,
+            ARRAY( SELECT s_1.species
+                   FROM ( SELECT c2.species,
+                            count(*) AS species_count
+                           FROM catches c2
+                          WHERE c2.venue_id = c.venue_id AND c2.deleted_at IS NULL AND c2.visibility = 'public'::visibility_type AND c2.venue_id IS NOT NULL AND c2.species IS NOT NULL AND (EXISTS ( SELECT 1
+                                   FROM published_venues pv
+                                  WHERE pv.id = c2.venue_id))
+                          GROUP BY c2.species
+                          ORDER BY (count(*)) DESC, c2.species
+                         LIMIT 3) s_1) AS top_species
+           FROM catches c
+          WHERE c.venue_id IS NOT NULL AND c.deleted_at IS NULL AND c.visibility = 'public'::visibility_type AND (EXISTS ( SELECT 1
+                   FROM published_venues pv
+                  WHERE pv.id = c.venue_id))
+          GROUP BY c.venue_id
+        ), ratings AS (
+         SELECT vr.venue_id,
+            avg(vr.rating)::numeric(3,2) AS avg_rating,
+            count(*)::integer AS rating_count
+           FROM venue_ratings vr
+          WHERE (EXISTS ( SELECT 1
+                   FROM published_venues pv
+                  WHERE pv.id = vr.venue_id))
+          GROUP BY vr.venue_id
+        )
+ SELECT b.venue_id,
+    b.total_catches,
+    b.recent_catches_30d,
+    b.active_anglers_all_time,
+    b.active_anglers_30d,
+    b.headline_pb_weight,
+    b.headline_pb_unit,
+    b.headline_pb_species,
+    COALESCE(s.top_species, ARRAY[]::text[]) AS top_species,
+    r.avg_rating,
+    r.rating_count
+   FROM base b
+     LEFT JOIN species s ON s.venue_id = b.venue_id
+     LEFT JOIN ratings r ON r.venue_id = b.venue_id;",,
+view_def,public,venue_stats_public,v,postgres,,{security_invoker=true},,," SELECT vs.venue_id,
+    vs.total_catches,
+    vs.recent_catches_30d,
+    vs.active_anglers_all_time,
+    vs.active_anglers_30d,
+    vs.headline_pb_weight,
+    vs.headline_pb_unit,
+    vs.headline_pb_species,
+    vs.top_species,
+    vs.avg_rating,
+    vs.rating_count
+   FROM venue_stats vs
+     JOIN venues v ON v.id = vs.venue_id
+  WHERE v.is_published = true;",,
+view_grants,public,catch_comments_with_admin,v,postgres,,{security_invoker=true},authenticated,SELECT,,,
+view_grants,public,catch_mention_candidates,v,postgres,,{security_invoker=true},authenticated,SELECT,,,
+view_grants,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},anon,SELECT,,,
+view_grants,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},authenticated,SELECT,,,
+view_grants,public,venue_stats,v,postgres,,{security_invoker=true},authenticated,SELECT,,,
+view_grants,public,venue_stats_public,v,postgres,,{security_invoker=true},anon,SELECT,,,
+view_grants,public,venue_stats_public,v,postgres,,{security_invoker=true},authenticated,SELECT,,,
+view_posture,public,catch_comments_with_admin,v,postgres,t,{security_invoker=true},,,,,
+view_posture,public,catch_mention_candidates,v,postgres,t,{security_invoker=true},,,,,
+view_posture,public,leaderboard_scores_detailed,v,postgres,t,{security_invoker=true},,,,,
+view_posture,public,venue_stats,v,postgres,t,{security_invoker=true},,,,,
+view_posture,public,venue_stats_public,v,postgres,t,{security_invoker=true},,,,,
+view_table_usage,public,catch_comments_with_admin,v,postgres,,{security_invoker=true},,,,public,catch_comments
+view_table_usage,public,catch_comments_with_admin,v,postgres,,{security_invoker=true},,,,public,catches
+view_table_usage,public,catch_mention_candidates,v,postgres,,{security_invoker=true},,,,public,catch_comments
+view_table_usage,public,catch_mention_candidates,v,postgres,,{security_invoker=true},,,,public,catches
+view_table_usage,public,catch_mention_candidates,v,postgres,,{security_invoker=true},,,,public,profiles
+view_table_usage,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},,,,public,catch_leaderboard_scores
+view_table_usage,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},,,,public,catch_rating_stats
+view_table_usage,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},,,,public,catches
+view_table_usage,public,leaderboard_scores_detailed,v,postgres,,{security_invoker=true},,,,public,profiles
+view_table_usage,public,venue_stats,v,postgres,,{security_invoker=true},,,,public,catches
+view_table_usage,public,venue_stats,v,postgres,,{security_invoker=true},,,,public,venue_ratings
+view_table_usage,public,venue_stats,v,postgres,,{security_invoker=true},,,,public,venues
+view_table_usage,public,venue_stats_public,v,postgres,,{security_invoker=true},,,,public,venue_stats
+view_table_usage,public,venue_stats_public,v,postgres,,{security_invoker=true},,,,public,venues

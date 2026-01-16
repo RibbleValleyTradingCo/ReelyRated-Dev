@@ -1,0 +1,111 @@
+schema_name,tablename,cmd,roles,policyname,permissive,qual,with_check,contains_auth_call
+public,admin_users,SELECT,{public},admin_users_self_select,PERMISSIVE,(auth.uid() = user_id),,t
+public,catch_comments,SELECT,{public},catch_comments_admin_read_all,PERMISSIVE,is_admin(auth.uid()),,t
+public,catch_comments,UPDATE,{public},catch_comments_admin_update,PERMISSIVE,is_admin(auth.uid()),is_admin(auth.uid()),t
+public,catch_comments,INSERT,{public},catch_comments_insert_viewable,PERMISSIVE,,"(((user_id = auth.uid()) OR is_admin(auth.uid())) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = catch_comments.catch_id) AND (c.deleted_at IS NULL) AND ((c.user_id = auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND (auth.uid() IS NOT NULL) AND is_following(auth.uid(), c.user_id)) OR is_admin(auth.uid()))))))",t
+public,catch_comments,SELECT,{public},catch_comments_public_read,PERMISSIVE,"((deleted_at IS NULL) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = catch_comments.catch_id) AND (c.deleted_at IS NULL) AND ((auth.uid() = c.user_id) OR (EXISTS ( SELECT 1
+           FROM admin_users au
+          WHERE (au.user_id = auth.uid()))) OR ((NOT is_blocked_either_way(auth.uid(), c.user_id)) AND (NOT is_blocked_either_way(auth.uid(), catch_comments.user_id)) AND (((c.visibility = 'public'::visibility_type) AND ((NOT (EXISTS ( SELECT 1
+           FROM profiles p
+          WHERE ((p.id = c.user_id) AND (p.is_private = true))))) OR ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1
+           FROM profile_follows pf
+          WHERE ((pf.follower_id = auth.uid()) AND (pf.following_id = c.user_id))))))) OR ((c.visibility = 'followers'::visibility_type) AND (auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1
+           FROM profile_follows pf
+          WHERE ((pf.follower_id = auth.uid()) AND (pf.following_id = c.user_id))))))))))))",,t
+public,catch_comments,UPDATE,{public},catch_comments_update_owner,PERMISSIVE,(auth.uid() = user_id),(auth.uid() = user_id),t
+public,catch_reactions,ALL,{public},catch_reactions_owner_all,PERMISSIVE,(auth.uid() = user_id),(auth.uid() = user_id),t
+public,catch_reactions,SELECT,{public},catch_reactions_select_viewable,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = catch_reactions.catch_id) AND (c.deleted_at IS NULL) AND ((c.user_id = auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND (auth.uid() IS NOT NULL) AND is_following(auth.uid(), c.user_id)) OR is_admin(auth.uid())))))",,t
+public,catch_reactions,INSERT,{authenticated},catch_reactions_write_visible_unblocked_ins,RESTRICTIVE,,"((auth.uid() IS NOT NULL) AND (user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = catch_reactions.catch_id) AND (c.deleted_at IS NULL) AND (NOT is_blocked_either_way(auth.uid(), c.user_id)) AND (c.user_id <> auth.uid()) AND (is_admin(auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND is_following(auth.uid(), c.user_id)))))))",t
+public,catch_reactions,UPDATE,{authenticated},catch_reactions_write_visible_unblocked_upd,RESTRICTIVE,"((auth.uid() IS NOT NULL) AND (user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = catch_reactions.catch_id) AND (c.deleted_at IS NULL) AND (NOT is_blocked_either_way(auth.uid(), c.user_id)) AND (c.user_id <> auth.uid()) AND (is_admin(auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND is_following(auth.uid(), c.user_id)))))))",,t
+public,catches,SELECT,{public},catches_admin_read_all,PERMISSIVE,is_admin(auth.uid()),,t
+public,catches,SELECT,{public},catches_owner_all,PERMISSIVE,((( SELECT auth.uid() AS uid) = user_id) AND (deleted_at IS NULL)),,t
+public,catches,INSERT,{public},catches_owner_mutate,PERMISSIVE,,((auth.uid() = user_id) AND (NOT is_admin(auth.uid()))),t
+public,catches,UPDATE,{public},catches_owner_update_delete,PERMISSIVE,((auth.uid() = user_id) AND (NOT is_admin(auth.uid()))),((auth.uid() = user_id) AND (NOT is_admin(auth.uid()))),t
+public,catches,SELECT,{public},catches_public_read,PERMISSIVE,"((deleted_at IS NULL) AND ((auth.uid() = user_id) OR (EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid()))) OR ((COALESCE(is_blocked_either_way(auth.uid(), user_id), false) = false) AND (((visibility = 'public'::visibility_type) AND ((NOT (EXISTS ( SELECT 1
+   FROM profiles p
+  WHERE ((p.id = catches.user_id) AND (p.is_private = true))))) OR ((auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1
+   FROM profile_follows pf
+  WHERE ((pf.follower_id = auth.uid()) AND (pf.following_id = catches.user_id))))))) OR ((visibility = 'followers'::visibility_type) AND (auth.uid() IS NOT NULL) AND (EXISTS ( SELECT 1
+   FROM profile_follows pf
+  WHERE ((pf.follower_id = auth.uid()) AND (pf.following_id = catches.user_id)))))))))",,t
+public,moderation_log,SELECT,{public},moderation_log_admin_read,PERMISSIVE,is_admin(auth.uid()),,t
+public,notifications,SELECT,{public},notifications_admin_read,PERMISSIVE,is_admin(auth.uid()),,t
+public,notifications,ALL,{public},notifications_recipient_only,PERMISSIVE,(auth.uid() = user_id),(auth.uid() = user_id),t
+public,profile_blocks,DELETE,{authenticated},profile_blocks_delete_admin_all,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = ( SELECT auth.uid() AS uid))))",,t
+public,profile_blocks,DELETE,{authenticated},profile_blocks_delete_self,PERMISSIVE,(( SELECT auth.uid() AS uid) = blocker_id),,t
+public,profile_blocks,INSERT,{authenticated},profile_blocks_insert_admin_all,PERMISSIVE,,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = ( SELECT auth.uid() AS uid))))",t
+public,profile_blocks,INSERT,{authenticated},profile_blocks_insert_self,PERMISSIVE,,(( SELECT auth.uid() AS uid) = blocker_id),t
+public,profile_blocks,SELECT,{authenticated},profile_blocks_select_admin_all,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = ( SELECT auth.uid() AS uid))))",,t
+public,profile_blocks,SELECT,{authenticated},profile_blocks_select_self_or_blocked,PERMISSIVE,((( SELECT auth.uid() AS uid) = blocker_id) OR (( SELECT auth.uid() AS uid) = blocked_id)),,t
+public,profile_follows,SELECT,{public},profile_follows_admin_select_all,PERMISSIVE,is_admin(auth.uid()),,t
+public,profile_follows,INSERT,{authenticated},profile_follows_insert_not_blocked,RESTRICTIVE,,"((auth.uid() = follower_id) AND (following_id <> auth.uid()) AND (NOT is_blocked_either_way(auth.uid(), following_id)))",t
+public,profile_follows,ALL,{public},profile_follows_owner_all,PERMISSIVE,(auth.uid() = follower_id),(auth.uid() = follower_id),t
+public,profile_follows,SELECT,{public},profile_follows_select_related,PERMISSIVE,((auth.uid() = follower_id) OR (auth.uid() = following_id)),,t
+public,rate_limits,SELECT,{public},rate_limits_admin_select,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))",,t
+public,rate_limits,INSERT,{authenticated},rate_limits_self_insert,PERMISSIVE,,(auth.uid() = user_id),t
+public,ratings,ALL,{public},ratings_owner_mutate,PERMISSIVE,(auth.uid() = user_id),(auth.uid() = user_id),t
+public,ratings,SELECT,{public},ratings_read_visible_catches,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = ratings.catch_id) AND (c.deleted_at IS NULL) AND (is_admin(auth.uid()) OR (c.user_id = auth.uid()) OR ((auth.uid() IS NULL) AND (c.visibility = 'public'::visibility_type)) OR ((auth.uid() IS NOT NULL) AND (NOT is_admin(auth.uid())) AND ((c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND is_following(auth.uid(), c.user_id))))))))",,t
+public,ratings,INSERT,{authenticated},ratings_write_visible_unblocked_ins,RESTRICTIVE,,"((auth.uid() IS NOT NULL) AND (user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = ratings.catch_id) AND (c.deleted_at IS NULL) AND (c.allow_ratings IS TRUE) AND (NOT is_blocked_either_way(auth.uid(), c.user_id)) AND (c.user_id <> auth.uid()) AND (is_admin(auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND is_following(auth.uid(), c.user_id)))))))",t
+public,ratings,UPDATE,{authenticated},ratings_write_visible_unblocked_upd,RESTRICTIVE,"((auth.uid() IS NOT NULL) AND (user_id = auth.uid()) AND (EXISTS ( SELECT 1
+   FROM catches c
+  WHERE ((c.id = ratings.catch_id) AND (c.deleted_at IS NULL) AND (c.allow_ratings IS TRUE) AND (NOT is_blocked_either_way(auth.uid(), c.user_id)) AND (c.user_id <> auth.uid()) AND (is_admin(auth.uid()) OR (c.visibility = 'public'::visibility_type) OR ((c.visibility = 'followers'::visibility_type) AND is_following(auth.uid(), c.user_id)))))))",,t
+public,reports,ALL,{public},reports_admin_all,PERMISSIVE,is_admin(auth.uid()),is_admin(auth.uid()),t
+public,reports,ALL,{public},reports_owner_all,PERMISSIVE,(auth.uid() = reporter_id),(auth.uid() = reporter_id),t
+public,sessions,ALL,{public},sessions_modify_own,PERMISSIVE,(auth.uid() = user_id),(auth.uid() = user_id),t
+public,sessions,SELECT,{public},sessions_select_own,PERMISSIVE,(auth.uid() = user_id),,t
+public,user_warnings,SELECT,{public},user_warnings_admin_read,PERMISSIVE,is_admin(auth.uid()),,t
+public,venue_owners,ALL,{public},venue_owners_admin_all,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))","(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))",t
+public,venue_owners,SELECT,{public},venue_owners_self_select,PERMISSIVE,(auth.uid() = user_id),,t
+public,venue_ratings,SELECT,{public},Admins can select all venue ratings,PERMISSIVE,is_admin(auth.uid()),,t
+public,venue_ratings,DELETE,{public},Allow users to delete own venue ratings,PERMISSIVE,(user_id = auth.uid()),,t
+public,venue_ratings,INSERT,{public},Allow users to insert own venue ratings,PERMISSIVE,,(user_id = auth.uid()),t
+public,venue_ratings,SELECT,{public},Allow users to select own venue ratings,PERMISSIVE,(user_id = auth.uid()),,t
+public,venue_ratings,UPDATE,{public},Allow users to update own venue ratings,PERMISSIVE,(user_id = auth.uid()),,t
+public,venues,INSERT,{public},venues_insert_admin_only,PERMISSIVE,,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))",t
+public,venues,SELECT,{public},venues_select_admin_all,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))",,t
+public,venues,SELECT,{public},venues_select_owner,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM venue_owners vo
+  WHERE ((vo.venue_id = venues.id) AND (vo.user_id = auth.uid()))))",,t
+public,venues,SELECT,{public},venues_select_published,PERMISSIVE,(is_published = true),,f
+public,venues,UPDATE,{public},venues_update_admin_all,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))","(EXISTS ( SELECT 1
+   FROM admin_users au
+  WHERE (au.user_id = auth.uid())))",t
+public,venues,UPDATE,{public},venues_update_owner,PERMISSIVE,"(EXISTS ( SELECT 1
+   FROM venue_owners vo
+  WHERE ((vo.venue_id = venues.id) AND (vo.user_id = auth.uid()))))","(EXISTS ( SELECT 1
+   FROM venue_owners vo
+  WHERE ((vo.venue_id = venues.id) AND (vo.user_id = auth.uid()))))",t

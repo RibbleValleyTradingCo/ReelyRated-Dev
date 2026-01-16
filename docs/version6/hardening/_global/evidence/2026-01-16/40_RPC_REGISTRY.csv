@@ -1,0 +1,963 @@
+record_type,schema_name,function_name,identity_args,prokind,is_security_definer,owner_role,language,search_path_value,search_path_pinned,proacl_text,grantee,privilege_type
+execute_grant,auth,email,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,auth,jwt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,auth,jwt,,,,,,,,,postgres,EXECUTE
+execute_grant,auth,role,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,auth,uid,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,armor,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,armor,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,armor,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,armor,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_cmp,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_cmp,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_eq,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_eq,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_ge,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_ge,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_gt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_gt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_hash,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_hash,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_hash_extended,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_hash_extended,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_larger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_larger,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_le,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_le,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_lt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_lt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_ne,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_ne,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_pattern_cmp,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_pattern_cmp,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_pattern_ge,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_pattern_ge,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_pattern_gt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_pattern_gt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_pattern_le,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_pattern_le,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_pattern_lt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_pattern_lt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citext_smaller,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citext_smaller,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citextin,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citextin,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citextout,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citextout,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citextrecv,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citextrecv,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,citextsend,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,citextsend,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,crypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,crypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,dearmor,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,dearmor,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,decrypt_iv,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,decrypt_iv,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,digest,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,digest,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,digest,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,digest,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,encrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,encrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,encrypt_iv,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,encrypt_iv,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,gen_random_bytes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,gen_random_bytes,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,gen_random_uuid,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,gen_random_uuid,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,gen_salt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,gen_salt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,gen_salt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,gen_salt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,grant_pg_cron_access,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,grant_pg_graphql_access,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,grant_pg_graphql_access,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,grant_pg_net_access,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,hmac,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,hmac,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,hmac,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,hmac,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,max,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,max,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,min,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,min,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pg_stat_statements,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pg_stat_statements,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pg_stat_statements_info,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pg_stat_statements_info,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pg_stat_statements_reset,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_armor_headers,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_armor_headers,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_key_id,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_key_id,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_decrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_pub_encrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_decrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt_bytea,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgp_sym_encrypt_bytea,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgrst_ddl_watch,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgrst_ddl_watch,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,pgrst_drop_watch,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,pgrst_drop_watch,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_match,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_match,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_match,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_match,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_matches,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_matches,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_matches,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_matches,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_replace,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_replace,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_replace,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_replace,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_split_to_array,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_split_to_array,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_split_to_array,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_split_to_array,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_split_to_table,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_split_to_table,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,regexp_split_to_table,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,regexp_split_to_table,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,replace,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,replace,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,set_graphql_placeholder,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,set_graphql_placeholder,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,split_part,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,split_part,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,strpos,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,strpos,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticlike,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticlike,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticlike,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticlike,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticnlike,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticnlike,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticnlike,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticnlike,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticregexeq,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticregexeq,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticregexeq,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticregexeq,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticregexne,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticregexne,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,texticregexne,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,texticregexne,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,translate,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,translate,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_generate_v1,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_generate_v1,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_generate_v1mc,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_generate_v1mc,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_generate_v3,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_generate_v3,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_generate_v4,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_generate_v4,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_generate_v5,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_generate_v5,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_nil,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_nil,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_ns_dns,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_ns_dns,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_ns_oid,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_ns_oid,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_ns_url,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_ns_url,,,,,,,,,postgres,EXECUTE
+execute_grant,extensions,uuid_ns_x500,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,extensions,uuid_ns_x500,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,_internal_resolve,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,_internal_resolve,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,_internal_resolve,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,_internal_resolve,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,_internal_resolve,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql,comment_directive,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,comment_directive,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,comment_directive,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,comment_directive,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,comment_directive,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql,exception,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,exception,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,exception,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,exception,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,exception,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql,get_schema_version,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,get_schema_version,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,get_schema_version,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,get_schema_version,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,get_schema_version,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql,increment_schema_version,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,increment_schema_version,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,increment_schema_version,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,increment_schema_version,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,increment_schema_version,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql,resolve,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql,resolve,,,,,,,,,anon,EXECUTE
+execute_grant,graphql,resolve,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql,resolve,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql,resolve,,,,,,,,,service_role,EXECUTE
+execute_grant,graphql_public,graphql,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,graphql_public,graphql,,,,,,,,,anon,EXECUTE
+execute_grant,graphql_public,graphql,,,,,,,,,authenticated,EXECUTE
+execute_grant,graphql_public,graphql,,,,,,,,,postgres,EXECUTE
+execute_grant,graphql_public,graphql,,,,,,,,,service_role,EXECUTE
+execute_grant,net,_await_response,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,_encode_url_with_params_array,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,_http_collect_response,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,_urlencode_string,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,check_worker_is_up,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,http_collect_response,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,http_delete,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,http_get,,,,,,,,,anon,EXECUTE
+execute_grant,net,http_get,,,,,,,,,authenticated,EXECUTE
+execute_grant,net,http_get,,,,,,,,,postgres,EXECUTE
+execute_grant,net,http_get,,,,,,,,,service_role,EXECUTE
+execute_grant,net,http_post,,,,,,,,,anon,EXECUTE
+execute_grant,net,http_post,,,,,,,,,authenticated,EXECUTE
+execute_grant,net,http_post,,,,,,,,,postgres,EXECUTE
+execute_grant,net,http_post,,,,,,,,,service_role,EXECUTE
+execute_grant,net,wait_until_running,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,wake,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,net,worker_restart,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,admin_add_venue_owner,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_add_venue_owner,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_add_venue_owner,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_add_venue_photo,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_add_venue_photo,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_add_venue_photo,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_clear_moderation_status,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_clear_moderation_status,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_clear_moderation_status,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_create_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_create_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_create_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_create_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_create_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_create_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_create_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_create_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_create_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_create_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_create_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_create_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_account,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_account,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_account,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_catch,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_catch,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_catch,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_comment,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_comment,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_comment,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_venue_photo,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_venue_photo,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_venue_photo,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_delete_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_delete_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_delete_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_get_venue_by_slug,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_get_venue_by_slug,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_get_venue_by_slug,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_get_venue_events,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_get_venue_events,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_get_venue_events,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_get_venues,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_get_venues,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_get_venues,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_list_moderation_log,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_list_moderation_log,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_list_moderation_log,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_list_reports,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_list_reports,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_list_reports,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_remove_venue_owner,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_remove_venue_owner,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_remove_venue_owner,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_restore_catch,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_restore_catch,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_restore_catch,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_restore_comment,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_restore_comment,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_restore_comment,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_set_venue_photo_primary,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_set_venue_photo_primary,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_set_venue_photo_primary,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_report_status,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_report_status,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_report_status,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_booking,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_booking,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_booking,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_metadata,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_rules,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_rules,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_rules,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_update_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_update_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_update_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,admin_warn_user,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,admin_warn_user,,,,,,,,,postgres,EXECUTE
+execute_grant,public,admin_warn_user,,,,,,,,,service_role,EXECUTE
+execute_grant,public,assert_moderation_allowed,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,assert_moderation_allowed,,,,,,,,,postgres,EXECUTE
+execute_grant,public,assert_moderation_allowed,,,,,,,,,service_role,EXECUTE
+execute_grant,public,block_profile,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,block_profile,,,,,,,,,postgres,EXECUTE
+execute_grant,public,block_profile,,,,,,,,,service_role,EXECUTE
+execute_grant,public,check_email_exists,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,check_email_exists,,,,,,,,,postgres,EXECUTE
+execute_grant,public,check_email_exists,,,,,,,,,service_role,EXECUTE
+execute_grant,public,check_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,check_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,check_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,cleanup_rate_limits,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,cleanup_rate_limits,,,,,,,,,postgres,EXECUTE
+execute_grant,public,cleanup_rate_limits,,,,,,,,,service_role,EXECUTE
+execute_grant,public,community_stats_handle_catches_change,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,community_stats_handle_catches_change,,,,,,,,,postgres,EXECUTE
+execute_grant,public,community_stats_handle_catches_change,,,,,,,,,service_role,EXECUTE
+execute_grant,public,create_comment_with_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,create_comment_with_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,create_comment_with_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,create_notification,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,create_notification,,,,,,,,,postgres,EXECUTE
+execute_grant,public,create_notification,,,,,,,,,service_role,EXECUTE
+execute_grant,public,create_report_with_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,create_report_with_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,create_report_with_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,enforce_catch_moderation,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,enforce_catch_moderation,,,,,,,,,postgres,EXECUTE
+execute_grant,public,enforce_catch_moderation,,,,,,,,,service_role,EXECUTE
+execute_grant,public,enforce_catch_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,enforce_catch_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,enforce_catch_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,enforce_comment_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,enforce_comment_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,enforce_comment_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,enforce_report_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,enforce_report_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,enforce_report_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,follow_profile_with_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,follow_profile_with_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,follow_profile_with_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_catch_rating_summary,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_catch_rating_summary,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_catch_rating_summary,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_community_stats,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_community_stats,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_community_stats,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_community_stats,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_feed_catches,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_feed_catches,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_feed_catches,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_feed_catches,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_feed_catches,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_follower_count,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_follower_count,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_follower_count,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_insights_aggregates,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_insights_aggregates,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_insights_aggregates,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_leaderboard_scores,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_leaderboard_scores,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_leaderboard_scores,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_leaderboard_scores,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_my_venue_rating,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_my_venue_rating,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_my_venue_rating,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_profile_for_profile_page,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_profile_for_profile_page,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_profile_for_profile_page,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_rate_limit_status,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_rate_limit_status,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_rate_limit_status,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_species_options,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_species_options,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_species_options,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_species_options,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_by_slug,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_by_slug,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_by_slug,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_by_slug,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_past_events,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_venue_past_events,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_past_events,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_past_events,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_past_events,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_photos,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_photos,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_photos,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_photos,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_recent_catches,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_venue_recent_catches,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_recent_catches,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_recent_catches,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_recent_catches,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_top_anglers,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_venue_top_anglers,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_top_anglers,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_top_anglers,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_top_anglers,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_top_catches,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_venue_top_catches,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_top_catches,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_top_catches,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_top_catches,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venue_upcoming_events,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,public,get_venue_upcoming_events,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venue_upcoming_events,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venue_upcoming_events,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venue_upcoming_events,,,,,,,,,service_role,EXECUTE
+execute_grant,public,get_venues,,,,,,,,,anon,EXECUTE
+execute_grant,public,get_venues,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,get_venues,,,,,,,,,postgres,EXECUTE
+execute_grant,public,get_venues,,,,,,,,,service_role,EXECUTE
+execute_grant,public,handle_catches_leaderboard_change,,,,,,,,,postgres,EXECUTE
+execute_grant,public,handle_catches_leaderboard_change,,,,,,,,,service_role,EXECUTE
+execute_grant,public,handle_new_user,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,handle_new_user,,,,,,,,,postgres,EXECUTE
+execute_grant,public,handle_new_user,,,,,,,,,service_role,EXECUTE
+execute_grant,public,handle_ratings_leaderboard_change,,,,,,,,,postgres,EXECUTE
+execute_grant,public,handle_ratings_leaderboard_change,,,,,,,,,service_role,EXECUTE
+execute_grant,public,insights_format_label,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,insights_format_label,,,,,,,,,postgres,EXECUTE
+execute_grant,public,insights_format_label,,,,,,,,,service_role,EXECUTE
+execute_grant,public,is_admin,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,is_admin,,,,,,,,,postgres,EXECUTE
+execute_grant,public,is_admin,,,,,,,,,service_role,EXECUTE
+execute_grant,public,is_blocked_either_way,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,is_blocked_either_way,,,,,,,,,postgres,EXECUTE
+execute_grant,public,is_blocked_either_way,,,,,,,,,service_role,EXECUTE
+execute_grant,public,is_following,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,is_following,,,,,,,,,postgres,EXECUTE
+execute_grant,public,is_following,,,,,,,,,service_role,EXECUTE
+execute_grant,public,is_venue_admin_or_owner,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,is_venue_admin_or_owner,,,,,,,,,postgres,EXECUTE
+execute_grant,public,is_venue_admin_or_owner,,,,,,,,,service_role,EXECUTE
+execute_grant,public,notify_admins_for_report,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,notify_admins_for_report,,,,,,,,,postgres,EXECUTE
+execute_grant,public,notify_admins_for_report,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_add_venue_photo,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_add_venue_photo,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_add_venue_photo,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_create_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_create_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_create_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_create_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_create_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_create_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_create_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_create_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_create_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_create_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_create_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_create_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_delete_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_delete_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_delete_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_delete_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_delete_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_delete_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_delete_venue_photo,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_delete_venue_photo,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_delete_venue_photo,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_delete_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_delete_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_delete_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_delete_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_delete_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_delete_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_get_venue_by_slug,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_get_venue_by_slug,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_get_venue_by_slug,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_get_venue_events,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_get_venue_events,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_get_venue_events,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_set_venue_photo_primary,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_set_venue_photo_primary,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_set_venue_photo_primary,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_booking,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_booking,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_booking,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_event,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_event,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_event,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_metadata,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_metadata,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_metadata,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_opening_hour,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_opening_hour,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_opening_hour,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_pricing_tier,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_pricing_tier,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_pricing_tier,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_rules,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_rules,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_rules,,,,,,,,,service_role,EXECUTE
+execute_grant,public,owner_update_venue_species_stock,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,owner_update_venue_species_stock,,,,,,,,,postgres,EXECUTE
+execute_grant,public,owner_update_venue_species_stock,,,,,,,,,service_role,EXECUTE
+execute_grant,public,rate_catch_with_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,rate_catch_with_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,rate_catch_with_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,react_to_catch_with_rate_limit,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,react_to_catch_with_rate_limit,,,,,,,,,postgres,EXECUTE
+execute_grant,public,react_to_catch_with_rate_limit,,,,,,,,,service_role,EXECUTE
+execute_grant,public,refresh_leaderboard_precompute,,,,,,,,,postgres,EXECUTE
+execute_grant,public,refresh_leaderboard_precompute,,,,,,,,,service_role,EXECUTE
+execute_grant,public,request_account_deletion,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,request_account_deletion,,,,,,,,,postgres,EXECUTE
+execute_grant,public,request_account_deletion,,,,,,,,,service_role,EXECUTE
+execute_grant,public,request_account_export,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,request_account_export,,,,,,,,,postgres,EXECUTE
+execute_grant,public,request_account_export,,,,,,,,,service_role,EXECUTE
+execute_grant,public,set_comment_admin_author,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,set_comment_admin_author,,,,,,,,,postgres,EXECUTE
+execute_grant,public,set_comment_admin_author,,,,,,,,,service_role,EXECUTE
+execute_grant,public,set_updated_at,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,set_updated_at,,,,,,,,,postgres,EXECUTE
+execute_grant,public,set_updated_at,,,,,,,,,service_role,EXECUTE
+execute_grant,public,soft_delete_comment,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,soft_delete_comment,,,,,,,,,postgres,EXECUTE
+execute_grant,public,soft_delete_comment,,,,,,,,,service_role,EXECUTE
+execute_grant,public,unblock_profile,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,unblock_profile,,,,,,,,,postgres,EXECUTE
+execute_grant,public,unblock_profile,,,,,,,,,service_role,EXECUTE
+execute_grant,public,upsert_venue_rating,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,upsert_venue_rating,,,,,,,,,postgres,EXECUTE
+execute_grant,public,upsert_venue_rating,,,,,,,,,service_role,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,authenticated,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,postgres,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,postgres,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,service_role,EXECUTE
+execute_grant,public,user_rate_limits,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,apply_rls,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,apply_rls,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,apply_rls,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,apply_rls,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,apply_rls,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,broadcast_changes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,broadcast_changes,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,build_prepared_statement_sql,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,build_prepared_statement_sql,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,build_prepared_statement_sql,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,build_prepared_statement_sql,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,build_prepared_statement_sql,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,cast,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,cast,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,cast,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,cast,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,cast,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,check_equality_op,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,check_equality_op,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,check_equality_op,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,check_equality_op,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,check_equality_op,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,is_visible_through_filters,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,is_visible_through_filters,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,is_visible_through_filters,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,is_visible_through_filters,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,is_visible_through_filters,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,list_changes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,list_changes,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,list_changes,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,list_changes,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,list_changes,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,quote_wal2json,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,quote_wal2json,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,quote_wal2json,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,quote_wal2json,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,quote_wal2json,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,send,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,send,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,subscription_check_filters,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,subscription_check_filters,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,subscription_check_filters,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,subscription_check_filters,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,subscription_check_filters,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,to_regrole,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,to_regrole,,,,,,,,,anon,EXECUTE
+execute_grant,realtime,to_regrole,,,,,,,,,authenticated,EXECUTE
+execute_grant,realtime,to_regrole,,,,,,,,,postgres,EXECUTE
+execute_grant,realtime,to_regrole,,,,,,,,,service_role,EXECUTE
+execute_grant,realtime,topic,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,realtime,topic,,,,,,,,,postgres,EXECUTE
+execute_grant,storage,add_prefixes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,can_insert_object,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,delete_leaf_prefixes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,delete_prefix,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,delete_prefix_hierarchy_trigger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,enforce_bucket_name_length,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,extension,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,filename,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,foldername,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,get_level,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,get_prefix,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,get_prefixes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,get_size_by_bucket,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,list_multipart_uploads_with_delimiter,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,list_objects_with_delimiter,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,lock_top_prefixes,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,objects_delete_cleanup,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,objects_insert_prefix_trigger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,objects_update_cleanup,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,objects_update_level_trigger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,objects_update_prefix_trigger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,operation,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,prefixes_delete_cleanup,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,prefixes_insert_trigger,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,search,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,search_legacy_v1,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,search_v1_optimised,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,search_v2,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,storage,update_updated_at_column,,,,,,,,,PUBLIC,EXECUTE
+execute_grant,supabase_functions,http_request,,,,,,,,,anon,EXECUTE
+execute_grant,supabase_functions,http_request,,,,,,,,,authenticated,EXECUTE
+execute_grant,supabase_functions,http_request,,,,,,,,,postgres,EXECUTE
+execute_grant,supabase_functions,http_request,,,,,,,,,service_role,EXECUTE
+execute_grant,vault,_crypto_aead_det_decrypt,,,,,,,,,postgres,EXECUTE
+execute_grant,vault,_crypto_aead_det_decrypt,,,,,,,,,service_role,EXECUTE
+execute_grant,vault,create_secret,,,,,,,,,postgres,EXECUTE
+execute_grant,vault,create_secret,,,,,,,,,service_role,EXECUTE
+execute_grant,vault,update_secret,,,,,,,,,postgres,EXECUTE
+execute_grant,vault,update_secret,,,,,,,,,service_role,EXECUTE
+function,auth,email,,f,f,supabase_auth_admin,sql,,,"{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",,
+function,auth,jwt,,f,f,supabase_auth_admin,sql,,,"{=X/supabase_auth_admin,postgres=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",,
+function,auth,role,,f,f,supabase_auth_admin,sql,,,"{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",,
+function,auth,uid,,f,f,supabase_auth_admin,sql,,,"{=X/supabase_auth_admin,supabase_auth_admin=X/supabase_auth_admin,dashboard_user=X/supabase_auth_admin}",,
+function,extensions,armor,bytea,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,armor,"bytea, text[], text[]",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext,boolean,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext,character,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext,inet,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_cmp,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_eq,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_ge,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_gt,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_hash,citext,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_hash_extended,"citext, bigint",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_larger,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_le,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_lt,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_ne,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_pattern_cmp,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_pattern_ge,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_pattern_gt,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_pattern_le,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_pattern_lt,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citext_smaller,"citext, citext",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citextin,cstring,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citextout,citext,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citextrecv,internal,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,citextsend,citext,f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,crypt,"text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,dearmor,text,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,decrypt,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,decrypt_iv,"bytea, bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,digest,"bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,digest,"text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,encrypt,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,encrypt_iv,"bytea, bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,gen_random_bytes,integer,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,gen_random_uuid,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,gen_salt,text,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,gen_salt,"text, integer",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,grant_pg_cron_access,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X*/supabase_admin,dashboard_user=X/supabase_admin}",,
+function,extensions,grant_pg_graphql_access,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,grant_pg_net_access,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X*/supabase_admin,dashboard_user=X/supabase_admin}",,
+function,extensions,hmac,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,hmac,"text, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pg_stat_statements,"showtext boolean, OUT userid oid, OUT dbid oid, OUT toplevel boolean, OUT queryid bigint, OUT query text, OUT plans bigint, OUT total_plan_time double precision, OUT min_plan_time double precision, OUT max_plan_time double precision, OUT mean_plan_time double precision, OUT stddev_plan_time double precision, OUT calls bigint, OUT total_exec_time double precision, OUT min_exec_time double precision, OUT max_exec_time double precision, OUT mean_exec_time double precision, OUT stddev_exec_time double precision, OUT rows bigint, OUT shared_blks_hit bigint, OUT shared_blks_read bigint, OUT shared_blks_dirtied bigint, OUT shared_blks_written bigint, OUT local_blks_hit bigint, OUT local_blks_read bigint, OUT local_blks_dirtied bigint, OUT local_blks_written bigint, OUT temp_blks_read bigint, OUT temp_blks_written bigint, OUT shared_blk_read_time double precision, OUT shared_blk_write_time double precision, OUT local_blk_read_time double precision, OUT local_blk_write_time double precision, OUT temp_blk_read_time double precision, OUT temp_blk_write_time double precision, OUT wal_records bigint, OUT wal_fpi bigint, OUT wal_bytes numeric, OUT jit_functions bigint, OUT jit_generation_time double precision, OUT jit_inlining_count bigint, OUT jit_inlining_time double precision, OUT jit_optimization_count bigint, OUT jit_optimization_time double precision, OUT jit_emission_count bigint, OUT jit_emission_time double precision, OUT jit_deform_count bigint, OUT jit_deform_time double precision, OUT stats_since timestamp with time zone, OUT minmax_stats_since timestamp with time zone",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pg_stat_statements_info,"OUT dealloc bigint, OUT stats_reset timestamp with time zone",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pg_stat_statements_reset,"userid oid, dbid oid, queryid bigint, minmax_only boolean",f,f,supabase_admin,c,,,"{supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_armor_headers,"text, OUT key text, OUT value text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_key_id,bytea,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt,"bytea, bytea",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt,"bytea, bytea, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt_bytea,"bytea, bytea",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt_bytea,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_decrypt_bytea,"bytea, bytea, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_encrypt,"text, bytea",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_encrypt,"text, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_encrypt_bytea,"bytea, bytea",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_pub_encrypt_bytea,"bytea, bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_decrypt,"bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_decrypt,"bytea, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_decrypt_bytea,"bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_decrypt_bytea,"bytea, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_encrypt,"text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_encrypt,"text, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_encrypt_bytea,"bytea, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgp_sym_encrypt_bytea,"bytea, text, text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgrst_ddl_watch,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,pgrst_drop_watch,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_match,"citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_match,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_matches,"citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_matches,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_replace,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_replace,"citext, citext, text, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_split_to_array,"citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_split_to_array,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_split_to_table,"citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,regexp_split_to_table,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,replace,"citext, citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,set_graphql_placeholder,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,split_part,"citext, citext, integer",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,strpos,"citext, citext",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticlike,"citext, citext",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticlike,"citext, text",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticnlike,"citext, citext",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticnlike,"citext, text",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticregexeq,"citext, citext",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticregexeq,"citext, text",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticregexne,"citext, citext",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,texticregexne,"citext, text",f,f,supabase_admin,internal,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,translate,"citext, citext, text",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_generate_v1,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_generate_v1mc,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_generate_v3,"namespace uuid, name text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_generate_v4,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_generate_v5,"namespace uuid, name text",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_nil,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_ns_dns,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_ns_oid,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_ns_url,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,extensions,uuid_ns_x500,,f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,dashboard_user=X/supabase_admin,postgres=X*/supabase_admin}",,
+function,graphql,_internal_resolve,"query text, variables jsonb, ""operationName"" text, extensions jsonb",f,f,supabase_admin,c,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql,comment_directive,comment_ text,f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql,exception,message text,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql,get_schema_version,,f,t,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql,increment_schema_version,,f,t,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql,resolve,"query text, variables jsonb, ""operationName"" text, extensions jsonb",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,graphql_public,graphql,"""operationName"" text, query text, variables jsonb, extensions jsonb",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,net,_await_response,request_id bigint,f,f,supabase_admin,plpgsql,,,,,
+function,net,_encode_url_with_params_array,"url text, params_array text[]",f,f,supabase_admin,c,,,,,
+function,net,_http_collect_response,"request_id bigint, async boolean",f,f,supabase_admin,plpgsql,,,,,
+function,net,_urlencode_string,string character varying,f,f,supabase_admin,c,,,,,
+function,net,check_worker_is_up,,f,f,supabase_admin,plpgsql,,,,,
+function,net,http_collect_response,"request_id bigint, async boolean",f,f,supabase_admin,plpgsql,,,,,
+function,net,http_delete,"url text, params jsonb, headers jsonb, timeout_milliseconds integer, body jsonb",f,f,supabase_admin,plpgsql,,,,,
+function,net,http_get,"url text, params jsonb, headers jsonb, timeout_milliseconds integer",f,t,supabase_admin,plpgsql,net,t,"{supabase_admin=X/supabase_admin,supabase_functions_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,net,http_post,"url text, body jsonb, params jsonb, headers jsonb, timeout_milliseconds integer",f,t,supabase_admin,plpgsql,net,t,"{supabase_admin=X/supabase_admin,supabase_functions_admin=X/supabase_admin,postgres=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin}",,
+function,net,wait_until_running,,f,f,supabase_admin,c,,,,,
+function,net,wake,,f,f,supabase_admin,c,,,,,
+function,net,worker_restart,,f,f,supabase_admin,c,,,,,
+function,public,admin_add_venue_owner,"p_venue_id uuid, p_user_id uuid, p_role text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_add_venue_photo,"p_venue_id uuid, p_image_path text, p_caption text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_clear_moderation_status,"p_user_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_create_venue_event,"p_venue_id uuid, p_title text, p_event_type text, p_starts_at timestamp with time zone, p_ends_at timestamp with time zone, p_description text, p_ticket_info text, p_website_url text, p_booking_url text, p_is_published boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_create_venue_opening_hour,"p_venue_id uuid, p_label text, p_day_of_week smallint, p_opens_at time without time zone, p_closes_at time without time zone, p_is_closed boolean, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_create_venue_pricing_tier,"p_venue_id uuid, p_label text, p_price text, p_unit text, p_audience venue_pricing_audience, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_create_venue_species_stock,"p_venue_id uuid, p_species_name text, p_record_weight numeric, p_record_unit text, p_avg_weight numeric, p_size_range_min numeric, p_size_range_max numeric, p_stock_density venue_stock_density, p_stock_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_account,"p_target uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_catch,"p_catch_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_comment,"p_comment_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_venue_event,p_event_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_venue_opening_hour,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_venue_photo,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_venue_pricing_tier,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_delete_venue_species_stock,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_get_venue_by_slug,p_slug text,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",,
+function,public,admin_get_venue_events,p_venue_id uuid,f,t,postgres,sql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_get_venues,"p_search text, p_limit integer, p_offset integer",f,f,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_list_moderation_log,"p_user_id uuid, p_action text, p_search text, p_from timestamp with time zone, p_to timestamp with time zone, p_sort_direction text, p_limit integer, p_offset integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_list_reports,"p_status text, p_type text, p_reported_user_id uuid, p_from timestamp with time zone, p_to timestamp with time zone, p_sort_direction text, p_limit integer, p_offset integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_remove_venue_owner,"p_venue_id uuid, p_user_id uuid",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_restore_catch,"p_catch_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_restore_comment,"p_comment_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_set_venue_photo_primary,p_photo_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_report_status,"p_report_id uuid, p_status text, p_resolution_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_booking,"p_venue_id uuid, p_booking_enabled boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_event,"p_event_id uuid, p_venue_id uuid, p_title text, p_event_type text, p_starts_at timestamp with time zone, p_ends_at timestamp with time zone, p_description text, p_ticket_info text, p_website_url text, p_booking_url text, p_is_published boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_metadata,"p_venue_id uuid, p_short_tagline text, p_description text, p_ticket_type text, p_price_from text, p_best_for_tags text[], p_facilities text[], p_website_url text, p_booking_url text, p_contact_phone text, p_notes_for_rr_team text, p_payment_methods text[], p_payment_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_metadata,"p_venue_id uuid, p_short_tagline text, p_ticket_type text, p_price_from text, p_best_for_tags text[], p_facilities text[], p_website_url text, p_booking_url text, p_contact_phone text, p_notes_for_rr_team text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_opening_hour,"p_id uuid, p_venue_id uuid, p_label text, p_day_of_week smallint, p_opens_at time without time zone, p_closes_at time without time zone, p_is_closed boolean, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_pricing_tier,"p_id uuid, p_venue_id uuid, p_label text, p_price text, p_unit text, p_audience venue_pricing_audience, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_rules,"p_venue_id uuid, p_rules_text text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_update_venue_species_stock,"p_id uuid, p_venue_id uuid, p_species_name text, p_record_weight numeric, p_record_unit text, p_avg_weight numeric, p_size_range_min numeric, p_size_range_max numeric, p_stock_density venue_stock_density, p_stock_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,admin_warn_user,"p_user_id uuid, p_reason text, p_severity warning_severity, p_duration_hours integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,assert_moderation_allowed,p_user_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,block_profile,"p_blocked_id uuid, p_reason text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,check_email_exists,email_to_check text,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,check_rate_limit,"p_user_id uuid, p_action text, p_max_attempts integer, p_window_minutes integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,cleanup_rate_limits,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,community_stats_handle_catches_change,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,create_comment_with_rate_limit,"p_catch_id uuid, p_body text, p_parent_comment_id uuid",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,create_notification,"p_user_id uuid, p_message text, p_type notification_type, p_actor_id uuid, p_catch_id uuid, p_comment_id uuid, p_extra_data jsonb",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,create_report_with_rate_limit,"p_target_type report_target_type, p_target_id uuid, p_reason text, p_details text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,enforce_catch_moderation,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,enforce_catch_rate_limit,,f,t,postgres,plpgsql,"""""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,enforce_comment_rate_limit,,f,f,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,enforce_report_rate_limit,,f,f,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,follow_profile_with_rate_limit,p_following_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_catch_rating_summary,p_catch_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_community_stats,,f,t,postgres,sql,"public, extensions",t,"{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_feed_catches,"p_limit integer, p_offset integer, p_scope text, p_sort text, p_species text, p_custom_species text, p_venue_id uuid, p_session_id uuid",f,f,postgres,plpgsql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_follower_count,p_profile_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_insights_aggregates,"p_date_preset text, p_custom_start timestamp with time zone, p_custom_end timestamp with time zone, p_selected_session_id uuid, p_selected_venue text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_leaderboard_scores,"p_species_slug text, p_limit integer",f,t,postgres,plpgsql,"""""",t,"{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_my_venue_rating,p_venue_id uuid,f,f,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_profile_for_profile_page,p_username text,f,f,postgres,plpgsql,"""""",t,"{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",,
+function,public,get_rate_limit_status,"p_user_id uuid, p_action text, p_max_attempts integer, p_window_minutes integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_species_options,"p_only_active boolean, p_only_with_catches boolean",f,t,postgres,sql,"public, extensions",t,"{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_by_slug,p_slug text,f,f,postgres,sql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres,anon=X/postgres,authenticated=X/postgres}",,
+function,public,get_venue_past_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer, p_offset integer",f,f,postgres,sql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_photos,"p_venue_id uuid, p_limit integer, p_offset integer",f,f,postgres,sql,"public, extensions",t,"{postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_recent_catches,"p_venue_id uuid, p_limit integer, p_offset integer",f,f,postgres,plpgsql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_top_anglers,"p_venue_id uuid, p_limit integer",f,f,postgres,plpgsql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_top_catches,"p_venue_id uuid, p_limit integer",f,f,postgres,plpgsql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venue_upcoming_events,"p_venue_id uuid, p_now timestamp with time zone, p_limit integer",f,f,postgres,sql,"public, extensions",t,"{=X/postgres,postgres=X/postgres,anon=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,get_venues,"p_search text, p_limit integer, p_offset integer",f,f,postgres,sql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres,anon=X/postgres,authenticated=X/postgres}",,
+function,public,handle_catches_leaderboard_change,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres}",,
+function,public,handle_new_user,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,handle_ratings_leaderboard_change,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres}",,
+function,public,insights_format_label,value text,f,f,postgres,sql,"""public, extensions""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,is_admin,p_user_id uuid,f,f,postgres,sql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,is_blocked_either_way,"p_user_id uuid, p_other_id uuid",f,f,postgres,sql,"""public, extensions""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,is_following,"p_follower uuid, p_following uuid",f,f,postgres,sql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,is_venue_admin_or_owner,p_venue_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,notify_admins_for_report,"p_report_id uuid, p_message text, p_extra_data jsonb",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_add_venue_photo,"p_venue_id uuid, p_image_path text, p_caption text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_create_venue_event,"p_venue_id uuid, p_title text, p_event_type text, p_starts_at timestamp with time zone, p_ends_at timestamp with time zone, p_description text, p_ticket_info text, p_website_url text, p_booking_url text, p_contact_phone text, p_is_published boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_create_venue_opening_hour,"p_venue_id uuid, p_label text, p_day_of_week smallint, p_opens_at time without time zone, p_closes_at time without time zone, p_is_closed boolean, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_create_venue_pricing_tier,"p_venue_id uuid, p_label text, p_price text, p_unit text, p_audience venue_pricing_audience, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_create_venue_species_stock,"p_venue_id uuid, p_species_name text, p_record_weight numeric, p_record_unit text, p_avg_weight numeric, p_size_range_min numeric, p_size_range_max numeric, p_stock_density venue_stock_density, p_stock_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_delete_venue_event,p_event_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_delete_venue_opening_hour,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_delete_venue_photo,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_delete_venue_pricing_tier,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_delete_venue_species_stock,p_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_get_venue_by_slug,p_slug text,f,t,postgres,sql,"""""",t,"{postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres}",,
+function,public,owner_get_venue_events,p_venue_id uuid,f,t,postgres,plpgsql,"""public, extensions""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_set_venue_photo_primary,p_photo_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_booking,"p_venue_id uuid, p_booking_enabled boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_event,"p_event_id uuid, p_title text, p_event_type text, p_starts_at timestamp with time zone, p_ends_at timestamp with time zone, p_description text, p_ticket_info text, p_website_url text, p_booking_url text, p_contact_phone text, p_is_published boolean",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_metadata,"p_venue_id uuid, p_tagline text, p_description text, p_ticket_type text, p_best_for_tags text[], p_facilities text[], p_price_from text, p_website_url text, p_booking_url text, p_contact_phone text, p_payment_methods text[], p_payment_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_opening_hour,"p_id uuid, p_venue_id uuid, p_label text, p_day_of_week smallint, p_opens_at time without time zone, p_closes_at time without time zone, p_is_closed boolean, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_pricing_tier,"p_id uuid, p_venue_id uuid, p_label text, p_price text, p_unit text, p_audience venue_pricing_audience, p_order_index integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_rules,"p_venue_id uuid, p_rules_text text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,owner_update_venue_species_stock,"p_id uuid, p_venue_id uuid, p_species_name text, p_record_weight numeric, p_record_unit text, p_avg_weight numeric, p_size_range_min numeric, p_size_range_max numeric, p_stock_density venue_stock_density, p_stock_notes text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,rate_catch_with_rate_limit,"p_catch_id uuid, p_rating integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,react_to_catch_with_rate_limit,"p_catch_id uuid, p_reaction text",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,refresh_leaderboard_precompute,p_catch_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,service_role=X/postgres}",,
+function,public,request_account_deletion,p_reason text,f,t,postgres,plpgsql,"""""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,request_account_export,,f,t,postgres,plpgsql,"""""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,set_comment_admin_author,,f,f,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,set_updated_at,,f,f,postgres,plpgsql,"""public, extensions""",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,soft_delete_comment,p_comment_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,unblock_profile,p_blocked_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,upsert_venue_rating,"p_venue_id uuid, p_rating integer",f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,user_rate_limits,,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,public,user_rate_limits,p_user_id uuid,f,t,postgres,plpgsql,"public, extensions",t,"{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",,
+function,realtime,apply_rls,"wal jsonb, max_record_bytes integer",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,broadcast_changes,"topic_name text, event_name text, operation text, table_name text, table_schema text, new record, old record, level text",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin}",,
+function,realtime,build_prepared_statement_sql,"prepared_statement_name text, entity regclass, columns realtime.wal_column[]",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,cast,"val text, type_ regtype",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,check_equality_op,"op realtime.equality_op, type_ regtype, val_1 text, val_2 text",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,is_visible_through_filters,"columns realtime.wal_column[], filters realtime.user_defined_filter[]",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,list_changes,"publication name, slot_name name, max_changes integer, max_record_bytes integer",f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,quote_wal2json,entity regclass,f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,send,"payload jsonb, event text, topic text, private boolean",f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin}",,
+function,realtime,subscription_check_filters,,f,f,supabase_admin,plpgsql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,to_regrole,role_name text,f,f,supabase_admin,sql,,,"{=X/supabase_admin,supabase_admin=X/supabase_admin,postgres=X/supabase_admin,dashboard_user=X/supabase_admin,anon=X/supabase_admin,authenticated=X/supabase_admin,service_role=X/supabase_admin,supabase_realtime_admin=X/supabase_admin}",,
+function,realtime,topic,,f,f,supabase_realtime_admin,sql,,,"{=X/supabase_realtime_admin,supabase_realtime_admin=X/supabase_realtime_admin,postgres=X/supabase_realtime_admin,dashboard_user=X/supabase_realtime_admin}",,
+function,storage,add_prefixes,"_bucket_id text, _name text",f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,can_insert_object,"bucketid text, name text, owner uuid, metadata jsonb",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,delete_leaf_prefixes,"bucket_ids text[], names text[]",f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,delete_prefix,"_bucket_id text, _name text",f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,delete_prefix_hierarchy_trigger,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,enforce_bucket_name_length,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,extension,name text,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,filename,name text,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,foldername,name text,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,get_level,name text,f,f,supabase_storage_admin,sql,,,,,
+function,storage,get_prefix,name text,f,f,supabase_storage_admin,sql,,,,,
+function,storage,get_prefixes,name text,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,get_size_by_bucket,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,list_multipart_uploads_with_delimiter,"bucket_id text, prefix_param text, delimiter_param text, max_keys integer, next_key_token text, next_upload_token text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,list_objects_with_delimiter,"bucket_id text, prefix_param text, delimiter_param text, max_keys integer, start_after text, next_token text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,lock_top_prefixes,"bucket_ids text[], names text[]",f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,objects_delete_cleanup,,f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,objects_insert_prefix_trigger,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,objects_update_cleanup,,f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,objects_update_level_trigger,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,objects_update_prefix_trigger,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,operation,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,prefixes_delete_cleanup,,f,t,supabase_storage_admin,plpgsql,,,,,
+function,storage,prefixes_insert_trigger,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,search,"prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,search_legacy_v1,"prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,search_v1_optimised,"prefix text, bucketname text, limits integer, levels integer, offsets integer, search text, sortcolumn text, sortorder text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,search_v2,"prefix text, bucket_name text, limits integer, levels integer, start_after text, sort_order text, sort_column text, sort_column_after text",f,f,supabase_storage_admin,plpgsql,,,,,
+function,storage,update_updated_at_column,,f,f,supabase_storage_admin,plpgsql,,,,,
+function,supabase_functions,http_request,,f,t,supabase_functions_admin,plpgsql,supabase_functions,t,"{supabase_functions_admin=X/supabase_functions_admin,postgres=X/supabase_functions_admin,anon=X/supabase_functions_admin,authenticated=X/supabase_functions_admin,service_role=X/supabase_functions_admin}",,
+function,vault,_crypto_aead_det_decrypt,"message bytea, additional bytea, key_id bigint, context bytea, nonce bytea",f,f,supabase_admin,c,,,"{supabase_admin=X/supabase_admin,postgres=X*/supabase_admin,service_role=X/supabase_admin}",,
+function,vault,_crypto_aead_det_encrypt,"message bytea, additional bytea, key_id bigint, context bytea, nonce bytea",f,f,supabase_admin,c,,,{supabase_admin=X/supabase_admin},,
+function,vault,_crypto_aead_det_noncegen,,f,f,supabase_admin,c,,,{supabase_admin=X/supabase_admin},,
+function,vault,create_secret,"new_secret text, new_name text, new_description text, new_key_id uuid",f,t,supabase_admin,plpgsql,"""""",t,"{supabase_admin=X/supabase_admin,postgres=X*/supabase_admin,service_role=X/supabase_admin}",,
+function,vault,update_secret,"secret_id uuid, new_secret text, new_name text, new_description text, new_key_id uuid",f,t,supabase_admin,plpgsql,"""""",t,"{supabase_admin=X/supabase_admin,postgres=X*/supabase_admin,service_role=X/supabase_admin}",,

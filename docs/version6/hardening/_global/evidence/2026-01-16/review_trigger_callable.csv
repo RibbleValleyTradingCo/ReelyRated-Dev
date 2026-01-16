@@ -1,0 +1,9 @@
+schema_name,function_name,identity_args,regprocedure,return_type,prokind,is_security_definer,owner_role,search_path_value,search_path_pinned,schema_exposed,anon_schema_usage,authenticated_schema_usage,exec_public,exec_anon,exec_authenticated,callable_by_anon,callable_by_authenticated,overload_ambiguous
+public,community_stats_handle_catches_change,,community_stats_handle_catches_change(),trigger,f,t,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,enforce_catch_moderation,,enforce_catch_moderation(),trigger,f,t,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,enforce_catch_rate_limit,,enforce_catch_rate_limit(),trigger,f,t,postgres,"""""",t,t,t,t,f,f,t,f,t,f
+public,enforce_comment_rate_limit,,enforce_comment_rate_limit(),trigger,f,f,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,enforce_report_rate_limit,,enforce_report_rate_limit(),trigger,f,f,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,handle_new_user,,handle_new_user(),trigger,f,t,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,set_comment_admin_author,,set_comment_admin_author(),trigger,f,f,postgres,"public, extensions",t,t,t,t,f,f,t,f,t,f
+public,set_updated_at,,set_updated_at(),trigger,f,f,postgres,"""public, extensions""",t,t,t,t,f,f,t,f,t,f

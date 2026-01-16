@@ -1,0 +1,157 @@
+record_type,schema_name,relation_name,relkind,owner_role,relrowsecurity,relforcerowsecurity,policy_count,gate_id,gate_reason,grantee,privilege_type
+coverage,_realtime,extensions,r,supabase_admin,f,f,0,,,,
+coverage,_realtime,schema_migrations,r,supabase_admin,f,f,0,,,,
+coverage,_realtime,tenants,r,supabase_admin,f,f,0,,,,
+coverage,auth,audit_log_entries,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,flow_state,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,identities,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,instances,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,mfa_amr_claims,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,mfa_challenges,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,mfa_factors,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,oauth_authorizations,r,supabase_auth_admin,f,f,0,,,,
+coverage,auth,oauth_client_states,r,supabase_auth_admin,f,f,0,,,,
+coverage,auth,oauth_clients,r,supabase_auth_admin,f,f,0,,,,
+coverage,auth,oauth_consents,r,supabase_auth_admin,f,f,0,,,,
+coverage,auth,one_time_tokens,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,refresh_tokens,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,saml_providers,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,saml_relay_states,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,schema_migrations,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,sessions,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,sso_domains,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,sso_providers,r,supabase_auth_admin,t,f,0,,,,
+coverage,auth,users,r,supabase_auth_admin,t,f,0,,,,
+coverage,net,_http_response,r,supabase_admin,f,f,0,,,,
+coverage,net,http_request_queue,r,supabase_admin,f,f,0,,,,
+coverage,public,admin_users,r,postgres,t,f,1,,,,
+coverage,public,baits,r,postgres,t,f,1,,,,
+coverage,public,catch_comments,r,postgres,t,f,5,,,,
+coverage,public,catch_leaderboard_scores,r,postgres,t,f,1,,,,
+coverage,public,catch_rating_stats,r,postgres,t,f,1,,,,
+coverage,public,catch_reactions,r,postgres,t,f,4,,,,
+coverage,public,catches,r,postgres,t,f,5,,,,
+coverage,public,community_stats_live,r,postgres,t,t,1,,,,
+coverage,public,community_stats_users,r,postgres,t,t,1,,,,
+coverage,public,community_stats_waterways,r,postgres,t,t,1,,,,
+coverage,public,moderation_log,r,postgres,t,f,1,,,,
+coverage,public,notifications,r,postgres,t,f,2,,,,
+coverage,public,profile_blocks,r,postgres,t,t,6,,,,
+coverage,public,profile_follows,r,postgres,t,f,4,,,,
+coverage,public,profiles,r,postgres,t,f,2,,,,
+coverage,public,rate_limits,r,postgres,t,f,2,,,,
+coverage,public,ratings,r,postgres,t,f,4,,,,
+coverage,public,reports,r,postgres,t,f,2,,,,
+coverage,public,sessions,r,postgres,t,f,2,,,,
+coverage,public,species,r,postgres,t,t,1,,,,
+coverage,public,tags,r,postgres,t,f,1,,,,
+coverage,public,user_warnings,r,postgres,t,f,1,,,,
+coverage,public,venue_events,r,postgres,t,f,1,,,,
+coverage,public,venue_opening_hours,r,postgres,t,f,4,,,,
+coverage,public,venue_owners,r,postgres,t,f,2,,,,
+coverage,public,venue_photos,r,postgres,t,f,4,,,,
+coverage,public,venue_pricing_tiers,r,postgres,t,f,4,,,,
+coverage,public,venue_ratings,r,postgres,t,f,5,,,,
+coverage,public,venue_rules,r,postgres,t,f,4,,,,
+coverage,public,venue_species_stock,r,postgres,t,f,4,,,,
+coverage,public,venues,r,postgres,t,t,6,,,,
+coverage,public,water_types,r,postgres,t,f,1,,,,
+coverage,realtime,messages,p,supabase_realtime_admin,t,f,0,,,,
+coverage,realtime,messages_2026_01_13,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_14,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_15,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_16,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_17,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_18,r,supabase_admin,f,f,0,,,,
+coverage,realtime,messages_2026_01_19,r,supabase_admin,f,f,0,,,,
+coverage,realtime,schema_migrations,r,supabase_admin,f,f,0,,,,
+coverage,realtime,subscription,r,supabase_admin,f,f,0,,,,
+coverage,storage,buckets,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,buckets_analytics,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,buckets_vectors,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,iceberg_namespaces,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,iceberg_tables,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,migrations,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,objects,r,supabase_storage_admin,t,f,8,,,,
+coverage,storage,prefixes,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,s3_multipart_uploads,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,s3_multipart_uploads_parts,r,supabase_storage_admin,t,f,0,,,,
+coverage,storage,vector_indexes,r,supabase_storage_admin,t,f,0,,,,
+coverage,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,,,,
+coverage,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,,,,
+coverage,supabase_migrations,schema_migrations,r,postgres,f,f,0,,,,
+coverage,supabase_migrations,seed_files,r,postgres,f,f,0,,,,
+coverage,vault,secrets,r,supabase_admin,f,f,0,,,,
+gate,auth,audit_log_entries,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,flow_state,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,identities,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,instances,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,mfa_amr_claims,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,mfa_challenges,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,mfa_factors,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,one_time_tokens,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,refresh_tokens,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,saml_providers,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,saml_relay_states,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,schema_migrations,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,sessions,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,sso_domains,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,sso_providers,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,auth,users,r,supabase_auth_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,DELETE
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,INSERT
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,REFERENCES
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,SELECT
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,TRIGGER
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,TRUNCATE
+gate,net,_http_response,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,UPDATE
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,DELETE
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,INSERT
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,REFERENCES
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,SELECT
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,TRIGGER
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,TRUNCATE
+gate,net,http_request_queue,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,PUBLIC,UPDATE
+gate,realtime,messages,p,supabase_realtime_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,realtime,schema_migrations,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,SELECT
+gate,realtime,schema_migrations,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,SELECT
+gate,realtime,subscription,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,SELECT
+gate,realtime,subscription,r,supabase_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,SELECT
+gate,storage,buckets,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,buckets_analytics,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,buckets_vectors,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,iceberg_namespaces,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,iceberg_tables,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,migrations,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,prefixes,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,s3_multipart_uploads,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,s3_multipart_uploads_parts,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,storage,vector_indexes,r,supabase_storage_admin,t,f,0,GATE_RLS_ENABLED_NO_POLICIES,RLS enabled but no policies,,
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,DELETE
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,INSERT
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,REFERENCES
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,SELECT
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,TRIGGER
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,TRUNCATE
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,UPDATE
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,DELETE
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,INSERT
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,REFERENCES
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,SELECT
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,TRIGGER
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,TRUNCATE
+gate,supabase_functions,hooks,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,UPDATE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,DELETE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,INSERT
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,REFERENCES
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,SELECT
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,TRIGGER
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,TRUNCATE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,anon,UPDATE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,DELETE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,INSERT
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,REFERENCES
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,SELECT
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,TRIGGER
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,TRUNCATE
+gate,supabase_functions,migrations,r,supabase_functions_admin,f,f,0,GATE_RLS_DISABLED_EXPOSED,RLS disabled but grants exist for anon/auth/PUBLIC,authenticated,UPDATE

@@ -1,0 +1,741 @@
+{
+  "source": "docs/version6/hardening/_global/RPC-USAGE-MAP.md",
+  "generated_on": "2026-01-16",
+  "rows": [
+    {
+      "function_name": "admin_add_venue_owner",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:802",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_add_venue_photo",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_clear_moderation_status",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_create_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:905",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_create_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_create_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_create_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_delete_account",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_delete_catch",
+      "call_count": 1,
+      "callsites": "src/pages/AdminReports.tsx:610",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_delete_comment",
+      "call_count": 1,
+      "callsites": "src/pages/AdminReports.tsx:616",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_delete_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:952",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_delete_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_delete_venue_photo",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_delete_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_delete_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_get_venue_by_slug",
+      "call_count": 2,
+      "callsites": "src/pages/AdminVenueEdit.tsx:463, src/pages/AdminVenueEdit.tsx:712",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_get_venue_events",
+      "call_count": 3,
+      "callsites": "src/pages/AdminVenueEdit.tsx:545, src/pages/AdminVenueEdit.tsx:924, src/pages/AdminVenueEdit.tsx:961",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_get_venues",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenuesList.tsx:80",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_list_moderation_log",
+      "call_count": 1,
+      "callsites": "src/pages/AdminUserModeration.tsx:164",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_list_reports",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_remove_venue_owner",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:837",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_restore_catch",
+      "call_count": 1,
+      "callsites": "src/pages/AdminReports.tsx:650",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_restore_comment",
+      "call_count": 1,
+      "callsites": "src/pages/AdminReports.tsx:660",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_set_venue_photo_primary",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_report_status",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_venue_booking",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:885",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_update_venue_metadata",
+      "call_count": 1,
+      "callsites": "src/pages/AdminVenueEdit.tsx:699",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "admin_update_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_venue_rules",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_update_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "admin_warn_user",
+      "call_count": 2,
+      "callsites": "src/pages/AdminReports.tsx:716, src/pages/AdminUserModeration.tsx:418",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "assert_moderation_allowed",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "block_profile",
+      "call_count": 1,
+      "callsites": "src/pages/profile/hooks/useProfileData.ts:296",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "check_email_exists",
+      "call_count": 1,
+      "callsites": "src/pages/Auth.tsx:117",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "check_rate_limit",
+      "call_count": 18,
+      "callsites": "src/lib/__tests__/rate-limit-db.test.ts:110, src/lib/__tests__/rate-limit-db.test.ts:119, src/lib/__tests__/rate-limit-db.test.ts:142, src/lib/__tests__/rate-limit-db.test.ts:150, src/lib/__tests__/rate-limit-db.test.ts:177 (+13 more)",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "cleanup_rate_limits",
+      "call_count": 2,
+      "callsites": "src/lib/__tests__/rate-limit-db.test.ts:391, src/lib/__tests__/rate-limit-db.test.ts:414",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "community_stats_handle_catches_change",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "create_comment_with_rate_limit",
+      "call_count": 1,
+      "callsites": "src/components/CatchComments.tsx:397",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "create_notification",
+      "call_count": 2,
+      "callsites": "src/dev/notifications-debug.ts:17, src/lib/notifications.ts:40",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "create_report_with_rate_limit",
+      "call_count": 1,
+      "callsites": "src/components/ReportButton.tsx:51",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "enforce_catch_moderation",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "enforce_catch_rate_limit",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "enforce_comment_rate_limit",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "enforce_report_rate_limit",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "follow_profile_with_rate_limit",
+      "call_count": 2,
+      "callsites": "src/hooks/useCatchInteractions.ts:84, src/pages/profile/hooks/useProfileData.ts:265",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_catch_rating_summary",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "get_community_stats",
+      "call_count": 1,
+      "callsites": "src/pages/Index.tsx:499",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_feed_catches",
+      "call_count": 1,
+      "callsites": "src/pages/feed/useFeedData.ts:189",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_follower_count",
+      "call_count": 1,
+      "callsites": "src/pages/profile/hooks/useProfileData.ts:76",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_insights_aggregates",
+      "call_count": 1,
+      "callsites": "src/pages/Insights.tsx:203",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_leaderboard_scores",
+      "call_count": 1,
+      "callsites": "src/hooks/useLeaderboardRealtime.ts:73",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_my_venue_rating",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:131",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_profile_for_profile_page",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "get_rate_limit_status",
+      "call_count": 3,
+      "callsites": "src/lib/__tests__/rate-limit-db.test.ts:208, src/lib/__tests__/rate-limit-db.test.ts:235, src/lib/__tests__/rate-limit-db.test.ts:263",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_species_options",
+      "call_count": 1,
+      "callsites": "src/hooks/useSpeciesOptions.ts:59",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_by_slug",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:93",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_past_events",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:389",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_photos",
+      "call_count": 3,
+      "callsites": "src/pages/VenuesIndex.tsx:138, src/pages/venue-detail/hooks/useVenueDetailData.ts:269, src/pages/venue-owner-admin/components/VenuePhotosCard.tsx:70",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_recent_catches",
+      "call_count": 2,
+      "callsites": "src/pages/VenuesIndex.tsx:153, src/pages/venue-detail/hooks/useVenueDetailData.ts:353",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_top_anglers",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "get_venue_top_catches",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:308",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venue_upcoming_events",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:250",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "get_venues",
+      "call_count": 1,
+      "callsites": "src/pages/VenuesIndex.tsx:90",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "handle_catches_leaderboard_change",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "handle_new_user",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "handle_ratings_leaderboard_change",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "insights_format_label",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "is_admin",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "is_blocked_either_way",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "is_following",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "is_venue_admin_or_owner",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "notify_admins_for_report",
+      "call_count": 1,
+      "callsites": "src/lib/notifications.ts:126",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_add_venue_photo",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_create_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/MyVenueEdit.tsx:758",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_create_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_create_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_create_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_delete_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/MyVenueEdit.tsx:797",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_delete_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_delete_venue_photo",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_delete_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_delete_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_get_venue_by_slug",
+      "call_count": 2,
+      "callsites": "src/pages/MyVenueEdit.tsx:400, src/pages/MyVenueEdit.tsx:643",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_get_venue_events",
+      "call_count": 3,
+      "callsites": "src/pages/MyVenueEdit.tsx:495, src/pages/MyVenueEdit.tsx:777, src/pages/MyVenueEdit.tsx:804",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_set_venue_photo_primary",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_update_venue_booking",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_update_venue_event",
+      "call_count": 1,
+      "callsites": "src/pages/MyVenueEdit.tsx:739",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_update_venue_metadata",
+      "call_count": 1,
+      "callsites": "src/pages/MyVenueEdit.tsx:631",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "owner_update_venue_opening_hour",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_update_venue_pricing_tier",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_update_venue_rules",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "owner_update_venue_species_stock",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "rate_catch_with_rate_limit",
+      "call_count": 1,
+      "callsites": "src/hooks/useCatchInteractions.ts:130",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "react_to_catch_with_rate_limit",
+      "call_count": 1,
+      "callsites": "src/hooks/useCatchInteractions.ts:111",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "refresh_leaderboard_precompute",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "request_account_deletion",
+      "call_count": 1,
+      "callsites": "src/pages/ProfileSettings.tsx:346",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "request_account_export",
+      "call_count": 1,
+      "callsites": "src/pages/ProfileSettings.tsx:289",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "set_comment_admin_author",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "set_updated_at",
+      "call_count": 0,
+      "callsites": "",
+      "patterns_matched": "",
+      "notes": "not found in code"
+    },
+    {
+      "function_name": "soft_delete_comment",
+      "call_count": 1,
+      "callsites": "src/components/CatchComments.tsx:414",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "unblock_profile",
+      "call_count": 2,
+      "callsites": "src/pages/ProfileSettings.tsx:374, src/pages/profile/hooks/useProfileData.ts:303",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "upsert_venue_rating",
+      "call_count": 1,
+      "callsites": "src/pages/venue-detail/hooks/useVenueDetailData.ts:522",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    },
+    {
+      "function_name": "user_rate_limits",
+      "call_count": 3,
+      "callsites": "src/lib/__tests__/rate-limit-db.test.ts:282, src/lib/__tests__/rate-limit-db.test.ts:314, src/lib/__tests__/rate-limit-db.test.ts:353",
+      "patterns_matched": "supabase.rpc",
+      "notes": ""
+    }
+  ]
+}

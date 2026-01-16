@@ -1,0 +1,15 @@
+record_type,pubname,schemaname,tablename,relrowsecurity,relforcerowsecurity,policy_count,gate_id,gate_reason
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_13,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_14,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_15,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_16,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_17,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_18,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+gate,supabase_realtime_messages_publication,realtime,messages_2026_01_19,f,f,0,GATE_PUB_TABLE_RLS_DISABLED,Published table has RLS disabled
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_13,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_14,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_15,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_16,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_17,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_18,f,f,0,,
+publication_table,supabase_realtime_messages_publication,realtime,messages_2026_01_19,f,f,0,,

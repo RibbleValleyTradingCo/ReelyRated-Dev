@@ -1,0 +1,106 @@
+function_name,call_count,callsites,patterns_matched,notes,used_in_app
+admin_add_venue_owner,1,src/pages/AdminVenueEdit.tsx:802,supabase.rpc,,yes
+admin_add_venue_photo,0,,,not found in code,no
+admin_clear_moderation_status,0,,,not found in code,no
+admin_create_venue_event,1,src/pages/AdminVenueEdit.tsx:905,supabase.rpc,,yes
+admin_create_venue_opening_hour,0,,,not found in code,no
+admin_create_venue_pricing_tier,0,,,not found in code,no
+admin_create_venue_species_stock,0,,,not found in code,no
+admin_delete_account,0,,,not found in code,no
+admin_delete_catch,1,src/pages/AdminReports.tsx:610,supabase.rpc,,yes
+admin_delete_comment,1,src/pages/AdminReports.tsx:616,supabase.rpc,,yes
+admin_delete_venue_event,1,src/pages/AdminVenueEdit.tsx:952,supabase.rpc,,yes
+admin_delete_venue_opening_hour,0,,,not found in code,no
+admin_delete_venue_photo,0,,,not found in code,no
+admin_delete_venue_pricing_tier,0,,,not found in code,no
+admin_delete_venue_species_stock,0,,,not found in code,no
+admin_get_venue_by_slug,2,"src/pages/AdminVenueEdit.tsx:463, src/pages/AdminVenueEdit.tsx:712",supabase.rpc,,yes
+admin_get_venue_events,3,"src/pages/AdminVenueEdit.tsx:545, src/pages/AdminVenueEdit.tsx:924, src/pages/AdminVenueEdit.tsx:961",supabase.rpc,,yes
+admin_get_venues,1,src/pages/AdminVenuesList.tsx:80,supabase.rpc,,yes
+admin_list_moderation_log,1,src/pages/AdminUserModeration.tsx:164,supabase.rpc,,yes
+admin_list_reports,0,,,not found in code,no
+admin_remove_venue_owner,1,src/pages/AdminVenueEdit.tsx:837,supabase.rpc,,yes
+admin_restore_catch,1,src/pages/AdminReports.tsx:650,supabase.rpc,,yes
+admin_restore_comment,1,src/pages/AdminReports.tsx:660,supabase.rpc,,yes
+admin_set_venue_photo_primary,0,,,not found in code,no
+admin_update_report_status,0,,,not found in code,no
+admin_update_venue_booking,0,,,not found in code,no
+admin_update_venue_event,1,src/pages/AdminVenueEdit.tsx:885,supabase.rpc,,yes
+admin_update_venue_metadata,1,src/pages/AdminVenueEdit.tsx:699,supabase.rpc,,yes
+admin_update_venue_opening_hour,0,,,not found in code,no
+admin_update_venue_pricing_tier,0,,,not found in code,no
+admin_update_venue_rules,0,,,not found in code,no
+admin_update_venue_species_stock,0,,,not found in code,no
+admin_warn_user,2,"src/pages/AdminReports.tsx:716, src/pages/AdminUserModeration.tsx:418",supabase.rpc,,yes
+assert_moderation_allowed,0,,,not found in code,no
+block_profile,1,src/pages/profile/hooks/useProfileData.ts:296,supabase.rpc,,yes
+check_email_exists,1,src/pages/Auth.tsx:117,supabase.rpc,,yes
+check_rate_limit,18,"src/lib/__tests__/rate-limit-db.test.ts:110, src/lib/__tests__/rate-limit-db.test.ts:119, src/lib/__tests__/rate-limit-db.test.ts:142, src/lib/__tests__/rate-limit-db.test.ts:150, src/lib/__tests__/rate-limit-db.test.ts:177 (+13 more)",supabase.rpc,,yes
+cleanup_rate_limits,2,"src/lib/__tests__/rate-limit-db.test.ts:391, src/lib/__tests__/rate-limit-db.test.ts:414",supabase.rpc,,yes
+community_stats_handle_catches_change,0,,,not found in code,no
+create_comment_with_rate_limit,1,src/components/CatchComments.tsx:397,supabase.rpc,,yes
+create_notification,2,"src/dev/notifications-debug.ts:17, src/lib/notifications.ts:40",supabase.rpc,,yes
+create_report_with_rate_limit,1,src/components/ReportButton.tsx:51,supabase.rpc,,yes
+enforce_catch_moderation,0,,,not found in code,no
+enforce_catch_rate_limit,0,,,not found in code,no
+enforce_comment_rate_limit,0,,,not found in code,no
+enforce_report_rate_limit,0,,,not found in code,no
+follow_profile_with_rate_limit,2,"src/hooks/useCatchInteractions.ts:84, src/pages/profile/hooks/useProfileData.ts:265",supabase.rpc,,yes
+get_catch_rating_summary,0,,,not found in code,no
+get_community_stats,1,src/pages/Index.tsx:499,supabase.rpc,,yes
+get_feed_catches,1,src/pages/feed/useFeedData.ts:189,supabase.rpc,,yes
+get_follower_count,1,src/pages/profile/hooks/useProfileData.ts:76,supabase.rpc,,yes
+get_insights_aggregates,1,src/pages/Insights.tsx:203,supabase.rpc,,yes
+get_leaderboard_scores,1,src/hooks/useLeaderboardRealtime.ts:73,supabase.rpc,,yes
+get_my_venue_rating,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:131,supabase.rpc,,yes
+get_profile_for_profile_page,0,,,not found in code,no
+get_rate_limit_status,3,"src/lib/__tests__/rate-limit-db.test.ts:208, src/lib/__tests__/rate-limit-db.test.ts:235, src/lib/__tests__/rate-limit-db.test.ts:263",supabase.rpc,,yes
+get_species_options,1,src/hooks/useSpeciesOptions.ts:59,supabase.rpc,,yes
+get_venue_by_slug,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:93,supabase.rpc,,yes
+get_venue_past_events,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:389,supabase.rpc,,yes
+get_venue_photos,3,"src/pages/VenuesIndex.tsx:138, src/pages/venue-detail/hooks/useVenueDetailData.ts:269, src/pages/venue-owner-admin/components/VenuePhotosCard.tsx:70",supabase.rpc,,yes
+get_venue_recent_catches,2,"src/pages/VenuesIndex.tsx:153, src/pages/venue-detail/hooks/useVenueDetailData.ts:353",supabase.rpc,,yes
+get_venue_top_anglers,0,,,not found in code,no
+get_venue_top_catches,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:308,supabase.rpc,,yes
+get_venue_upcoming_events,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:250,supabase.rpc,,yes
+get_venues,1,src/pages/VenuesIndex.tsx:90,supabase.rpc,,yes
+handle_catches_leaderboard_change,0,,,not found in code,no
+handle_new_user,0,,,not found in code,no
+handle_ratings_leaderboard_change,0,,,not found in code,no
+insights_format_label,0,,,not found in code,no
+is_admin,0,,,not found in code,no
+is_blocked_either_way,0,,,not found in code,no
+is_following,0,,,not found in code,no
+is_venue_admin_or_owner,0,,,not found in code,no
+notify_admins_for_report,1,src/lib/notifications.ts:126,supabase.rpc,,yes
+owner_add_venue_photo,0,,,not found in code,no
+owner_create_venue_event,1,src/pages/MyVenueEdit.tsx:758,supabase.rpc,,yes
+owner_create_venue_opening_hour,0,,,not found in code,no
+owner_create_venue_pricing_tier,0,,,not found in code,no
+owner_create_venue_species_stock,0,,,not found in code,no
+owner_delete_venue_event,1,src/pages/MyVenueEdit.tsx:797,supabase.rpc,,yes
+owner_delete_venue_opening_hour,0,,,not found in code,no
+owner_delete_venue_photo,0,,,not found in code,no
+owner_delete_venue_pricing_tier,0,,,not found in code,no
+owner_delete_venue_species_stock,0,,,not found in code,no
+owner_get_venue_by_slug,2,"src/pages/MyVenueEdit.tsx:400, src/pages/MyVenueEdit.tsx:643",supabase.rpc,,yes
+owner_get_venue_events,3,"src/pages/MyVenueEdit.tsx:495, src/pages/MyVenueEdit.tsx:777, src/pages/MyVenueEdit.tsx:804",supabase.rpc,,yes
+owner_set_venue_photo_primary,0,,,not found in code,no
+owner_update_venue_booking,0,,,not found in code,no
+owner_update_venue_event,1,src/pages/MyVenueEdit.tsx:739,supabase.rpc,,yes
+owner_update_venue_metadata,1,src/pages/MyVenueEdit.tsx:631,supabase.rpc,,yes
+owner_update_venue_opening_hour,0,,,not found in code,no
+owner_update_venue_pricing_tier,0,,,not found in code,no
+owner_update_venue_rules,0,,,not found in code,no
+owner_update_venue_species_stock,0,,,not found in code,no
+rate_catch_with_rate_limit,1,src/hooks/useCatchInteractions.ts:130,supabase.rpc,,yes
+react_to_catch_with_rate_limit,1,src/hooks/useCatchInteractions.ts:111,supabase.rpc,,yes
+refresh_leaderboard_precompute,0,,,not found in code,no
+request_account_deletion,1,src/pages/ProfileSettings.tsx:346,supabase.rpc,,yes
+request_account_export,1,src/pages/ProfileSettings.tsx:289,supabase.rpc,,yes
+set_comment_admin_author,0,,,not found in code,no
+set_updated_at,0,,,not found in code,no
+soft_delete_comment,1,src/components/CatchComments.tsx:414,supabase.rpc,,yes
+unblock_profile,2,"src/pages/ProfileSettings.tsx:374, src/pages/profile/hooks/useProfileData.ts:303",supabase.rpc,,yes
+upsert_venue_rating,1,src/pages/venue-detail/hooks/useVenueDetailData.ts:522,supabase.rpc,,yes
+user_rate_limits,3,"src/lib/__tests__/rate-limit-db.test.ts:282, src/lib/__tests__/rate-limit-db.test.ts:314, src/lib/__tests__/rate-limit-db.test.ts:353",supabase.rpc,,yes
